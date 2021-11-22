@@ -1,29 +1,54 @@
 import { readdirSync, existsSync } from 'fs';
-import { Button, Command, SelectMenu } from 'src/typings';
+import { Button, Collection, Command, SelectMenu } from 'src/typings';
 import { Sucrose } from './sucrose';
-import { prod } from '../secret.json';
+import { CommandManager } from './commands';
 
+import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
-export class Interactions {
-  public commands: { global: Map<string, Command>; guilds: Map<string, Map<string, Command>> } = { global: new Map(), guilds: new Map() };
-  public buttons: Map<string, Button> = new Map();
-  public select_menus: Map<string, SelectMenu> = new Map();
+export class InteractionManager {
+  public commands: CommandManager;
+  public buttons: Collection<Button> = new Map();
+  public select_menus: Collection<SelectMenu> = new Map();
 
   public sucrose: Sucrose;
 
   public constructor(sucrose: Sucrose) {
     this.sucrose = sucrose;
 
-    // Load interactions
-    if (existsSync(`./${dir}/commands`)) readdirSync(`./${dir}/commands`).forEach(async (file) => this.load({ command: await import(`../commands/${file}`) }, file));
-    if (existsSync(`./${dir}/buttons`)) readdirSync(`./${dir}/buttons`).forEach(async (file) => this.load({ button: await import(`../buttons/${file}`) }, file));
-    if (existsSync(`./${dir}/select_menus`)) readdirSync(`./${dir}/select_menus`).forEach(async (file) => this.load({ select_menu: await import(`../select_menus/${file}`) }, file));
+    this.commands = new CommandManager(sucrose); // New commands manager
 
     // Listen interactionCreate event
-    sucrose.on('interactionCreate', (interaction) => {
+    sucrose.on('interactionCreate', async (interaction) => {
       if (interaction.isCommand() || interaction.isContextMenu()) {
-        console.log('command');
+        const name = interaction.commandName; // Get command name
+        if (interaction.guild) {
+          console.log(name);
+
+          const guild_commands = this.commands.collection.get(interaction.guildId); // Get guild commands if exist
+          const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.collection.get(name) : this.commands.collection.get(name); // Get command if exist
+
+          console.log(guild_commands);
+
+          if (!command || command instanceof Map) return; // return if command don't exist or if command is Map
+
+          // Permissions
+          if (command.permissions) {
+            /**
+             * Ajouter l'immunité de certains rôles, de certains users, certaines guildes et de certains channels
+             * Ajouter les messages d'erreurs customisable
+             */
+            if (command.permissions.client && !interaction.guild.me?.permissions.missing(command.permissions.client).length) return;
+            if (command.permissions.user && !(await interaction.guild.members.fetch(interaction.user.id)).permissions.missing(command.permissions.user).length) return;
+          }
+
+          command.exec({ sucrose, interaction });
+        } else {
+          const command = this.commands.collection.get(name);
+          if (!command || command instanceof Map) return; // return if command don't exist or if command is Map
+
+          command.exec({ sucrose, interaction });
+        }
       } else if (interaction.isButton()) {
         console.log('button');
       } else if (interaction.isSelectMenu()) {
@@ -32,33 +57,22 @@ export class Interactions {
     });
   }
 
-  public load(interactions: { command?: Command; button?: Button; select_menu?: SelectMenu }, file: string): void {
-    if (interactions.command) {
-      // COMMAND
+  /**
+   * Build interactions manager
+   */
+  public async build(): Promise<void> {
+    // Build buttons
+    if (existsSync(`./${dir}/buttons`)) for await (const file of readdirSync(`./${dir}/buttons`)) this.load({ button: await import(`../buttons/${file}`) }, file);
 
-      const command = interactions.command;
+    // Build select menus
+    if (existsSync(`./${dir}/select_menus`)) for await (const file of readdirSync(`./${dir}/select_menus`)) this.load({ select_menu: await import(`../select_menus/${file}`) }, file);
 
-      if (!command.body) throw Error(`[Sucrose] command in "${file}" :: missing body`);
-      if (!command.body.name) throw Error(`[Sucrose] command in "${file}" :: missing body.name`);
+    // Build commands manager
+    await this.commands.build();
+  }
 
-      // Global command
-      if (command.options?.global) {
-        if (this.commands.global.has(command.body.name)) throw Error(`[Sucrose] command in "${file}" :: duplicate global command`);
-        this.commands.global.set(command.body.name, command);
-      }
-
-      // Guild(s) command
-      if (command.options?.guilds?.length) {
-        command.options.guilds.forEach((guild) => {
-          const guild_commands = this.commands.guilds.get(guild) || this.commands.guilds.set(guild, new Map()).get(guild);
-
-          if (guild_commands instanceof Map) {
-            if (guild_commands.has(command.body.name)) throw Error(`[Sucrose] command in "${file}" :: duplicate guild ("${guild}") command`);
-            guild_commands.set(command.body.name, command);
-          }
-        });
-      }
-    } else if (interactions.button) {
+  private load(interactions: { button?: Button; select_menu?: SelectMenu }, file: string): void {
+    if (interactions.button) {
       // BUTTON
       const button = interactions.button;
 

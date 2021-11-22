@@ -1,40 +1,36 @@
-import Discord, {
-  ApplicationCommandData,
-  ButtonInteraction,
-  ClientEvents,
-  CommandInteraction,
-  MessageButton,
-  MessageButtonOptions,
-  MessageSelectMenu,
-  MessageSelectMenuOptions,
-  PermissionResolvable,
-  SelectMenuInteraction,
-} from 'discord.js';
+import Discord from 'discord.js';
 import { Sucrose } from 'src/structures/sucrose';
 
-// Events
-export type Params<K extends keyof ClientEvents> = { sucrose: Sucrose; args: ClientEvents[K] };
+export type Collection<V> = Map<string, V>;
+
+/* == Events */
+type BaseParams = { sucrose: Sucrose };
+
+export type Params<K extends keyof ClientEvents> = BaseParams & { args: ClientEvents[K] };
+
 export interface __event<K extends keyof ClientEvents> {
   listener: (params: Params[K]) => void;
 }
 
-// Interactions
+/* == Interactions */
 interface BaseInteraction {
-  permissions?: { client?: PermissionResolvable; user?: PermissionResolvable };
+  permissions?: { client?: Discord.PermissionResolvable; user?: Discord.PermissionResolvable };
 }
 
 export type Command = BaseInteraction & {
   options?: { global?: boolean; guilds?: string[] };
-  body: ApplicationCommandData;
-  exec: (params: Params<'interactionCreate'> & { args: [interaction: CommandInteraction] }) => void;
+  body: Discord.ApplicationCommandData;
+  exec: (params: BaseParams & { interaction: Discord.CommandInteraction | Discord.ContextMenuInteraction }) => void;
+
+  path?: string; // Automaticely added, this is path of command
 };
 
 export type Button = BaseInteraction & {
-  data: MessageButton | (MessageButtonOptions & { customId: string });
-  exec: (params: Params<'interactionCreate'> & { args: [interaction: ButtonInteraction] }) => void;
+  data: Discord.MessageButton | (Discord.MessageButtonOptions & { customId: string });
+  exec: (params: Params<'interactionCreate'> & { args: [interaction: Discord.ButtonInteraction] }) => void;
 };
 
 export type SelectMenu = BaseInteraction & {
-  data: MessageSelectMenu | (MessageSelectMenuOptions & { customId: string });
-  exec: (params: Params<'interactionCreate'> & { args: [interaction: SelectMenuInteraction] }) => void;
+  data: Discord.MessageSelectMenu | (Discord.MessageSelectMenuOptions & { customId: string });
+  exec: (params: Params<'interactionCreate'> & { args: [interaction: Discord.SelectMenuInteraction] }) => void;
 };

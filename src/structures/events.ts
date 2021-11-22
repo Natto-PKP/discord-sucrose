@@ -2,29 +2,44 @@ import { ClientEvents } from 'discord.js';
 import { __event } from '../typings/index';
 
 import { readdirSync, existsSync } from 'fs';
-import { prod } from '../secret.json';
 import { Sucrose } from './sucrose';
 
+import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
-class Event {
-  public name: keyof ClientEvents;
+// Event manager
+class Event<K> {
+  private name: keyof ClientEvents;
+  private sucrose: Sucrose;
+  private base: { sucrose: Sucrose };
 
-  public constructor(name: keyof ClientEvents) {
+  public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
     if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw Error(`[Sucrose] typescript file named "handler.${ext}" is missing in ${name} event folder`);
 
+    this.sucrose = params.sucrose;
     this.name = name;
+
+    this.base = { sucrose: params.sucrose };
   }
 
-  public refresh(): void {
+  public async build<K extends keyof ClientEvents>(): Promise<void> {
+    const content: __event<K> = await import(`../events/${this.name}/handler.${ext}`);
+    this.sucrose.on(this.name, (...args) => content.listener({ ...this.base, args }));
+  }
+
+  public async refresh(): Promise<void> {
+    this.sucrose.removeAllListeners(this.name);
     delete require.cache[require.resolve(`../events/${this.name}/handler.${ext}`)];
+    await this.build();
   }
 }
 
+// Events manager
 export class Events {
-  public collection: Map<keyof ClientEvents, Event> = new Map();
-  public sucrose: Sucrose;
-  private base: { sucrose: Sucrose };
+  public collection: Map<keyof ClientEvents, Event<keyof ClientEvents>> = new Map();
+
+  private sucrose: Sucrose;
+  private options: { ignores?: Array<keyof ClientEvents> };
 
   /**
    * Events manager
@@ -33,38 +48,18 @@ export class Events {
    */
   public constructor(sucrose: Sucrose, options: { ignores?: Array<keyof ClientEvents> } = {}) {
     this.sucrose = sucrose;
+    this.options = options;
+  }
 
-    this.base = { sucrose }; // Base arguments for event
-
+  public async build(): Promise<void> {
     /* Build each event */
-    for (const name of readdirSync(`./${dir}/events`)) {
-      const event = name as keyof ClientEvents;
-      if (options.ignores?.includes(event)) continue; // Ignore if this event name is in ignores array
+    for await (const file of readdirSync(`./${dir}/events`)) {
+      const name = file as keyof ClientEvents;
+      if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
 
-      this.collection.set(event, new Event(event)); // Push event in events array
-      this.load(event); // Load this event
+      const event = new Event<typeof name>(name, { sucrose: this.sucrose }); // Create new event
+      this.collection.set(name, event); // Push event in events array
+      await event.build(); // Build this event
     }
-  }
-
-  /**
-   * Refresh all events
-   */
-  public refreshALL(): void {
-    this.collection.forEach((event) => event.refresh());
-  }
-
-  /**
-   * Load a event
-   * @param name
-   */
-  private load<K extends keyof ClientEvents>(name: keyof ClientEvents): void {
-    const event = this.collection.get(name);
-
-    if (event) {
-      this.sucrose.on(name, async (...args) => {
-        const content: __event<K> = await import(`../events/${name}/handler.${ext}`);
-        content.listener({ ...this.base, args });
-      });
-    } else throw Error(`[Sucrose] event "${name}" is not register be Events manager`);
   }
 }

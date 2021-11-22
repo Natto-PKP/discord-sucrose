@@ -1,4 +1,4 @@
-import { Command, Params } from 'src/typings';
+import { Command } from 'src/typings';
 
 export = <Command>{
   options: { global: true },
@@ -7,7 +7,7 @@ export = <Command>{
     description: 'test command',
   },
 
-  exec: ({ args: [interaction] }) => {
-    interaction; // Pas fini
+  exec: ({ interaction }) => {
+    interaction.reply('Hello world !');
   },
 };
