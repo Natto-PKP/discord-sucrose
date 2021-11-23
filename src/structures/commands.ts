@@ -51,7 +51,7 @@ export class CommandManager {
 
         if (!command.body) throw Error(`[Sucrose][Commands manager] command in "${target}/${file}" :: missing body`);
         if (!command.body.name) throw Error(`[Sucrose][Commands manager] command in "${target}/${file}" :: missing body.name`);
-        command.path = target;
+        command.path = target + '/' + file;
 
         commands.set(command.body.name, command);
       }
@@ -81,8 +81,6 @@ export class CommandManager {
 
       // Create all application command of commands in Discord API
       for await (const command of commands.values()) {
-        console.log(command);
-
         if (!command || command instanceof Map) throw TypeError('[Sucrose][Commands manager] command variable is not a Command');
         await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
       }

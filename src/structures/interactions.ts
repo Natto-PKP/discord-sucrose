@@ -1,10 +1,27 @@
 import { readdirSync, existsSync } from 'fs';
-import { Button, Collection, Command, SelectMenu } from 'src/typings';
+import { Button, Collection, SelectMenu } from 'src/typings';
+import { Interaction, PermissionResolvable } from 'discord.js';
+
 import { Sucrose } from './sucrose';
 import { CommandManager } from './commands';
 
 import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
+
+const checkPermissions = async (interaction: Interaction, permissions: { client?: PermissionResolvable; user?: PermissionResolvable }): Promise<boolean> => {
+  /**
+   * Ajouter l'immunité de certains rôles, de certains users, certaines guildes et de certains channels
+   * Ajouter les messages d'erreurs customisable
+   */
+
+  if (permissions.client && interaction.guild?.me?.permissions.missing(permissions.client).length) {
+    // send message
+    return false;
+  } else if (permissions.user && (await interaction.guild?.members.fetch(interaction.user.id))?.permissions.missing(permissions.user).length) {
+    // send message
+    return false;
+  } else return true;
+};
 
 export class InteractionManager {
   public commands: CommandManager;
@@ -23,24 +40,12 @@ export class InteractionManager {
       if (interaction.isCommand() || interaction.isContextMenu()) {
         const name = interaction.commandName; // Get command name
         if (interaction.guild) {
-          console.log(name);
-
           const guild_commands = this.commands.collection.get(interaction.guildId); // Get guild commands if exist
           const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.collection.get(name) : this.commands.collection.get(name); // Get command if exist
-
-          console.log(guild_commands);
-
           if (!command || command instanceof Map) return; // return if command don't exist or if command is Map
 
           // Permissions
-          if (command.permissions) {
-            /**
-             * Ajouter l'immunité de certains rôles, de certains users, certaines guildes et de certains channels
-             * Ajouter les messages d'erreurs customisable
-             */
-            if (command.permissions.client && !interaction.guild.me?.permissions.missing(command.permissions.client).length) return;
-            if (command.permissions.user && !(await interaction.guild.members.fetch(interaction.user.id)).permissions.missing(command.permissions.user).length) return;
-          }
+          if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return;
 
           command.exec({ sucrose, interaction });
         } else {
@@ -50,7 +55,13 @@ export class InteractionManager {
           command.exec({ sucrose, interaction });
         }
       } else if (interaction.isButton()) {
-        console.log('button');
+        const button = this.buttons.get(interaction.customId);
+        if (!button || button instanceof Map) return;
+
+        // Permissions
+        if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return;
+
+        button.exec({ sucrose, interaction });
       } else if (interaction.isSelectMenu()) {
         console.log('selectmenu');
       }

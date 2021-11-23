@@ -27,10 +27,10 @@ export type Command = BaseInteraction & {
 
 export type Button = BaseInteraction & {
   data: Discord.MessageButton | (Discord.MessageButtonOptions & { customId: string });
-  exec: (params: Params<'interactionCreate'> & { args: [interaction: Discord.ButtonInteraction] }) => void;
+  exec: (params: BaseParams & { interaction: Discord.ButtonInteraction }) => void;
 };
 
 export type SelectMenu = BaseInteraction & {
   data: Discord.MessageSelectMenu | (Discord.MessageSelectMenuOptions & { customId: string });
-  exec: (params: Params<'interactionCreate'> & { args: [interaction: Discord.SelectMenuInteraction] }) => void;
+  exec: (params: BaseParams & { interaction: Discord.SelectMenuInteraction }) => void;
 };

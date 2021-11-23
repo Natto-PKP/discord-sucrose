@@ -6,7 +6,7 @@ const start = async (): Promise<void> => {
   await sucrose.build();
 
   /**
-   * Tester les commandes
+   * Tester les permissions des commandes
    * Faire et tester les buttons
    * Faire et tester les select menus
    */
