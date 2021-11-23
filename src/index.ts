@@ -6,9 +6,9 @@ const start = async (): Promise<void> => {
   await sucrose.build();
 
   /**
-   * Tester les permissions des commandes
    * Faire et tester les buttons
    * Faire et tester les select menus
+   * Finir les erreurs sur commands.ts et les faire sur les intactions, event et sucrose (Sur toute les boucles) (Voir pour faire une fonction)
    */
 
   // await sucrose.interactions.commands.create('*', '713172382042423352');

@@ -14,13 +14,20 @@ const checkPermissions = async (interaction: Interaction, permissions: { client?
    * Ajouter les messages d'erreurs customisable
    */
 
+  // Client permissions
   if (permissions.client && interaction.guild?.me?.permissions.missing(permissions.client).length) {
     // send message
     return false;
-  } else if (permissions.user && (await interaction.guild?.members.fetch(interaction.user.id))?.permissions.missing(permissions.user).length) {
-    // send message
-    return false;
-  } else return true;
+  } else if (permissions.user) {
+    // Member permissions
+    const member = await interaction.guild?.members.fetch(interaction.user.id);
+    if (!member || member.permissions.missing(permissions.user).length) {
+      // send message
+      return false;
+    }
+  }
+
+  return true;
 };
 
 export class InteractionManager {

@@ -1,7 +1,8 @@
 import { readdirSync, existsSync, lstatSync } from 'fs';
-import Discord, { ApplicationCommand, ApplicationCommandResolvable, GuildResolvable, Snowflake } from 'discord.js';
-import { Command, Collection } from 'src/typings';
+import Discord, { ApplicationCommand, Snowflake } from 'discord.js';
+import { Command, Collection } from '../typings/index';
 import { Sucrose } from './sucrose';
+import { SucroseError } from './errors';
 import { prod } from '../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
@@ -20,6 +21,7 @@ export class CommandManager {
    * Build commands manager
    */
   public async build(): Promise<void> {
+    // Faire erreurs handler ici
     if (existsSync(`./${dir}/commands`)) for await (const file of readdirSync(`./${dir}/commands`)) await this.load(file);
   }
 
@@ -35,25 +37,36 @@ export class CommandManager {
     if (lstatSync(`./${dir}/commands/${target}`).isFile() && target.endsWith(`.${ext}`)) {
       const command: Command = await import(`../commands/${target}`);
 
-      if (!command.body) throw Error(`[Sucrose][Commands manager] command in "${target}" :: missing body`);
-      if (!command.body.name) throw Error(`[Sucrose][Commands manager] command in "${target}" :: missing body.name`);
+      if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
+      if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
       command.path = target;
 
       this.collection.set(command.body.name, command);
     } else if (lstatSync(`./${dir}/commands/${target}`).isDirectory()) {
       const files = readdirSync(`./${dir}/commands/${target}`).filter((file) => lstatSync(`./${dir}/commands/${target}/${file}`).isFile() && file.endsWith(`.${ext}`));
 
-      if (!files.length) throw Error(`[Sucrose][Commands manager] a guild commands folder (${target}) is empty`);
+      if (!files.length) throw new SucroseError('COMMAND_FOLDER_GUILD_EMPTY', { section: 'COMMAND_MANAGER' });
       const commands: Collection<Command> = new Map();
 
+      // Multiples errors handler
+      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+
       for await (const file of files) {
-        const command: Command = await import(`../commands/${target}/${file}`);
+        errors.index++;
 
-        if (!command.body) throw Error(`[Sucrose][Commands manager] command in "${target}/${file}" :: missing body`);
-        if (!command.body.name) throw Error(`[Sucrose][Commands manager] command in "${target}/${file}" :: missing body.name`);
-        command.path = target + '/' + file;
+        try {
+          const command: Command = await import(`../commands/${target}/${file}`);
+          if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
+          if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
+          command.path = target + '/' + file;
 
-        commands.set(command.body.name, command);
+          commands.set(command.body.name, command);
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${target}/${file}` });
+            if (files.length === errors.index) throw console.table(errors.array);
+          }
+        }
       }
 
       this.collection.set(target, commands);
@@ -73,21 +86,33 @@ export class CommandManager {
    */
   public async create(name: string, guildId?: string): Promise<void> {
     const commands = guildId ? this.collection.get(guildId) : this.collection;
-    if (!(commands instanceof Map)) throw Error(`[Sucrose][Commands manager] guild (${guildId}) commands collection does not exist`);
+    if (!(commands instanceof Map)) throw new SucroseError('COMMAND_COLLECTION_NOT_EXIST', { section: 'COMMAND_MANAGER' });
 
     if (name === '*') {
       // Reset application commands
       await (guildId ? this.sucrose.application?.commands.set([], guildId) : this.sucrose.application?.commands.set([]));
 
+      // Multiples errors handler
+      const errors: { array: { name: string; message: string }[]; index: number } = { array: [], index: 0 };
+
       // Create all application command of commands in Discord API
       for await (const command of commands.values()) {
-        if (!command || command instanceof Map) throw TypeError('[Sucrose][Commands manager] command variable is not a Command');
-        await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
+        errors.index++;
+
+        try {
+          if (!command || command instanceof Map) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
+          await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.array.push({ name: error.name, message: error.message });
+            if (commands.size === errors.index) throw console.table(errors.array);
+          }
+        }
       }
     } else {
       // Create a command in Discord API
       const command = commands.get(name);
-      if (!command || command instanceof Map) throw TypeError('[Sucrose][Commands manager] command variable is not a Command');
+      if (!command || command instanceof Map) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
 
       await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
     }
@@ -101,7 +126,7 @@ export class CommandManager {
    */
   public async delete(commandId: string, guildId?: string): Promise<void> {
     const command = await this.fetch({ commandId, guildId });
-    if (!command || command instanceof Map) throw TypeError(`[Sucrose][Commands manager] command "${commandId}"${guildId ? ` in guild ${guildId} ` : ' '} is not in Discord API`);
+    if (!command || command instanceof Map) throw new SucroseError('COMMAND_NOT_EXIST_ON_API', { section: 'COMMAND_MANAGER' });
     await command.delete();
   }
 
