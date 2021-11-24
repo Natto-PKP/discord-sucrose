@@ -8,7 +8,7 @@ import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
 // Event manager
-class Event<K> {
+class Event {
   private name: keyof ClientEvents;
   private sucrose: Sucrose;
   private base: { sucrose: Sucrose };
@@ -36,7 +36,7 @@ class Event<K> {
 
 // Events manager
 export class Events {
-  public collection: Map<keyof ClientEvents, Event<keyof ClientEvents>> = new Map();
+  public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
   private options: { ignores?: Array<keyof ClientEvents> };
@@ -51,15 +51,31 @@ export class Events {
     this.options = options;
   }
 
+  /**
+   * Build each events
+   * @async
+   */
   public async build(): Promise<void> {
-    /* Build each event */
-    for await (const file of readdirSync(`./${dir}/events`)) {
-      const name = file as keyof ClientEvents;
-      if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+    const files = readdirSync(`./${dir}/events`);
 
-      const event = new Event<typeof name>(name, { sucrose: this.sucrose }); // Create new event
-      this.collection.set(name, event); // Push event in events array
-      await event.build(); // Build this event
+    // Multiples errors handler
+    const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+    for await (const file of files) {
+      errors.index++;
+
+      try {
+        const name = file as keyof ClientEvents;
+        if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+
+        const event = new Event(name, { sucrose: this.sucrose }); // Create new event
+        this.collection.set(name, event); // Push event in events array
+        await event.build(); // Build this event
+      } catch (error) {
+        if (error instanceof Error) {
+          errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
+          if (files.length === errors.index) throw console.table(errors.array);
+        }
+      }
     }
   }
 }

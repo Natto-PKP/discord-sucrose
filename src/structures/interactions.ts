@@ -80,10 +80,40 @@ export class InteractionManager {
    */
   public async build(): Promise<void> {
     // Build buttons
-    if (existsSync(`./${dir}/buttons`)) for await (const file of readdirSync(`./${dir}/buttons`)) this.load({ button: await import(`../buttons/${file}`) }, file);
+    if (existsSync(`./${dir}/buttons`)) {
+      // Multiples errors handler
+      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+      const files = readdirSync(`./${dir}/buttons`);
+
+      for await (const file of files) {
+        try {
+          this.load({ button: await import(`../buttons/${file}`) }, file);
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
+            if (files.length === errors.index) throw console.table(errors.array);
+          }
+        }
+      }
+    }
 
     // Build select menus
-    if (existsSync(`./${dir}/select_menus`)) for await (const file of readdirSync(`./${dir}/select_menus`)) this.load({ select_menu: await import(`../select_menus/${file}`) }, file);
+    if (existsSync(`./${dir}/select_menus`)) {
+      // Multiples errors handler
+      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+      const files = readdirSync(`./${dir}/select_menus`);
+
+      for await (const file of files) {
+        try {
+          this.load({ select_menu: await import(`../select_menus/${file}`) }, file);
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
+            if (files.length === errors.index) throw console.table(errors.array);
+          }
+        }
+      }
+    }
 
     // Build commands manager
     await this.commands.build();
