@@ -25,12 +25,19 @@ export type Command = BaseInteraction & {
   path?: string; // Automaticely added, this is path of command
 };
 
-export type Button = BaseInteraction & {
-  data: Discord.MessageButton | (Discord.MessageButtonOptions & { customId: string });
+type ButtonTypes = 'link' | 'base';
+
+interface ButtonData {
+  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
+  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
+}
+
+export type Button<T extends ButtonTypes> = BaseInteraction & {
+  data: ButtonData[T];
   exec: (params: BaseParams & { interaction: Discord.ButtonInteraction }) => void;
 };
 
 export type SelectMenu = BaseInteraction & {
-  data: Discord.MessageSelectMenu | (Discord.MessageSelectMenuOptions & { customId: string });
+  data: Required<Discord.BaseMessageComponentOptions> & Discord.MessageSelectMenuOptions;
   exec: (params: BaseParams & { interaction: Discord.SelectMenuInteraction }) => void;
 };

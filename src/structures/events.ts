@@ -1,20 +1,21 @@
 import { ClientEvents } from 'discord.js';
-import { __event } from '../typings/index';
-
 import { readdirSync, existsSync } from 'fs';
+
 import { Sucrose } from './sucrose';
+import { SucroseError } from './errors';
+import { __event } from '../typings/index';
 
 import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
 // Event manager
-class Event<K> {
+class Event {
   private name: keyof ClientEvents;
   private sucrose: Sucrose;
   private base: { sucrose: Sucrose };
 
   public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
-    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw Error(`[Sucrose] typescript file named "handler.${ext}" is missing in ${name} event folder`);
+    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('EVENT_MISSING_HANDLER', { section: 'EVENT_MANAGER' });
 
     this.sucrose = params.sucrose;
     this.name = name;
@@ -24,7 +25,12 @@ class Event<K> {
 
   public async build<K extends keyof ClientEvents>(): Promise<void> {
     const content: __event<K> = await import(`../events/${this.name}/handler.${ext}`);
-    this.sucrose.on(this.name, (...args) => content.listener({ ...this.base, args }));
+
+    this.sucrose.on(this.name, async (...args) => {
+      // Fetch client application
+      if (this.name === 'ready') await this.sucrose.application?.fetch();
+      content.listener({ ...this.base, args });
+    });
   }
 
   public async refresh(): Promise<void> {
@@ -36,7 +42,7 @@ class Event<K> {
 
 // Events manager
 export class Events {
-  public collection: Map<keyof ClientEvents, Event<keyof ClientEvents>> = new Map();
+  public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
   private options: { ignores?: Array<keyof ClientEvents> };
@@ -51,15 +57,31 @@ export class Events {
     this.options = options;
   }
 
+  /**
+   * Build each events
+   * @async
+   */
   public async build(): Promise<void> {
-    /* Build each event */
-    for await (const file of readdirSync(`./${dir}/events`)) {
-      const name = file as keyof ClientEvents;
-      if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+    const files = readdirSync(`./${dir}/events`);
 
-      const event = new Event<typeof name>(name, { sucrose: this.sucrose }); // Create new event
-      this.collection.set(name, event); // Push event in events array
-      await event.build(); // Build this event
+    // Multiples errors handler
+    const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+    for await (const file of files) {
+      errors.index++;
+
+      try {
+        const name = file as keyof ClientEvents;
+        if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+
+        const event = new Event(name, { sucrose: this.sucrose }); // Create new event
+        this.collection.set(name, event); // Push event in events array
+        await event.build(); // Build this event
+      } catch (error) {
+        if (error instanceof Error) {
+          errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
+          if (files.length === errors.index) throw console.table(errors.array);
+        }
+      }
     }
   }
 }

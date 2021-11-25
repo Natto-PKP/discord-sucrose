@@ -22,7 +22,24 @@ export class CommandManager {
    */
   public async build(): Promise<void> {
     // Faire erreurs handler ici
-    if (existsSync(`./${dir}/commands`)) for await (const file of readdirSync(`./${dir}/commands`)) await this.load(file);
+    if (existsSync(`./${dir}/commands`)) {
+      // Multiples errors handler
+      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+      const files = readdirSync(`./${dir}/commands`);
+
+      for await (const file of files) {
+        errors.index++;
+
+        try {
+          await this.load(file);
+        } catch (error) {
+          if (error instanceof Error) {
+            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
+            if (files.length === errors.index) throw console.table(errors.array);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -48,25 +65,13 @@ export class CommandManager {
       if (!files.length) throw new SucroseError('COMMAND_FOLDER_GUILD_EMPTY', { section: 'COMMAND_MANAGER' });
       const commands: Collection<Command> = new Map();
 
-      // Multiples errors handler
-      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
-
       for await (const file of files) {
-        errors.index++;
+        const command: Command = await import(`../commands/${target}/${file}`);
+        if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
+        if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
+        command.path = target + '/' + file;
 
-        try {
-          const command: Command = await import(`../commands/${target}/${file}`);
-          if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
-          if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
-          command.path = target + '/' + file;
-
-          commands.set(command.body.name, command);
-        } catch (error) {
-          if (error instanceof Error) {
-            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${target}/${file}` });
-            if (files.length === errors.index) throw console.table(errors.array);
-          }
-        }
+        commands.set(command.body.name, command);
       }
 
       this.collection.set(target, commands);
