@@ -10,7 +10,7 @@ const start = async (): Promise<void> => {
    * Faire et tester les select menus
    */
 
-  await sucrose.interactions.commands.create('*', '713172382042423352');
+  // await sucrose.interactions.commands.create('*', '713172382042423352');
 };
 
 start();

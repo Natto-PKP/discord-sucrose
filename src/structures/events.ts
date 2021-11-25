@@ -1,8 +1,9 @@
 import { ClientEvents } from 'discord.js';
-import { __event } from '../typings/index';
-
 import { readdirSync, existsSync } from 'fs';
+
 import { Sucrose } from './sucrose';
+import { SucroseError } from './errors';
+import { __event } from '../typings/index';
 
 import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
@@ -14,7 +15,7 @@ class Event {
   private base: { sucrose: Sucrose };
 
   public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
-    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw Error(`[Sucrose] typescript file named "handler.${ext}" is missing in ${name} event folder`);
+    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('EVENT_MISSING_HANDLER', { section: 'EVENT_MANAGER' });
 
     this.sucrose = params.sucrose;
     this.name = name;
