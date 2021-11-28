@@ -1,7 +1,6 @@
 import { Command } from 'src/typings';
 
-export = <Command>{
-  options: { global: true },
+export = <Command>{ 
   permissions: { user: ['ADMINISTRATOR'] },
 
   body: {
