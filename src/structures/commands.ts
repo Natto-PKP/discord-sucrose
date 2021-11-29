@@ -87,7 +87,7 @@ export class CommandManager {
    * commands.create('*') // reset and create all global commands
    * commands.create('*', '012345678912345678') // reset and create all commands of guild id (second param)
    * commands.create('hello') // create command hello
-   * commands.create('hello') // create command hello in guild id (second param)
+   * commands.create('hello', '012345678912345678') // create command hello in guild id (second param)
    */
   public async create(name: string, guildId?: string): Promise<void> {
     const commands = guildId ? this.collection.get(guildId) : this.collection;
@@ -131,7 +131,7 @@ export class CommandManager {
    */
   public async delete(commandId: string, guildId?: string): Promise<void> {
     const command = await this.fetch({ commandId, guildId });
-    if (!command || command instanceof Map) throw new SucroseError('COMMAND_NOT_EXIST_ON_API', { section: 'COMMAND_MANAGER' });
+    if (!(command instanceof ApplicationCommand)) throw new SucroseError('COMMAND_NOT_EXIST_ON_API', { section: 'COMMAND_MANAGER' });
     await command.delete();
   }
 
@@ -141,7 +141,11 @@ export class CommandManager {
    * @returns
    */
   public async fetch(options?: { commandId?: string; guildId?: string }): Promise<Discord.Collection<Snowflake, ApplicationCommand> | ApplicationCommand | undefined> {
-    if (!options?.commandId) return await (options?.guildId ? this.sucrose.application?.commands.fetch(undefined, { guildId: options.guildId }) : this.sucrose.application?.commands.fetch());
-    else return await (options.guildId ? this.sucrose.application?.commands.fetch(options.commandId, { guildId: options.guildId }) : this.sucrose.application?.commands.fetch(options.commandId));
+    if (options) {
+      if (options.guildId) {
+        const guild = await this.sucrose.guilds.fetch(options.guildId);
+        if (guild) return await (options.commandId ? guild.commands.fetch(options.commandId) : guild.commands.fetch());
+      } else return await this.sucrose.application?.commands.fetch(options.commandId);
+    } else return await this.sucrose.application?.commands.fetch();
   }
 }

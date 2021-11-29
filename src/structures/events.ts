@@ -25,12 +25,7 @@ class Event {
 
   public async build<K extends keyof ClientEvents>(): Promise<void> {
     const content: __event<K> = await import(`../events/${this.name}/handler.${ext}`);
-
-    this.sucrose.on(this.name, async (...args) => {
-      // Fetch client application
-      if (this.name === 'ready') await this.sucrose.application?.fetch();
-      content.listener({ ...this.base, args });
-    });
+    this.sucrose.on(this.name, async (...args) => content.listener({ ...this.base, args }));
   }
 
   public async refresh(): Promise<void> {
