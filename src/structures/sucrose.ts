@@ -18,6 +18,14 @@ export class Sucrose extends Client {
   }
 
   public async build(): Promise<void> {
+    await new Promise<void>(async (resolve, reject) => {
+      this.on('ready', async () => {
+        // Fetch application
+        const app = await this.application?.fetch();
+        app ? resolve() : reject();
+      });
+    });
+
     // Build sucrose manager
     await this.events.build();
     await this.interactions.build();

@@ -6,8 +6,6 @@ enum Sections {
 
 enum Codes {
   // === COMMAND
-  COMMAND_MISSING_BODY = 'command :: missing body',
-  COMMAND_MISSING_BODY_NAME = 'command :: missing body.name',
   COMMAND_FOLDER_GUILD_EMPTY = 'guild commands folder is empty',
   COMMAND_COLLECTION_NOT_EXIST = 'guild commands collection does not exist',
   COMMAND_NOT_EXIST_ON_API = 'command is not in Discord API',

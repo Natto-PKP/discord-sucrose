@@ -1,17 +1,19 @@
 import { readdirSync, existsSync, lstatSync } from 'fs';
 import Discord, { ApplicationCommand, Snowflake } from 'discord.js';
-import { Command, Collection } from '../typings/index';
+import { Collection, CommandData, CommandOptionData } from '../typings/index';
 import { Sucrose } from './sucrose';
 import { SucroseError } from './errors';
 import { prod } from '../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
+// Faire une méthode refresh pour remettre à jour les commandes
+
 export class CommandManager {
   // Global and Guilds commands collection
-  public collection: Collection<Command | Collection<Command>> = new Map();
-
-  public sucrose: Sucrose;
+  public global: Collection<CommandData> = new Map();
+  public guilds: Collection<Collection<CommandData>> = new Map();
+  private sucrose: Sucrose;
 
   public constructor(sucrose: Sucrose) {
     this.sucrose = sucrose;
@@ -21,21 +23,50 @@ export class CommandManager {
    * Build commands manager
    */
   public async build(): Promise<void> {
-    // Faire erreurs handler ici
     if (existsSync(`./${dir}/commands`)) {
-      // Multiples errors handler
-      const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
-      const files = readdirSync(`./${dir}/commands`);
+      /**
+       * Global commands
+       */
+      if (existsSync(`./${dir}/commands/global`)) {
+        const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+        const files = readdirSync(`./${dir}/commands/global`).filter((file) => lstatSync(`./${dir}/commands/global/${file}`).isFile() && file.endsWith(`.${ext}`));
 
-      for await (const file of files) {
-        errors.index++;
+        for await (const file of files) {
+          errors.index++;
 
-        try {
-          await this.load(file);
-        } catch (error) {
-          if (error instanceof Error) {
-            errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
-            if (files.length === errors.index) throw console.table(errors.array);
+          try {
+            await this.load(file);
+          } catch (error) {
+            if (error instanceof Error) {
+              errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/global/${file}` });
+              if (files.length === errors.index) throw console.table(errors.array);
+            }
+          }
+        }
+      }
+
+      /**
+       * Guilds commands
+       */
+      if (existsSync(`./${dir}/commands/guilds`)) {
+        const guilds = readdirSync(`./${dir}/commands/guilds`).filter((file) => lstatSync(`./${dir}/commands/guilds/${file}`).isDirectory());
+
+        for await (const guild of guilds) {
+          const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
+          const files = readdirSync(`./${dir}/commands/guilds/${guild}`).filter((file) => lstatSync(`./${dir}/commands/guilds/${guild}/${file}`).isFile() && file.endsWith(`.${ext}`));
+          this.guilds.set(guild, new Map());
+
+          for await (const file of files) {
+            errors.index++;
+
+            try {
+              await this.load(file, guild);
+            } catch (error) {
+              if (error instanceof Error) {
+                errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${guild}/${file}` });
+                if (files.length === errors.index) throw console.table(errors.array);
+              }
+            }
           }
         }
       }
@@ -48,34 +79,47 @@ export class CommandManager {
    * @param target
    * @async
    */
-  private async load(target: string): Promise<void> {
-    await this.sucrose.application?.fetch();
+  private async load(target: string, guildId?: string): Promise<void> {
+    const path = `commands/${guildId ? `guilds/${guildId}` : 'global'}`;
+    const command: CommandData = await import(`../${path}/${target}`);
+    command.path = target;
 
-    if (lstatSync(`./${dir}/commands/${target}`).isFile() && target.endsWith(`.${ext}`)) {
-      const command: Command = await import(`../commands/${target}`);
+    // Get sub commands group or sub commands
+    const sub_command_group_path = `${path}/${command.body.name}`;
 
-      if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
-      if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
-      command.path = target;
+    if ((!command.body.type || command.body.type === 'CHAT_INPUT') && existsSync(`./${dir}/${sub_command_group_path}`) && lstatSync(`./${dir}/${sub_command_group_path}`).isDirectory()) {
+      const sub_command_group_files = readdirSync(`./${dir}/${sub_command_group_path}`).filter((file) => lstatSync(`./${dir}/${sub_command_group_path}/${file}`).isFile() && file.endsWith(`.${ext}`));
+      command.body.options = [];
+      command.options = new Map();
 
-      this.collection.set(command.body.name, command);
-    } else if (lstatSync(`./${dir}/commands/${target}`).isDirectory()) {
-      const files = readdirSync(`./${dir}/commands/${target}`).filter((file) => lstatSync(`./${dir}/commands/${target}/${file}`).isFile() && file.endsWith(`.${ext}`));
+      for await (const sub_command_group_file of sub_command_group_files) {
+        const sub_command_group: CommandOptionData<'base'> = await import(`../${sub_command_group_path}/${sub_command_group_file}`);
 
-      if (!files.length) throw new SucroseError('COMMAND_FOLDER_GUILD_EMPTY', { section: 'COMMAND_MANAGER' });
-      const commands: Collection<Command> = new Map();
+        // Get sub commands
+        const sub_command_path = `${path}/${command.body.name}/${sub_command_group.option.name}`;
 
-      for await (const file of files) {
-        const command: Command = await import(`../commands/${target}/${file}`);
-        if (!command.body) throw new SucroseError('COMMAND_MISSING_BODY', { section: 'COMMAND_MANAGER' });
-        if (!command.body.name) throw new SucroseError('COMMAND_MISSING_BODY_NAME', { section: 'COMMAND_MANAGER' });
-        command.path = target + '/' + file;
+        if (sub_command_group.option.type === 'SUB_COMMAND_GROUP' && existsSync(`./${dir}/${sub_command_path}`) && lstatSync(`./${dir}/${sub_command_path}`).isDirectory()) {
+          const sub_command_files = readdirSync(`./${dir}/${sub_command_path}`).filter((file) => lstatSync(`./${dir}/${sub_command_path}/${file}`).isFile() && file.endsWith(`.${ext}`));
+          sub_command_group.option.options = [];
+          sub_command_group.options = new Map();
 
-        commands.set(command.body.name, command);
+          for await (const sub_command_file of sub_command_files) {
+            const sub_command: CommandOptionData<'sub'> = await import(`../${sub_command_path}/${sub_command_file}`);
+            sub_command_group.option.options.push(sub_command.option);
+            sub_command_group.options.set(sub_command.option.name, sub_command);
+          }
+        }
+
+        command.body.options.push(sub_command_group.option);
+        command.options.set(sub_command_group.option.name, sub_command_group);
       }
 
-      this.collection.set(target, commands);
+      console.log(command.body.options);
     }
+
+    const commands = guildId ? this.guilds.get(guildId) : this.global;
+    if (!commands) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
+    commands.set(command.body.name, command);
   }
 
   /**
@@ -90,22 +134,19 @@ export class CommandManager {
    * commands.create('hello', '012345678912345678') // create command hello in guild id (second param)
    */
   public async create(name: string, guildId?: string): Promise<void> {
-    const commands = guildId ? this.collection.get(guildId) : this.collection;
-    if (!(commands instanceof Map)) throw new SucroseError('COMMAND_COLLECTION_NOT_EXIST', { section: 'COMMAND_MANAGER' });
-
     if (name === '*') {
-      // Reset application commands
+      const commands = guildId ? this.guilds.get(guildId) : this.global;
+      if (!(commands instanceof Map)) throw new SucroseError('COMMAND_COLLECTION_NOT_EXIST', { section: 'COMMAND_MANAGER' });
+
       await (guildId ? this.sucrose.application?.commands.set([], guildId) : this.sucrose.application?.commands.set([]));
 
-      // Multiples errors handler
       const errors: { array: { name: string; message: string }[]; index: number } = { array: [], index: 0 };
 
-      // Create all application command of commands in Discord API
       for await (const command of commands.values()) {
         errors.index++;
 
         try {
-          if (!command || command instanceof Map) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
+          if (!command) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
           await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
         } catch (error) {
           if (error instanceof Error) {
@@ -115,9 +156,11 @@ export class CommandManager {
         }
       }
     } else {
-      // Create a command in Discord API
+      const commands = guildId ? this.guilds.get(guildId) : this.global;
+      if (!(commands instanceof Map)) throw new SucroseError('COMMAND_COLLECTION_NOT_EXIST', { section: 'COMMAND_MANAGER' });
+
       const command = commands.get(name);
-      if (!command || command instanceof Map) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
+      if (!command) throw new SucroseError('COMMAND_UKNOWN', { section: 'COMMAND_MANAGER' });
 
       await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
     }

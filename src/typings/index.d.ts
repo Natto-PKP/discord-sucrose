@@ -13,16 +13,38 @@ export interface __event<K extends keyof ClientEvents> {
 }
 
 /* == Interactions */
+export interface Permissions {
+  client?: Discord.PermissionResolvable;
+  user?: Discord.PermissionResolvable;
+}
+
 interface BaseInteraction {
-  permissions?: { client?: Discord.PermissionResolvable; user?: Discord.PermissionResolvable };
+  permissions?: Permissions;
 }
 
 export type Command = BaseInteraction & {
-  options?: { global?: boolean; guilds?: string[] };
   body: Discord.ApplicationCommandData;
   exec: (params: BaseParams & { interaction: Discord.CommandInteraction | Discord.ContextMenuInteraction }) => void;
+};
 
+export type CommandData = Command & {
+  options?: Collection<CommandOptionData>; // Automaticely added, this is array of command option
   path?: string; // Automaticely added, this is path of command
+};
+
+interface CommandOptionTypes {
+  base: Discord.ApplicationCommandOptionData;
+  sub: Discord.ApplicationCommandSubCommandData;
+}
+
+export type CommandOption = BaseInteraction & {
+  option: Discord.ApplicationCommandOptionData;
+  exec: (params: BaseParams & { interaction: Discord.CommandInteraction | Discord.ContextMenuInteraction }) => void;
+};
+
+export type CommandOptionData<T extends keyof CommandOptionTypes> = CommandOption & {
+  option: CommandOptionTypes[T];
+  options?: Collection<CommandOptionData>; // Automaticely added, this is array of command option
 };
 
 type ButtonTypes = 'link' | 'base';
