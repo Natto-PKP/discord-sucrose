@@ -4,11 +4,11 @@
 
 ## # Table of contents
 
-- [Config setup](#config-setup)
-- [Create event](#create-event)
-- [Create command](#create-command)
-- [Create button](#create-button)
-- [Create select menu](#create-selectmenu)
+- [Config setup](#-config-setup)
+- [Create event](#-create-event)
+- [Create command](#-create-command)
+- [Create button](#-create-button)
+- [Create select menu](#-create-selectmenu)
 
 ## # Config setup
 
