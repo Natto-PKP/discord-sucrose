@@ -2,10 +2,10 @@ import { readdirSync, existsSync } from 'fs';
 import { Button, Collection, CommandOptionData, Permissions, SelectMenu } from 'src/typings';
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
 
-import { Sucrose } from './sucrose';
+import { Sucrose } from '../structures/sucrose';
 import { CommandManager } from './commands';
-import { SucroseError } from './errors';
-import { interactions as contents } from './contents';
+import { SucroseError } from '../structures/errors';
+import { interactions as contents } from '../structures/contents';
 
 import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];

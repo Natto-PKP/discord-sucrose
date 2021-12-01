@@ -1,8 +1,8 @@
 import { readdirSync, existsSync, lstatSync } from 'fs';
 import Discord, { ApplicationCommand, Snowflake } from 'discord.js';
 import { Collection, CommandData, CommandOptionData } from '../typings/index';
-import { Sucrose } from './sucrose';
-import { SucroseError } from './errors';
+import { Sucrose } from '../structures/sucrose';
+import { SucroseError } from '../structures/errors';
 import { prod } from '../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];

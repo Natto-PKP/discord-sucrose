@@ -1,8 +1,8 @@
 import { ClientEvents } from 'discord.js';
 import { readdirSync, existsSync } from 'fs';
 
-import { Sucrose } from './sucrose';
-import { SucroseError } from './errors';
+import { Sucrose } from '../structures/sucrose';
+import { SucroseError } from '../structures/errors';
 import { __event } from '../typings/index';
 
 import { prod } from '../secret.json';

@@ -1,8 +1,8 @@
 import { Client, ClientOptions } from 'discord.js';
 import { token } from '../secret.json';
 
-import { Events } from './events';
-import { InteractionManager } from './interactions';
+import { Events } from '../managers/events';
+import { InteractionManager } from '../managers/interactions';
 
 export class Sucrose extends Client {
   public events: Events;
