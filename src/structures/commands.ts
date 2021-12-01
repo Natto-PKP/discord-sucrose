@@ -113,8 +113,6 @@ export class CommandManager {
         command.body.options.push(sub_command_group.option);
         command.options.set(sub_command_group.option.name, sub_command_group);
       }
-
-      console.log(command.body.options);
     }
 
     const commands = guildId ? this.guilds.get(guildId) : this.global;

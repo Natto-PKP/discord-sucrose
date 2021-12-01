@@ -10,6 +10,9 @@ import { interactions as contents } from './contents';
 import { prod } from '../secret.json';
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
+/**
+ * function for permissions check in a interaction
+ */
 const checkPermissions = async (interaction: CommandInteraction | ButtonInteraction | ContextMenuInteraction | SelectMenuInteraction, permissions: Permissions): Promise<true | void> => {
   if (!interaction.guild) return;
   /**
@@ -33,6 +36,9 @@ const checkPermissions = async (interaction: CommandInteraction | ButtonInteract
   } else return true;
 };
 
+/**
+ * Interactions manager and handler
+ */
 export class InteractionManager {
   public commands: CommandManager;
   public buttons: Collection<Button<'base' | 'link'>> = new Map();
@@ -45,13 +51,22 @@ export class InteractionManager {
 
     this.commands = new CommandManager(sucrose); // New commands manager
 
-    // Listen interactionCreate event
+    /**
+     * Listen interactionCreate event and handle interactions/commands
+     */
     sucrose.on('interactionCreate', async (interaction) => {
       if (interaction.isCommand() || interaction.isContextMenu()) {
+        /**
+         * Command handler
+         */
+
         const args = { sucrose, interaction }; // Command arguments
         const name = interaction.commandName; // Get command name
-
         if (interaction.guild) {
+          /**
+           * Guild & global command handler
+           */
+
           const guild_commands = this.commands.guilds.get(interaction.guildId); // Get guild commands if exist
           const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
           if (!command) return; // return if command don't exist or if command is Map
@@ -103,12 +118,20 @@ export class InteractionManager {
             } else command.exec(args);
           } else command.exec(args);
         } else {
+          /**
+           * Global command handler
+           */
+
           const command = this.commands.global.get(name);
           if (!command) return; // return if command don't exist or if command is Map
 
           command.exec(args);
         }
       } else if (interaction.isButton()) {
+        /**
+         * Buttons handler
+         */
+
         const button = this.buttons.get(interaction.customId);
         if (!button || button instanceof Map) return;
 
@@ -117,6 +140,10 @@ export class InteractionManager {
 
         button.exec({ sucrose, interaction });
       } else if (interaction.isSelectMenu()) {
+        /**
+         * Select_menus handler
+         */
+
         const select_menu = this.select_menus.get(interaction.customId);
         if (!select_menu || select_menu instanceof Map) return;
 
@@ -133,14 +160,14 @@ export class InteractionManager {
    */
   public async build(): Promise<void> {
     // Build buttons
-    if (existsSync(`./${dir}/buttons`)) {
+    if (existsSync(`./${dir}/interactions/buttons`)) {
       // Multiples errors handler
       const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
-      const files = readdirSync(`./${dir}/buttons`);
+      const files = readdirSync(`./${dir}/interactions/buttons`);
 
       for await (const file of files) {
         try {
-          this.load({ button: await import(`../buttons/${file}`) }, file);
+          this.load({ button: await import(`../interactions/buttons/${file}`) }, file);
         } catch (error) {
           if (error instanceof Error) {
             errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
@@ -151,14 +178,14 @@ export class InteractionManager {
     }
 
     // Build select menus
-    if (existsSync(`./${dir}/select_menus`)) {
+    if (existsSync(`./${dir}/interactions/select_menus`)) {
       // Multiples errors handler
       const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
-      const files = readdirSync(`./${dir}/select_menus`);
+      const files = readdirSync(`./${dir}/interactions/select_menus`);
 
       for await (const file of files) {
         try {
-          this.load({ select_menu: await import(`../select_menus/${file}`) }, file);
+          this.load({ select_menu: await import(`../interactions/select_menus/${file}`) }, file);
         } catch (error) {
           if (error instanceof Error) {
             errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
