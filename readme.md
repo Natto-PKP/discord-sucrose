@@ -1,5 +1,7 @@
 # Discord.js bot setup with typescript
 
+This is a Typescript Discord bot structure
+
 > I'm french but my english is bad, this readme contains only exemples to use Sucrose structure
 
 ## # Table of contents
@@ -29,14 +31,8 @@ _src/index.ts_
 ```ts
 import { Sucrose } from './structures/sucrose'; // Import bot structure
 
-// Define your discord.js client
-export const sucrose = new Sucrose({ intents: 14319, partials: ['CHANNEL'] });
-
-const start = async (): Promise<void> => {
-  await sucrose.build(); // Build your bots (events, interactions, etc...)
-};
-
-start(); // Launch bot
+// Create new Sucrose clien
+new Sucrose({ intents: 14319, partials: ['CHANNEL'] });
 ```
 
 ### Client is ready ?
