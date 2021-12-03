@@ -3,7 +3,7 @@ import { ClientEvents } from 'discord.js';
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
-import { Sucrose } from '../structures/sucrose';
+import { Sucrose } from '../sucrose';
 import { __event } from '../typings/index';
 
 /* Service */
@@ -11,7 +11,7 @@ import { SucroseError, Logger } from '../services/logger';
 import { ConsoleLoading, StringProgressBar } from '../services/util';
 
 /* Other */
-import { prod } from '../secret.json';
+import { prod } from '../../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
@@ -36,7 +36,7 @@ class Event {
    * Build this event
    */
   public async build<K extends keyof ClientEvents>(): Promise<void> {
-    const content: __event<K> = await import(`../events/${this.name}/handler.${ext}`);
+    const content: __event<K> = await import(`../../events/${this.name}/handler.${ext}`);
     this.sucrose.on(this.name, async (...args) => content.listener({ ...this.base, args }));
 
     // Emit the ready event

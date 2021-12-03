@@ -1,4 +1,4 @@
-import { CommandOption } from 'src/typings';
+import { CommandOption } from 'src/structures/typings';
 
 /**
  * If you need create other files for command options :

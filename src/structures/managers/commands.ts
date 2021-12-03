@@ -6,14 +6,14 @@ import Discord, { ApplicationCommand, Snowflake } from 'discord.js';
 import { Collection, CommandData, CommandOptionData } from '../typings/index';
 
 /* Structures */
-import { Sucrose } from '../structures/sucrose';
+import { Sucrose } from '../sucrose';
 
 /* Services */
 import { SucroseError, Logger } from '../services/logger';
 import { ConsoleLoading, StringProgressBar } from '../services/util';
 
 /* Other */
-import { prod } from '../secret.json';
+import { prod } from '../../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
@@ -132,7 +132,7 @@ export class CommandManager {
    */
   private async load(target: string, guildId?: string): Promise<void> {
     const path = `commands/${guildId ? `guilds/${guildId}` : 'global'}`; // Define path of command parent folder
-    const command: CommandData = await import(`../${path}/${target}`); // Import command
+    const command: CommandData = await import(`../../${path}/${target}`); // Import command
     command.path = target; // Defined file name in command object
 
     /**
@@ -152,7 +152,7 @@ export class CommandManager {
        */
       for await (const sub_command_group_file of sub_command_group_files) {
         // Import sub command group / sub command
-        const sub_command_group: CommandOptionData<'base'> = await import(`../${sub_command_group_path}/${sub_command_group_file}`);
+        const sub_command_group: CommandOptionData<'base'> = await import(`../../${sub_command_group_path}/${sub_command_group_file}`);
 
         const sub_command_path = `${path}/${command.body.name}/${sub_command_group.option.name}`; // Define sub command group / sub command path
 
@@ -172,7 +172,7 @@ export class CommandManager {
            */
           for await (const sub_command_file of sub_command_files) {
             // Import sub command
-            const sub_command: CommandOptionData<'sub'> = await import(`../${sub_command_path}/${sub_command_file}`);
+            const sub_command: CommandOptionData<'sub'> = await import(`../../${sub_command_path}/${sub_command_file}`);
 
             sub_command_group.option.options.push(sub_command.option); // Push subcommand option in subcommandgroup options
             sub_command_group.options.set(sub_command.option.name, sub_command); // Set subcommand in subcommandgroup

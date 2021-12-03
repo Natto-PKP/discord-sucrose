@@ -2,10 +2,10 @@
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
-import { Button, Collection, CommandOptionData, Permissions, SelectMenu } from 'src/typings';
+import { Button, Collection, CommandOptionData, Permissions, SelectMenu } from 'src/structures/typings';
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
-import { Sucrose } from '../structures/sucrose';
-import { interactions as contents } from '../structures/contents';
+import { Sucrose } from '../sucrose';
+import { interactions as contents } from '../contents';
 
 /* Service */
 import { SucroseError, Logger } from '../services/logger';
@@ -15,7 +15,7 @@ import { StringProgressBar, ConsoleLoading } from '../services/util';
 import { CommandManager } from './commands';
 
 /* Other */
-import { prod } from '../secret.json';
+import { prod } from '../../secret.json';
 
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
@@ -235,7 +235,7 @@ export class InteractionManager {
           cache.i++; // Increment button index in logger cache
 
           try {
-            const button = await import(`../interactions/buttons/${file}`); // Import button
+            const button = await import(`../../interactions/buttons/${file}`); // Import button
             this.load({ button }, file);
           } catch (error) {
             if (error instanceof Error) cache.errors.push(error);
@@ -272,7 +272,7 @@ export class InteractionManager {
           cache.i++;
 
           try {
-            const select_menu = await import(`../interactions/select_menus/${file}`);
+            const select_menu = await import(`../../interactions/select_menus/${file}`);
             this.load({ select_menu }, file);
           } catch (error) {
             if (error instanceof Error) cache.errors.push(error);

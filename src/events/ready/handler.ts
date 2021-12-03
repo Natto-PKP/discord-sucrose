@@ -1,4 +1,4 @@
-import { Params } from 'src/typings';
+import { Params } from 'src/structures/typings';
 
 export = {
   listener: ({ sucrose }: Params<'ready'>) => {

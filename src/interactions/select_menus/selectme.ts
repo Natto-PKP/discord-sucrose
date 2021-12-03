@@ -1,4 +1,4 @@
-import { SelectMenu } from 'src/typings';
+import { SelectMenu } from 'src/structures/typings';
 
 export = <SelectMenu>{
   data: {

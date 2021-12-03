@@ -2,11 +2,11 @@
 import { Client, ClientOptions } from 'discord.js';
 
 /* Services */
-import { Logger } from '../services/logger';
+import { Logger } from './services/logger';
 
 /* Managers */
-import { EventManager } from '../managers/events';
-import { InteractionManager } from '../managers/interactions';
+import { EventManager } from './managers/events';
+import { InteractionManager } from './managers/interactions';
 
 /* Others */
 import { token } from '../secret.json';

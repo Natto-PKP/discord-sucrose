@@ -1,4 +1,4 @@
-import { Button } from 'src/typings';
+import { Button } from 'src/structures/typings';
 
 export = <Button<'base'>>{
   data: {

@@ -1,6 +1,6 @@
-import { Command } from 'src/typings';
+import { Command } from 'src/structures/typings';
 
-export = <Command>{ 
+export = <Command>{
   permissions: { user: ['ADMINISTRATOR'] },
 
   body: {
