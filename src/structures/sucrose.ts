@@ -25,12 +25,14 @@ export class Sucrose extends Client {
     this.interactions = new InteractionManager(this); // Attach new InteractionManager
 
     this.login(token); // Connect bot application to Discord API
+
+    this.build(); // Build this client
   }
 
   /**
    * Build all managers
    */
-  public async build(): Promise<void> {
+  private async build(): Promise<void> {
     /**
      * Fetch client application
      */
