@@ -1,28 +1,40 @@
+/* Dependencies */
 import { ClientEvents } from 'discord.js';
 import { readdirSync, existsSync } from 'fs';
 
+/* Typing */
 import { Sucrose } from '../structures/sucrose';
-import { SucroseError } from '../structures/errors';
 import { __event } from '../typings/index';
 
+/* Service */
+import { SucroseError, Logger } from '../services/logger';
+import { ConsoleLoading, StringProgressBar } from '../services/util';
+
+/* Other */
 import { prod } from '../secret.json';
+
 const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
 
-// Event manager
+/**
+ * Event manager
+ */
 class Event {
   private name: keyof ClientEvents;
   private sucrose: Sucrose;
   private base: { sucrose: Sucrose };
 
   public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
-    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('EVENT_MISSING_HANDLER', { section: 'EVENT_MANAGER' });
+    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('ERROR', 'EVENT_MISSING_HANDLER', 'EVENT_MANAGER');
 
-    this.sucrose = params.sucrose;
-    this.name = name;
+    this.sucrose = params.sucrose; // Save sucrose client
+    this.name = name; // Save name of this event
 
-    this.base = { sucrose: params.sucrose };
+    this.base = { sucrose: params.sucrose }; // Base object to push in event listener
   }
 
+  /**
+   * Build this event
+   */
   public async build<K extends keyof ClientEvents>(): Promise<void> {
     const content: __event<K> = await import(`../events/${this.name}/handler.${ext}`);
     this.sucrose.on(this.name, async (...args) => content.listener({ ...this.base, args }));
@@ -32,17 +44,22 @@ class Event {
       const user = this.sucrose.user;
       if (user) this.sucrose.emit('ready', user.client);
     }
-  }
+  } // [end] Build this event
 
+  /**
+   * Refresh this event
+   */
   public async refresh(): Promise<void> {
-    this.sucrose.removeAllListeners(this.name);
-    delete require.cache[require.resolve(`../events/${this.name}/handler.${ext}`)];
-    await this.build();
-  }
+    this.sucrose.removeAllListeners(this.name); // Remove all listener of this event
+    delete require.cache[require.resolve(`../events/${this.name}/handler.${ext}`)]; // Remove file in node cache
+    await this.build(); // Rebuild this event
+  } // [end] Refresh this event
 }
 
-// Events manager
-export class Events {
+/**
+ * Event manager
+ */
+export class EventManager {
   public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
@@ -63,26 +80,35 @@ export class Events {
    * @async
    */
   public async build(): Promise<void> {
+    const cache: { errors: Error[]; i: number } = { errors: [], i: 0 };
     const files = readdirSync(`./${dir}/events`);
 
-    // Multiples errors handler
-    const errors: { array: { name: string; message: string; path: string }[]; index: number } = { array: [], index: 0 };
-    for await (const file of files) {
-      errors.index++;
+    if (files.length) {
+      const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} events processed`;
+      const loading = new ConsoleLoading(content()); // Start loading console line
 
-      try {
-        const name = file as keyof ClientEvents;
-        if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+      for await (const file of files) {
+        cache.i++; // Increment event index in logger cache
 
-        const event = new Event(name, { sucrose: this.sucrose }); // Create new event
-        this.collection.set(name, event); // Push event in events array
-        await event.build(); // Build this event
-      } catch (error) {
-        if (error instanceof Error) {
-          errors.array.push({ name: error.name, message: error.message, path: `./${dir}/commands/${file}` });
-          if (files.length === errors.index) throw console.table(errors.array);
+        try {
+          throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA', 'INTERACTION_MANAGER');
+          const name = file as keyof ClientEvents; // file is a keyof ClientEvents
+          if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
+
+          const event = new Event(name, { sucrose: this.sucrose }); // Create new event
+          this.collection.set(name, event); // Push event in events array
+          await event.build(); // Build this event
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
         }
+
+        loading.content = content(); // set new state in loading console line
       }
+
+      loading.clear(); // clear loading console line
+
+      if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of guilds commands section
+      Logger.log(`${files.length} events loaded`, 'EVENT_MANAGER');
     }
-  }
-}
+  } // [end] Build each events
+} // [end] Event manager

@@ -2,6 +2,6 @@ import { Params } from 'src/typings';
 
 export = {
   listener: ({ sucrose }: Params<'ready'>) => {
-    console.log(`${sucrose.user?.username} is online !`);
+    // console.log(`${sucrose.guilds.cache.size} guilds`);
   },
 };
