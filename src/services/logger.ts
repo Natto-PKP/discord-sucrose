@@ -15,76 +15,94 @@ type ErrorSection = keyof typeof ErrorSections;
 export class SucroseError extends Error {
   private _code: ErrorCode;
   private _type: ErrorType;
-  private _section: ErrorSection;
 
-  constructor(type: ErrorType, code: ErrorCode, section: ErrorSection) {
+  constructor(type: ErrorType, code: ErrorCode) {
     super(ErrorCodes[code]);
 
     this._type = type;
     this._code = code;
-    this._section = section;
   }
 
+  /**
+   * Get error code
+   */
   public get code(): ErrorCode {
     return this._code;
-  }
+  } // [end] Get error code
 
+  /**
+   * Get type code
+   */
   public get type(): ErrorType {
     return this._type;
-  }
-
-  public get section(): ErrorSection {
-    return this._section;
-  }
-}
+  } // [end] Get type code
+} // [end] Custom error
 
 /**
  * Create logger console
  */
 const console_logger_date = Date.now();
-const console_logger = new Console({ stdout: createWriteStream(`_logs/output-${console_logger_date}.log`), stderr: createWriteStream(`_logs/error-${console_logger_date}.log`) });
+const console_logger = new Console({ stdout: createWriteStream(`_logs/${console_logger_date}-output.log`), stderr: createWriteStream(`_logs/${console_logger_date}-error.log`) });
 
 /**
  * Logger
  */
-
 export class Logger {
   static console = console_logger;
 
+  /**
+   * Get current date to Logger format
+   */
   static get date(): string {
     const date = new Date();
     return `\x1b[47m\x1b[30m[${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}]\x1b[0m`;
   }
 
-  static table(errors: SucroseError[]): void {}
-
   /**
    * Manager multiple error
    * @param errors
    */
-  static handler(errors: Error[]): void {
+  static handler(errors: Error[], section?: ErrorSection): void {
     if (!errors.length) return;
 
+    // Split others commands to SucroseErrors
     let [sucrose_errors, other_errors]: [SucroseError[], Error[]] = [[], []];
     for (const error of errors) error instanceof SucroseError ? sucrose_errors.push(error) : other_errors.push(error);
+
+    // Sort SucroseErrors with code level
     const sucrose_errors_sorted = sucrose_errors.sort((a, b) => ErrorTypes[b.type] - ErrorTypes[a.type]);
 
+    /**
+     * If errors contains SucroseErrors
+     */
     if (sucrose_errors_sorted.length) {
+      /**
+       * Loop all SucroseErrors
+       */
       for (const error of sucrose_errors_sorted) {
         switch (error.type) {
-          case 'WARN':
-            Logger.warn(error);
+          case 'WARN': // if type is Warn
+            Logger.warn(error, section);
             break;
 
-          case 'ERROR':
-            Logger.error(error);
+          case 'ERROR': // if type is Error
+            Logger.error(error, section);
             break;
         }
-      }
-    }
+      } // [end] Loop all SucroseErrors
+    } // [end] If errors contains SucroseErrors
 
     for (const error of other_errors) Logger.error(error);
-  }
+  } // [end] Manager multiple error
+
+  /**
+   * Write in nodejs and logger console
+   * @param content
+   */
+  static write(content: string): void {
+    console.log(content);
+    Logger.console.log(content);
+  } // [end] Write in nodejs and logger console
 
   /**
    * Log a ... void
@@ -92,25 +110,14 @@ export class Logger {
   static blank(): void {
     console.log();
     this.console.log();
-  }
+  } // [end] Log a ... void
 
   /**
    * Log a separator
    */
   static separator(): void {
-    const seperator = '-----';
-    console.log(seperator);
-    Logger.console.log(seperator);
-  }
-
-  /**
-   * Log a info
-   * @param string
-   */
-  static info(content: string): void {
-    console.log(content);
-    Logger.console.log(content);
-  }
+    Logger.write('-----');
+  } // [end] Log a separator
 
   /**
    * Log a success log
@@ -118,10 +125,8 @@ export class Logger {
    */
   static success(content: string, section?: ErrorSection): void {
     const message = `${Logger.date} \x1b[32m✔ SUCCESS\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${content}`;
-
-    console.log(message);
-    Logger.console.log(message);
-  }
+    Logger.write(message);
+  } // [end] Log a success log
 
   /**
    * Log a log
@@ -129,34 +134,28 @@ export class Logger {
    */
   static log(content: string, section?: ErrorSection): void {
     const message = `${Logger.date} \x1b[34m🔎 LOG\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${content}`;
-
-    console.log(message);
-    Logger.console.log(message);
-  }
+    Logger.write(message);
+  } // [end] Log a log
 
   /**
    * Log a warn
    * @param error
    */
-  static warn(error: Error | string): void {
-    const section = error instanceof SucroseError ? error.section : null;
-    const message = `${Logger.date} \x1b[33m⚡ WARN\x1b[0m ${section ? ErrorSections[section] : ''} :: ${error instanceof Error ? error.message : error}`;
+  static warn(error: Error | string, section?: ErrorSection): void {
+    const message = `${Logger.date} \x1b[33m⚡ WARN\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${error instanceof Error ? error.message : error}`;
 
-    console.warn(message);
-    Logger.console.warn(message);
+    Logger.write(message);
     if (error instanceof Error && error.stack) Logger.console.error(error.stack);
-  }
+  } // [end] Log a warn
 
   /**
    * Log a error
    * @param error
    */
-  static error(error: Error): void {
-    const section = error instanceof SucroseError ? error.section : null;
-    const message = `${Logger.date} \x1b[31m💢 ERROR\x1b[0m ${section ? ErrorSections[section] : ''} :: ${error.message}`;
+  static error(error: Error, section?: ErrorSection): void {
+    const message = `${Logger.date} \x1b[31m💢 ERROR\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${error.message}`;
 
-    console.error(message);
-    Logger.console.error(message);
+    Logger.write(message);
     if (error.stack) Logger.console.error(error.stack);
-  }
-}
+  } // [end] Log a error
+} // [end] Logger

@@ -63,7 +63,7 @@ export class CommandManager {
 
           loading.clear(); // clear loading console line
 
-          if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of global commands section
+          if (cache.errors.length) throw cache.errors; // throw all errors of global commands section
           Logger.log(`${files.length} global commands loaded`, 'COMMAND_MANAGER');
         } // [end] If possible command file detected
       } // [end] Global commands
@@ -104,6 +104,7 @@ export class CommandManager {
                 cache.i++; // Increment command index of this guild in logger cache
 
                 try {
+                  throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA'); // TEST
                   await this.load(file, guild);
                 } catch (error) {
                   if (error instanceof Error) cache.errors.push(error); // Push error to logger cache
@@ -116,7 +117,7 @@ export class CommandManager {
 
             loading.clear(); // clear loading console line
 
-            if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of guilds commands section
+            if (cache.errors.length) throw cache.errors; // throw all errors of guilds commands section
             Logger.log(`${files.length} guilds commands loaded`, 'COMMAND_MANAGER');
           } // [end] Loop all guild folder
         } // [end] If possible guild folder detected
@@ -185,7 +186,7 @@ export class CommandManager {
     } // [end] Get sub commands group or sub commands
 
     const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
-    if (!commands) throw new SucroseError('WARN', 'COMMAND_COLLECTION_NOT_EXIST', 'COMMAND_MANAGER');
+    if (!commands) throw new SucroseError('ERROR', 'COMMAND_COLLECTION_NOT_EXIST');
     commands.set(command.body.name, command); // Set command with all option if exist in commands
   }
 
@@ -206,7 +207,7 @@ export class CommandManager {
      */
     if (name === '*') {
       const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
-      if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY', 'COMMAND_MANAGER');
+      if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
 
       // Reset commands in Discord API
       await (guildId ? this.sucrose.application?.commands.set([], guildId) : this.sucrose.application?.commands.set([]));
@@ -220,7 +221,7 @@ export class CommandManager {
         cache.i++;
 
         try {
-          if (!command) throw new SucroseError('ERROR', 'COMMAND_UKNOWN', 'COMMAND_MANAGER');
+          if (!command) throw new SucroseError('ERROR', 'COMMAND_UKNOWN');
 
           // Create command in Discord API
           await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
@@ -234,10 +235,10 @@ export class CommandManager {
        */
 
       const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
-      if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY', 'COMMAND_MANAGER');
+      if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
 
       const command = commands.get(name); // Get command
-      if (!command) throw new SucroseError('ERROR', 'COMMAND_UKNOWN', 'COMMAND_MANAGER');
+      if (!command) throw new SucroseError('ERROR', 'COMMAND_UKNOWN');
 
       // Create command in Discord API
       await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
@@ -252,7 +253,7 @@ export class CommandManager {
    */
   public async delete(commandId: string, guildId?: string): Promise<void> {
     const command = await this.fetch({ commandId, guildId }); // Fetch command in Discord API
-    if (!(command instanceof ApplicationCommand)) throw new SucroseError('ERROR', 'COMMAND_NOT_EXIST_ON_API', 'COMMAND_MANAGER');
+    if (!(command instanceof ApplicationCommand)) throw new SucroseError('ERROR', 'COMMAND_NOT_EXIST_ON_API');
     await command.delete(); // Delete command of Discord API
   }
 

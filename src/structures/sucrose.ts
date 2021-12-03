@@ -47,8 +47,8 @@ export class Sucrose extends Client {
       });
     }); // [end] Fetch client application
 
-    await this.events.build(); // Build events
-    await this.interactions.build(); // Build interactions
+    await this.events.build().catch((errors) => Logger.handler(errors, 'EVENT_MANAGER')); // Build events
+    await this.interactions.build().catch((errors) => Logger.handler(errors, 'INTERACTION_MANAGER')); // Build interactions
 
     Logger.blank();
     Logger.success(`${this.user?.tag} is online ! o7`);

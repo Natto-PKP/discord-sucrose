@@ -235,7 +235,6 @@ export class InteractionManager {
           cache.i++; // Increment button index in logger cache
 
           try {
-            throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA', 'INTERACTION_MANAGER');
             const button = await import(`../interactions/buttons/${file}`); // Import button
             this.load({ button }, file);
           } catch (error) {
@@ -247,7 +246,7 @@ export class InteractionManager {
 
         loading.clear(); // clear loading console line
 
-        if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of interaction section
+        if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
         Logger.log(`${files.length} buttons loaded`, 'INTERACTION_MANAGER');
       } // [end] If possible button file detected
     } // [end] Build buttons
@@ -284,12 +283,13 @@ export class InteractionManager {
 
         loading.clear(); // clear loading console line
 
-        if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of interaction section
+        if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
         Logger.log(`${files.length} select_menus loaded`, 'INTERACTION_MANAGER');
       } // [end] Loop all select_menus files
     } // [end] Build select menus
 
-    await this.commands.build(); // Build commands manager
+    // Build commands manager
+    await this.commands.build().catch((errors) => Logger.handler(errors, 'COMMAND_MANAGER'));
   } // [end] Build interactions manager
 
   /**
@@ -305,7 +305,7 @@ export class InteractionManager {
 
       const button = interactions.button; // Get button
 
-      if (!button.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA', 'INTERACTION_MANAGER');
+      if (!button.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
       button.data.type = 'BUTTON'; // Define interaction type to button data
 
       if ('customId' in button.data) {
@@ -313,14 +313,14 @@ export class InteractionManager {
          * If is classic button
          */
 
-        if (!button.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID', 'INTERACTION_MANAGER');
+        if (!button.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID');
         this.buttons.set(button.data.customId, button);
       } else if ('url' in button.data) {
         /**
          * If is url button
          */
 
-        if (!button.data.url) throw new SucroseError('ERROR', 'INTERACTION_MISSING_URL', 'INTERACTION_MANAGER');
+        if (!button.data.url) throw new SucroseError('ERROR', 'INTERACTION_MISSING_URL');
         button.data.style = 'LINK'; // Define style to url button
         this.buttons.set(button.data.url, button);
       }
@@ -333,8 +333,8 @@ export class InteractionManager {
 
       const select_menu = interactions.select_menu; // Get select_menu
 
-      if (!select_menu.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA', 'INTERACTION_MANAGER');
-      if (!select_menu.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID', 'INTERACTION_MANAGER');
+      if (!select_menu.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
+      if (!select_menu.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID');
       select_menu.data.type = 'SELECT_MENU'; // Defined intertaction type to select_menu data
 
       this.select_menus.set(select_menu.data.customId, select_menu);

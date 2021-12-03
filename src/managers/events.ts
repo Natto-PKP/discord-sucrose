@@ -24,7 +24,7 @@ class Event {
   private base: { sucrose: Sucrose };
 
   public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
-    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('ERROR', 'EVENT_MISSING_HANDLER', 'EVENT_MANAGER');
+    if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('ERROR', 'EVENT_MISSING_HANDLER');
 
     this.sucrose = params.sucrose; // Save sucrose client
     this.name = name; // Save name of this event
@@ -91,7 +91,7 @@ export class EventManager {
         cache.i++; // Increment event index in logger cache
 
         try {
-          throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA', 'INTERACTION_MANAGER');
+          throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
           const name = file as keyof ClientEvents; // file is a keyof ClientEvents
           if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
 
@@ -107,7 +107,7 @@ export class EventManager {
 
       loading.clear(); // clear loading console line
 
-      if (cache.errors.length) throw Logger.handler(cache.errors); // throw all errors of guilds commands section
+      if (cache.errors.length) throw cache.errors; // throw all errors of guilds commands section
       Logger.log(`${files.length} events loaded`, 'EVENT_MANAGER');
     }
   } // [end] Build each events
