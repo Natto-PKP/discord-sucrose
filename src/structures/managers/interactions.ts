@@ -14,10 +14,7 @@ import { StringProgressBar, ConsoleLoading } from '../services/util';
 /* Manager */
 import { CommandManager } from './commands';
 
-/* Other */
-import { prod } from '../../secret.json';
-
-const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
+const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
 
 /**
  * function for permissions check in a interaction

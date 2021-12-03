@@ -10,10 +10,7 @@ import { __event } from '../typings/index';
 import { SucroseError, Logger } from '../services/logger';
 import { ConsoleLoading, StringProgressBar } from '../services/util';
 
-/* Other */
-import { prod } from '../../secret.json';
-
-const [dir, ext] = prod ? ['dist', 'js'] : ['src', 'ts'];
+const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
 
 /**
  * Event manager
