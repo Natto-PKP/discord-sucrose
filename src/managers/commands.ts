@@ -104,7 +104,6 @@ export class CommandManager {
                 cache.i++; // Increment command index of this guild in logger cache
 
                 try {
-                  throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA'); // TEST
                   await this.load(file, guild);
                 } catch (error) {
                   if (error instanceof Error) cache.errors.push(error); // Push error to logger cache

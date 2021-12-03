@@ -91,7 +91,6 @@ export class EventManager {
         cache.i++; // Increment event index in logger cache
 
         try {
-          throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
           const name = file as keyof ClientEvents; // file is a keyof ClientEvents
           if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
 

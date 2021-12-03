@@ -1,5 +1,5 @@
 /* Dependencies */
-import { createWriteStream } from 'fs';
+import { createWriteStream, existsSync, lstatSync, mkdirSync } from 'fs';
 import { Console } from 'console';
 
 /* Enums */
@@ -41,8 +41,8 @@ export class SucroseError extends Error {
 /**
  * Create logger console
  */
-const console_logger_date = Date.now();
-const console_logger = new Console({ stdout: createWriteStream(`_logs/${console_logger_date}-output.log`), stderr: createWriteStream(`_logs/${console_logger_date}-error.log`) });
+if (!existsSync('./_logs') || !lstatSync('./_logs').isDirectory()) mkdirSync('./_logs');
+const console_logger = new Console({ stdout: createWriteStream('_logs/output.log'), stderr: createWriteStream('_logs/errors.log') });
 
 /**
  * Logger

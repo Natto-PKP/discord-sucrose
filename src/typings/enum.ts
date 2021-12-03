@@ -19,9 +19,9 @@ export enum ErrorCodes {
   COMMAND_UKNOWN = 'command variable is not a Command type',
 
   // === INTERACTION
-  INTERACTION_MISSING_DATA = 'missing data',
-  INTERACTION_MISSING_ID = 'missing data.customId',
-  INTERACTION_MISSING_URL = 'missing data.url',
+  INTERACTION_MISSING_DATA = 'missing data in a button/select_menu',
+  INTERACTION_MISSING_ID = 'missing data.customId in a button/select_menu',
+  INTERACTION_MISSING_URL = 'missing data.url in a button',
 
   // === EVENT
   EVENT_MISSING_HANDLER = 'handler file is missing in a event folder',
