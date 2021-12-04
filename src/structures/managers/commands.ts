@@ -14,8 +14,6 @@ import { ConsoleLoading, StringProgressBar } from '../services/util';
 
 const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
 
-// Faire une méthode refresh pour remettre à jour les commandes
-
 export class CommandManager {
   // Global and Guilds commands collection
   public global: Collection<CommandData> = new Map();
@@ -240,6 +238,22 @@ export class CommandManager {
       await (guildId ? this.sucrose.application?.commands.create(command.body, guildId) : this.sucrose.application?.commands.create(command.body));
     } // [end] Create a command
   }
+
+  /**
+   * refresh a command
+   * @param name
+   * @param guildId
+   */
+  public async refresh(name: string, guildId?: string): Promise<void> {
+    const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
+    if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
+
+    const command = commands.get(name); // Get command
+    if (!command || !command.path) throw new SucroseError('ERROR', 'COMMAND_UKNOWN');
+
+    commands.delete(name);
+    this.load(command.path, guildId);
+  } // [end] refresh a command
 
   /**
    * Delete a command in discord API
