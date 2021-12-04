@@ -20,8 +20,6 @@ _src/secret.json_
 
 ```json
 {
-  "prod": false, // true if your bot use javascript
-
   "token": "TOKEN" // https://discord.com/developers/applications
 }
 ```
