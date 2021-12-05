@@ -53,7 +53,6 @@ const checkPermissions = async (interaction: CommandInteraction | ButtonInteract
       return false;
     }
   } // [end] Member permissions
-
   return true;
 }; // [end] unction for permissions check in a interaction
 

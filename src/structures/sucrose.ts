@@ -33,6 +33,8 @@ export class Sucrose extends Client {
    * Build all managers
    */
   private async build(): Promise<void> {
+    const start = Date.now();
+
     /**
      * Fetch client application
      */
@@ -53,6 +55,6 @@ export class Sucrose extends Client {
     await this.interactions.build().catch((errors) => Logger.handler(errors, 'INTERACTION_MANAGER')); // Build interactions
 
     Logger.blank();
-    Logger.success(`${this.user?.tag} is online ! o7`);
+    Logger.success(`${this.user?.tag} is online ! o7 (${Date.now() - start} ms)`);
   } // [end] Build all managers
 } // [end] Sucrose client
