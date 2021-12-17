@@ -18,10 +18,9 @@ This is a Typescript Discord bot structure
 
 _src/secret.json_
 
-```json
-{
-  "token": "TOKEN" // https://discord.com/developers/applications
-}
+```bash
+# https://discord.com/developers/applications
+TOKEN="Your discord bot token"
 ```
 
 _src/index.ts_
@@ -44,7 +43,7 @@ export = {
   /**
    * event listener fonction
    */
-  listener: ({ sucrose }: Params<'ready'> /* Select your event in Params for autocompletion and better user experience */) => {
+  listener: ({ sucrose }: Params<'ready'> /* Select your event type */) => {
     // Code here
 
     console.log(`${sucrose.user?.username} is online !`);
@@ -54,15 +53,15 @@ export = {
 
 ### Run bot with typescript
 
-**Terminal** : `npm run start`
+**Terminal** : `npm start`
 
 This command execute index.ts
 
-### Run bot with compiled javascript
+### Run bot with compiled javascript (prod)
 
 **Terminal** : `npm run start:prod`
 
-This command compile your typescript files to javascript files in dist folder and run index.js
+> This command compile your typescript files to javascript files in dist folder and run index.js
 
 ## # Create event
 
@@ -182,8 +181,8 @@ _Your commands folder_
 ```
 - commands
     - global
-        - command (folder)``
-            - group.ts
+        - command (folder)
+            - group.ts (subcommands group)
         - command.ts
     - guilds
 ```
@@ -215,7 +214,7 @@ _Your command folder_
     - global
         - command (folder)
             - group (folder)
-                subcommand.ts
+                subcommand.ts (subcommand)
                 othersubcommand.ts
             - group.ts
         - command.ts
