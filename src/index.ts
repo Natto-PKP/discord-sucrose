@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+/** Sucrose */
 import { Sucrose } from './structures/sucrose';
 
 // Create new Sucrose client
