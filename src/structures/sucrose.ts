@@ -8,9 +8,6 @@ import { Logger } from './services/logger';
 import { EventManager } from './managers/events';
 import { InteractionManager } from './managers/interactions';
 
-/* Others */
-import { token } from '../secret.json';
-
 /**
  * Sucrose client
  */
@@ -24,7 +21,7 @@ export class Sucrose extends Client {
     this.events = new EventManager(this); // Attach new EventManager
     this.interactions = new InteractionManager(this); // Attach new InteractionManager
 
-    this.login(token); // Connect bot application to Discord API
+    this.login(process.env.TOKEN); // Connect bot application to Discord API
 
     this.build(); // Build this client
   }
