@@ -1,4 +1,8 @@
-dist
+# Environnement
 node_modules
 package-lock.json 
+.env
+
+# 
+dist
 _logs
