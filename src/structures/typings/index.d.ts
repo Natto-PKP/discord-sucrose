@@ -6,9 +6,9 @@ export type Collection<V> = Map<string, V>;
 /* == Events */
 type BaseParams = { sucrose: Sucrose };
 
-export type Params<K extends keyof ClientEvents> = BaseParams & { args: ClientEvents[K] };
+export type Params<K extends keyof Discord.ClientEvents> = BaseParams & { args: Discord.ClientEvents[K] };
 
-export interface __event<K extends keyof ClientEvents> {
+export interface __event<K extends keyof Discord.ClientEvents> {
   listener: (params: Params[K]) => void;
 }
 
