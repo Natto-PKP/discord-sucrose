@@ -46,10 +46,10 @@ export class Sucrose extends Client {
 
         resolve();
       });
-    }); // [end] Fetch client application
+    }).catch(Logger.error); // [end] Fetch client application
 
-    await this.events.build().catch((errors) => Logger.handler(errors, 'EVENT_MANAGER')); // Build events
     await this.interactions.build().catch((errors) => Logger.handler(errors, 'INTERACTION_MANAGER')); // Build interactions
+    await this.events.build().catch((errors) => Logger.handler(errors, 'EVENT_MANAGER')); // Build events
 
     Logger.blank();
     Logger.success(`${this.user?.tag} is online ! o7 (${Date.now() - start} ms)`);

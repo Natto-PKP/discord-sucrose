@@ -210,6 +210,11 @@ export class InteractionManager {
    */
   public async build(): Promise<void> {
     /**
+     * Build commands
+     */
+    await this.commands.build().catch((errors) => Logger.handler(errors, 'COMMAND_MANAGER'));
+
+    /**
      * Build buttons
      */
     if (existsSync(`./${dir}/interactions/buttons`)) {
@@ -283,9 +288,6 @@ export class InteractionManager {
         Logger.log(`${files.length} select_menus loaded`, 'INTERACTION_MANAGER');
       } // [end] Loop all select_menus files
     } // [end] Build select menus
-
-    // Build commands manager
-    await this.commands.build().catch((errors) => Logger.handler(errors, 'COMMAND_MANAGER'));
   } // [end] Build interactions manager
 
   /**
