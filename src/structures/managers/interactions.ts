@@ -128,7 +128,7 @@ export class InteractionManager {
 
                     if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                    sub_command.exec(args); // Exec guild sub command
+                    if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
 
                     // [end] If command group contains sub command
                   } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(_sub_command_group)); // If group not contains sub command
@@ -152,15 +152,15 @@ export class InteractionManager {
 
                 if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                sub_command.exec(args); // Exec guild sub command
+                if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
 
                 // [end] If command contains sub commands
               } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
               // [end] If interaction includes sub command
-            } else command.exec(args); // Exec guild command
+            } else if (command.exec) command.exec(args); // Exec guild command
 
             // [end] If is chat input command
-          } else command.exec(args); // Exec User or Message command
+          } else if (command.exec) command.exec(args); // Exec User or Message command
         } else {
           /**
            * Global command handler
@@ -169,7 +169,7 @@ export class InteractionManager {
           const command = this.commands.global.get(name); // Get global command
           if (!command) return;
 
-          command.exec(args); // exec global command
+          if (command.exec) command.exec(args); // exec global command
 
           // [end] Global command handler
         }
@@ -185,7 +185,7 @@ export class InteractionManager {
 
         if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
 
-        button.exec({ sucrose, interaction }); // Exec button
+        if (button.exec) button.exec({ sucrose, interaction }); // Exec button
 
         // [end] Buttons handler
       } else if (interaction.isSelectMenu()) {
@@ -198,7 +198,7 @@ export class InteractionManager {
 
         if (select_menu.permissions && !(await checkPermissions(interaction, select_menu.permissions))) return; // Check select_menu permissions
 
-        select_menu.exec({ sucrose, interaction }); // Exec select_menu
+        if (select_menu.exec) select_menu.exec({ sucrose, interaction }); // Exec select_menu
 
         // [end] Select_menus handler
       }
