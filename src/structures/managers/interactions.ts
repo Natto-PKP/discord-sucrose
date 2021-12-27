@@ -14,7 +14,7 @@ import { StringProgressBar, ConsoleLoading } from '../services/util';
 /* Manager */
 import { CommandManager } from './commands';
 
-const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
+const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 
 /**
  * function for permissions check in a interaction
@@ -87,7 +87,7 @@ export class InteractionManager {
            * Guild & global command handler
            */
 
-          const guild_commands = this.commands.guilds.get(interaction.guildId); // Get guild commands if exist
+          const guild_commands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
           const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
           if (!command) return; // return if command don't exist
           if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction

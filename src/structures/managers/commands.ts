@@ -12,7 +12,7 @@ import { Sucrose } from '../sucrose';
 import { SucroseError, Logger } from '../services/logger';
 import { ConsoleLoading, StringProgressBar } from '../services/util';
 
-const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
+const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 
 export class CommandManager {
   // Global and Guilds commands collection

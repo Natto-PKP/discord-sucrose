@@ -10,7 +10,7 @@ import { __event } from '../typings/index';
 import { SucroseError, Logger } from '../services/logger';
 import { ConsoleLoading, StringProgressBar } from '../services/util';
 
-const [dir, ext] = __filename.endsWith('.js') ? ['dist', 'js'] : ['src', 'ts'];
+const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 
 /**
  * Event manager
