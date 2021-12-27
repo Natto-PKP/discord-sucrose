@@ -21,6 +21,9 @@ _src/secret.json_
 ```bash
 # https://discord.com/developers/applications
 TOKEN="Your discord bot token"
+
+# PROD=true for prod bot
+PROD=false
 ```
 
 _src/index.ts_
