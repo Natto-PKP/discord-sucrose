@@ -75,132 +75,136 @@ export class InteractionManager {
      * Listen interactionCreate event and handle interactions/commands
      */
     sucrose.on('interactionCreate', async (interaction) => {
-      if (interaction.isCommand() || interaction.isContextMenu()) {
-        /**
-         * Command handler
-         */
-
-        const args = { sucrose, interaction }; // Command arguments
-        const name = interaction.commandName; // Get command name
-        if (interaction.guild) {
+      try {
+        if (interaction.isCommand() || interaction.isContextMenu()) {
           /**
-           * Guild & global command handler
+           * Command handler
            */
 
-          const guild_commands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
-          const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
-          if (!command) return; // return if command don't exist
-          if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction
+          const args = { sucrose, interaction }; // Command arguments
+          const name = interaction.commandName; // Get command name
+          if (interaction.guild) {
+            /**
+             * Guild & global command handler
+             */
 
-          /**
-           * If is chat input command
-           */
-          if (interaction.isCommand()) {
-            const _sub_command_group = interaction.options.getSubcommandGroup(false); // Get sub command group name
-            const _sub_command = interaction.options.getSubcommand(false); // Get sub command name
+            const guild_commands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
+            const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
+            if (!command) return; // return if command don't exist
+            if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction
 
-            if (_sub_command_group) {
-              /**
-               * If interaction includes group command
-               */
+            /**
+             * If is chat input command
+             */
+            if (interaction.isCommand()) {
+              const _sub_command_group = interaction.options.getSubcommandGroup(false); // Get sub command group name
+              const _sub_command = interaction.options.getSubcommand(false); // Get sub command name
 
-              if (command.options) {
+              if (_sub_command_group) {
                 /**
-                 * If command contains options
+                 * If interaction includes group command
                  */
 
-                const sub_command_group: CommandOptionData<'base'> | undefined = command.options.get(_sub_command_group); // Get sub command group
-                if (!sub_command_group) return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUP(_sub_command_group));
-
-                if (sub_command_group.permissions && !(await checkPermissions(interaction, sub_command_group.permissions))) return; // Check permissions of sub command group
-
-                if (_sub_command) {
+                if (command.options) {
                   /**
-                   * If command group includes sub command
+                   * If command contains options
                    */
 
-                  if (sub_command_group.options) {
+                  const sub_command_group: CommandOptionData<'base'> | undefined = command.options.get(_sub_command_group); // Get sub command group
+                  if (!sub_command_group) return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUP(_sub_command_group));
+
+                  if (sub_command_group.permissions && !(await checkPermissions(interaction, sub_command_group.permissions))) return; // Check permissions of sub command group
+
+                  if (_sub_command) {
                     /**
-                     * If command group contains sub command
+                     * If command group includes sub command
                      */
-                    const sub_command: CommandOptionData<'sub'> | undefined = sub_command_group.options.get(_sub_command); // Get sub command
-                    if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
 
-                    if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
+                    if (sub_command_group.options) {
+                      /**
+                       * If command group contains sub command
+                       */
+                      const sub_command: CommandOptionData<'sub'> | undefined = sub_command_group.options.get(_sub_command); // Get sub command
+                      if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
 
-                    if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
+                      if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                    // [end] If command group contains sub command
-                  } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(_sub_command_group)); // If group not contains sub command
-                } // [end] If command group includes sub command
+                      if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
 
-                // [end] If command contains options
-              } else return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUPS(name)); // if command not contain option
+                      // [end] If command group contains sub command
+                    } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(_sub_command_group)); // If group not contains sub command
+                  } // [end] If command group includes sub command
 
-              // [end] If interaction includes group command
-            } else if (_sub_command) {
-              /**
-               * If interaction includes sub command
-               */
-              if (command.options) {
+                  // [end] If command contains options
+                } else return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUPS(name)); // if command not contain option
+
+                // [end] If interaction includes group command
+              } else if (_sub_command) {
                 /**
-                 * If command contains sub commands
+                 * If interaction includes sub command
                  */
+                if (command.options) {
+                  /**
+                   * If command contains sub commands
+                   */
 
-                const sub_command: CommandOptionData<'base'> | undefined = command.options.get(_sub_command);
-                if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
+                  const sub_command: CommandOptionData<'base'> | undefined = command.options.get(_sub_command);
+                  if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
 
-                if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
+                  if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
+                  if (sub_command.exec) await sub_command.exec(args); // Exec guild sub command
 
-                // [end] If command contains sub commands
-              } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
-              // [end] If interaction includes sub command
-            } else if (command.exec) command.exec(args); // Exec guild command
+                  // [end] If command contains sub commands
+                } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
+                // [end] If interaction includes sub command
+              } else if (command.exec) await command.exec(args); // Exec guild command
 
-            // [end] If is chat input command
-          } else if (command.exec) command.exec(args); // Exec User or Message command
-        } else {
+              // [end] If is chat input command
+            } else if (command.exec) await command.exec(args); // Exec User or Message command
+          } else {
+            /**
+             * Global command handler
+             */
+
+            const command = this.commands.global.get(name); // Get global command
+            if (!command) return;
+
+            if (command.exec) await command.exec(args); // exec global command
+
+            // [end] Global command handler
+          }
+
+          // [end] Command handler
+        } else if (interaction.isButton()) {
           /**
-           * Global command handler
+           * Buttons handler
            */
 
-          const command = this.commands.global.get(name); // Get global command
-          if (!command) return;
+          const button = this.buttons.get(interaction.customId); // Get button
+          if (!button) return;
 
-          if (command.exec) command.exec(args); // exec global command
+          if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
 
-          // [end] Global command handler
+          if (button.exec) await button.exec({ sucrose, interaction }); // Exec button
+
+          // [end] Buttons handler
+        } else if (interaction.isSelectMenu()) {
+          /**
+           * Select_menus handler
+           */
+
+          const select_menu = this.select_menus.get(interaction.customId); // Get SelectMenu
+          if (!select_menu) return;
+
+          if (select_menu.permissions && !(await checkPermissions(interaction, select_menu.permissions))) return; // Check select_menu permissions
+
+          if (select_menu.exec) await select_menu.exec({ sucrose, interaction }); // Exec select_menu
+
+          // [end] Select_menus handler
         }
-
-        // [end] Command handler
-      } else if (interaction.isButton()) {
-        /**
-         * Buttons handler
-         */
-
-        const button = this.buttons.get(interaction.customId); // Get button
-        if (!button) return;
-
-        if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
-
-        if (button.exec) button.exec({ sucrose, interaction }); // Exec button
-
-        // [end] Buttons handler
-      } else if (interaction.isSelectMenu()) {
-        /**
-         * Select_menus handler
-         */
-
-        const select_menu = this.select_menus.get(interaction.customId); // Get SelectMenu
-        if (!select_menu) return;
-
-        if (select_menu.permissions && !(await checkPermissions(interaction, select_menu.permissions))) return; // Check select_menu permissions
-
-        if (select_menu.exec) select_menu.exec({ sucrose, interaction }); // Exec select_menu
-
-        // [end] Select_menus handler
+      } catch (error) {
+        if (error instanceof Error) Logger.error(error, 'INTERACTION_EVENT');
       }
     }); // [end] Listen interactionCreate event and handle interactions/commands
   }

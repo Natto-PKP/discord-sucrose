@@ -9,6 +9,7 @@ export enum ErrorSections {
   COMMAND_MANAGER = '[Command manager]',
   INTERACTION_MANAGER = '[Interaction manager]',
   EVENT_MANAGER = '[Event manager]',
+  INTERACTION_EVENT = '[Interaction event]',
 }
 
 export enum ErrorCodes {
