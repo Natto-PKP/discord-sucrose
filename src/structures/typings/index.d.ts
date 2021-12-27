@@ -28,8 +28,8 @@ export type Command = BaseInteraction & {
 };
 
 export type CommandData = Command & {
-  options?: Collection<CommandOptionData>; // Automaticely added, this is array of command option
-  path?: string; // Automaticely added, this is path of command
+  options: Collection<CommandOptionData>; // Automaticely added, this is array of command option
+  path: string; // Automaticely added, this is path of command
 };
 
 interface CommandOptionTypes {
