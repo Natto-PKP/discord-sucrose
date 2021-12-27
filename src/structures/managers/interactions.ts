@@ -2,7 +2,7 @@
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
-import { Button, Collection, CommandOptionData, Permissions, SelectMenu } from 'src/structures/typings';
+import { BaseInteractionParams, Button, Collection, CommandData, CommandDataParams, CommandOptionData, CommandOptionDataParams, Permissions, SelectMenu } from 'src/structures/typings';
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
 import { Sucrose } from '../sucrose';
 import { interactions as contents } from '../contents';
@@ -81,7 +81,7 @@ export class InteractionManager {
            * Command handler
            */
 
-          const args = { sucrose, interaction }; // Command arguments
+          const args: CommandDataParams = { sucrose, interaction }; // Command arguments
           const name = interaction.commandName; // Get command name
           if (interaction.guild) {
             /**
@@ -89,7 +89,7 @@ export class InteractionManager {
              */
 
             const guild_commands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
-            const command = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
+            const command: CommandData | undefined = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
             if (!command) return; // return if command don't exist
             if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction
 
@@ -129,7 +129,7 @@ export class InteractionManager {
 
                       if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                      if (sub_command.exec) sub_command.exec(args); // Exec guild sub command
+                      if (sub_command.exec) sub_command.exec(args as CommandOptionDataParams); // Exec guild sub command
 
                       // [end] If command group contains sub command
                     } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(_sub_command_group)); // If group not contains sub command
@@ -153,7 +153,7 @@ export class InteractionManager {
 
                   if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
 
-                  if (sub_command.exec) await sub_command.exec(args); // Exec guild sub command
+                  if (sub_command.exec) await sub_command.exec(args as CommandOptionDataParams); // Exec guild sub command
 
                   // [end] If command contains sub commands
                 } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
@@ -168,12 +168,8 @@ export class InteractionManager {
              */
 
             const command = this.commands.global.get(name); // Get global command
-            if (!command) return;
-
-            if (command.exec) await command.exec(args); // exec global command
-
-            // [end] Global command handler
-          }
+            if (command && command.exec) await command.exec(args); // exec global command
+          } // [end] Global command handler
 
           // [end] Command handler
         } else if (interaction.isButton()) {
