@@ -24,7 +24,7 @@ interface BaseInteraction {
 
 export type Command = BaseInteraction & {
   body: Discord.ApplicationCommandData;
-  exec?: (params: BaseParams & { interaction: Discord.CommandInteraction | Discord.ContextMenuInteraction }) => any | Promise<any>;
+  exec?: (params: BaseParams & { interaction: Discord.CommandInteraction & Discord.ContextMenuInteraction }) => any | Promise<any>;
 };
 
 export type CommandData = Command & {
