@@ -8,6 +8,9 @@ import { Logger } from './services/logger';
 import { EventManager } from './managers/events';
 import { InteractionManager } from './managers/interactions';
 
+/* Typings */
+import { Params as CustomParams } from 'src/structures/typings/custom';
+
 /**
  * Sucrose client
  */
@@ -15,11 +18,11 @@ export class Sucrose extends Client {
   public events: EventManager;
   public interactions: InteractionManager;
 
-  public constructor(options: ClientOptions) {
+  public constructor(options: ClientOptions, custom_params: CustomParams = {}) {
     super(options); // Give options to Client
 
-    this.events = new EventManager(this); // Attach new EventManager
-    this.interactions = new InteractionManager(this); // Attach new InteractionManager
+    this.events = new EventManager(this, { custom_params }); // Attach new EventManager
+    this.interactions = new InteractionManager(this, { custom_params }); // Attach new InteractionManager
 
     this.login(process.env.TOKEN); // Connect bot application to Discord API
 

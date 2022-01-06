@@ -35,6 +35,31 @@ import { Sucrose } from './structures/sucrose'; // Import bot structure
 new Sucrose({ intents: 14319, partials: ['CHANNEL'] });
 ```
 
+#### Get your custom params in interaction or event params:
+
+Define types of your custom params
+
+_src/structures/typings/custom.ts_
+
+```ts
+export interface Params {
+  foo: string;
+}
+```
+
+Give your custom params
+
+_src/index.ts_
+
+```ts
+import { Sucrose } from './structures/sucrose';
+
+const client_options = { intents: 14319, partials: ['CHANNEL'] };
+const custom_params = { foo: 'bar' };
+
+new Sucrose(client_options, custom_params);
+```
+
 ### Client is ready ?
 
 _src/events/ready/handler.ts_

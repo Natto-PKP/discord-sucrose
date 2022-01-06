@@ -2,14 +2,15 @@
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
-import { BaseInteractionParams, Button, Collection, CommandData, CommandDataParams, CommandOptionData, CommandOptionDataParams, Permissions, SelectMenu } from 'src/structures/typings';
+import { Button, Collection, CommandData, CommandDataParams, CommandOptionData, CommandOptionDataParams, Permissions, SelectMenu } from 'src/structures/typings';
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
 import { Sucrose } from '../sucrose';
-import { interactions as contents } from '../contents';
+import { Params as CustomParams } from '../typings/custom';
 
 /* Service */
 import { SucroseError, Logger } from '../services/logger';
 import { StringProgressBar, ConsoleLoading } from '../services/util';
+import { interactions as contents } from '../contents';
 
 /* Manager */
 import { CommandManager } from './commands';
@@ -66,7 +67,7 @@ export class InteractionManager {
 
   public sucrose: Sucrose;
 
-  public constructor(sucrose: Sucrose) {
+  public constructor(sucrose: Sucrose, options: { custom_params: CustomParams }) {
     this.sucrose = sucrose;
 
     this.commands = new CommandManager(sucrose); // New commands manager
@@ -81,8 +82,9 @@ export class InteractionManager {
            * Command handler
            */
 
-          const args: CommandDataParams = { sucrose, interaction }; // Command arguments
+          const args: CommandDataParams = { ...options.custom_params, sucrose, interaction }; // Command arguments
           const name = interaction.commandName; // Get command name
+
           if (interaction.guild) {
             /**
              * Guild & global command handler
@@ -182,7 +184,7 @@ export class InteractionManager {
 
           if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
 
-          if (button.exec) await button.exec({ sucrose, interaction }); // Exec button
+          if (button.exec) await button.exec({ ...options.custom_params, sucrose, interaction }); // Exec button
 
           // [end] Buttons handler
         } else if (interaction.isSelectMenu()) {
@@ -195,7 +197,7 @@ export class InteractionManager {
 
           if (select_menu.permissions && !(await checkPermissions(interaction, select_menu.permissions))) return; // Check select_menu permissions
 
-          if (select_menu.exec) await select_menu.exec({ sucrose, interaction }); // Exec select_menu
+          if (select_menu.exec) await select_menu.exec({ ...options.custom_params, sucrose, interaction }); // Exec select_menu
 
           // [end] Select_menus handler
         }

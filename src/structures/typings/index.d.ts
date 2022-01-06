@@ -1,9 +1,10 @@
 import Discord from 'discord.js';
 import { Sucrose } from 'src/structures/sucrose';
+import { Params as CustomParams } from 'src/structures/typings/custom';
 
 //! GLOBAL
 // # Types
-type BaseParams = { sucrose: Sucrose };
+export type BaseParams = CustomParams & { sucrose: Sucrose };
 
 // # Exports
 export type Collection<V> = Map<string, V>;

@@ -1,10 +1,11 @@
 /* Dependencies */
-import { ClientEvents } from 'discord.js';
+import { Base, ClientEvents } from 'discord.js';
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
 import { Sucrose } from '../sucrose';
-import { __event } from '../typings/index';
+import { __event, BaseParams } from '../typings/index';
+import { Params as CustomParams } from '../typings/custom';
 
 /* Service */
 import { SucroseError, Logger } from '../services/logger';
@@ -18,15 +19,14 @@ const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 class Event {
   private name: keyof ClientEvents;
   private sucrose: Sucrose;
-  private base: { sucrose: Sucrose };
+  private base: BaseParams;
 
-  public constructor(name: keyof ClientEvents, params: { sucrose: Sucrose }) {
+  public constructor(name: keyof ClientEvents, params: BaseParams) {
     if (!existsSync(`./${dir}/events/${name}/handler.${ext}`)) throw new SucroseError('ERROR', 'EVENT_MISSING_HANDLER');
 
     this.sucrose = params.sucrose; // Save sucrose client
     this.name = name; // Save name of this event
-
-    this.base = { sucrose: params.sucrose }; // Base object to push in event listener
+    this.base = params; // Base object to push in event listener
   }
 
   /**
@@ -60,14 +60,14 @@ export class EventManager {
   public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
-  private options: { ignores?: Array<keyof ClientEvents> };
+  private options: { ignores?: Array<keyof ClientEvents>; custom_params: CustomParams };
 
   /**
    * Events manager
    * @param sucrose
    * @param options
    */
-  public constructor(sucrose: Sucrose, options: { ignores?: Array<keyof ClientEvents> } = {}) {
+  public constructor(sucrose: Sucrose, options: { ignores?: Array<keyof ClientEvents>; custom_params: CustomParams }) {
     this.sucrose = sucrose;
     this.options = options;
   }
@@ -91,7 +91,7 @@ export class EventManager {
           const name = file as keyof ClientEvents; // file is a keyof ClientEvents
           if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
 
-          const event = new Event(name, { sucrose: this.sucrose }); // Create new event
+          const event = new Event(name, { sucrose: this.sucrose, ...this.options.custom_params }); // Create new event
           this.collection.set(name, event); // Push event in events array
           await event.build(); // Build this event
         } catch (error) {
