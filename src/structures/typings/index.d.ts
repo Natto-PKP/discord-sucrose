@@ -3,10 +3,8 @@ import { Sucrose } from 'src/structures/sucrose';
 import { Params as CustomParams } from 'src/structures/typings/custom';
 
 //! GLOBAL
-// # Types
-export type BaseParams = CustomParams & { sucrose: Sucrose };
-
 // # Exports
+export type BaseParams = CustomParams & { sucrose: Sucrose };
 export type Collection<V> = Map<string, V>;
 
 //! EVENTS

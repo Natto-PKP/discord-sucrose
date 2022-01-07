@@ -18,9 +18,10 @@ export class Sucrose extends Client {
   public events: EventManager;
   public interactions: InteractionManager;
 
-  public constructor(options: ClientOptions, custom_params: CustomParams = {}) {
+  public constructor(options: ClientOptions, custom_params?: CustomParams) {
     super(options); // Give options to Client
 
+    custom_params = <CustomParams>custom_params;
     this.events = new EventManager(this, { custom_params }); // Attach new EventManager
     this.interactions = new InteractionManager(this, { custom_params }); // Attach new InteractionManager
 
