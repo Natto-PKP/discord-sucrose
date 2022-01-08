@@ -1,10 +1,10 @@
 /* Dependencies */
-import { Base, ClientEvents } from 'discord.js';
+import { ClientEvents } from 'discord.js';
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
 import { Sucrose } from '../sucrose';
-import { __event, BaseParams } from '../typings/index';
+import { __event, BaseParams, EventOptions } from '../typings/index';
 import { Params as CustomParams } from '../typings/custom';
 
 /* Service */
@@ -60,14 +60,14 @@ export class EventManager {
   public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
-  private options: { ignores?: Array<keyof ClientEvents>; custom_params: CustomParams };
+  private options: EventOptions;
 
   /**
    * Events manager
    * @param sucrose
    * @param options
    */
-  public constructor(sucrose: Sucrose, options: { ignores?: Array<keyof ClientEvents>; custom_params: CustomParams }) {
+  public constructor(sucrose: Sucrose, options: EventOptions) {
     this.sucrose = sucrose;
     this.options = options;
   }

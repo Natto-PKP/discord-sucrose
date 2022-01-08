@@ -11,6 +11,12 @@ export type Collection<V> = Map<string, V>;
 // # Exports
 export type Params<K extends keyof Discord.ClientEvents> = BaseParams & { args: Discord.ClientEvents[K] }; //? Events params
 
+// # Exports
+export interface EventOptions {
+  ignores?: Array<keyof Discord.ClientEvents>;
+  custom_params: CustomParams;
+}
+
 //? Event object
 export interface __event<K extends keyof Discord.ClientEvents> {
   listener: (params: Params[K]) => void;
