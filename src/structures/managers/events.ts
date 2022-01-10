@@ -4,8 +4,7 @@ import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
 import { Sucrose } from '../sucrose';
-import { __event, BaseParams, EventOptions } from '../typings/index';
-import { Params as CustomParams } from '../typings/custom';
+import { BaseParams, EventManagerOptions } from '../typings/index';
 
 /* Service */
 import { SucroseError, Logger } from '../services/logger';
@@ -32,8 +31,8 @@ class Event {
   /**
    * Build this event
    */
-  public async build<K extends keyof ClientEvents>(): Promise<void> {
-    const content: __event<K> = await import(`../../events/${this.name}/handler.${ext}`);
+  public async build(): Promise<void> {
+    const content = await import(`../../events/${this.name}/handler.${ext}`);
     this.sucrose.on(this.name, async (...args) => content.listener({ ...this.base, args }));
 
     // Emit the ready event
@@ -60,14 +59,14 @@ export class EventManager {
   public collection: Map<keyof ClientEvents, Event> = new Map();
 
   private sucrose: Sucrose;
-  private options: EventOptions;
+  private options: EventManagerOptions;
 
   /**
    * Events manager
    * @param sucrose
    * @param options
    */
-  public constructor(sucrose: Sucrose, options: EventOptions) {
+  public constructor(sucrose: Sucrose, options: EventManagerOptions) {
     this.sucrose = sucrose;
     this.options = options;
   }
@@ -91,7 +90,7 @@ export class EventManager {
           const name = file as keyof ClientEvents; // file is a keyof ClientEvents
           if (this.options.ignores?.includes(name)) continue; // Ignore if this event name is in ignores array
 
-          const event = new Event(name, { sucrose: this.sucrose, ...this.options.custom_params }); // Create new event
+          const event = new Event(name, { sucrose: this.sucrose, ...this.options.customParams }); // Create new event
           this.collection.set(name, event); // Push event in events array
           await event.build(); // Build this event
         } catch (error) {

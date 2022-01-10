@@ -3,24 +3,31 @@ import { Sucrose } from 'src/structures/sucrose';
 import { Params as CustomParams } from 'src/structures/typings/custom';
 
 //! GLOBAL
+// # Interface
+interface BaseOptions {
+  customParams?: CustomParams;
+}
+
 // # Exports
 export type BaseParams = CustomParams & { sucrose: Sucrose };
 export type Collection<V> = Map<string, V>;
+
+//! SUCROSE
+// # Exports
+
+//? Sucrose options
+export type SucroseOptions = BaseOptions & { events?: BaseEventManagerOptions };
 
 //! EVENTS
 // # Exports
 export type Params<K extends keyof Discord.ClientEvents> = BaseParams & { args: Discord.ClientEvents[K] }; //? Events params
 
-// # Exports
-export interface EventOptions {
+//? Event options
+interface BaseEventManagerOptions {
   ignores?: Array<keyof Discord.ClientEvents>;
-  custom_params: CustomParams;
 }
 
-//? Event object
-export interface __event<K extends keyof Discord.ClientEvents> {
-  listener: (params: Params[K]) => void;
-}
+export type EventManagerOptions = BaseOptions & BaseEventManagerOptions;
 
 //! INTERACTIONS
 // # Types
@@ -37,6 +44,17 @@ interface BaseInteraction {
 interface ButtonTypes {
   link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
   base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
+}
+
+//? Command methods options
+export interface BaseCommandsMethodOptions {
+  commandId: string;
+  guildId?: string;
+}
+
+export interface CommandLocalOptions {
+  commandName?: string;
+  guildId?: string;
 }
 
 //? Command options types
@@ -66,7 +84,7 @@ export type Command<T extends keyof CommandTypes = 'input'> = BaseInteraction & 
 
 //? Command data
 export type CommandData = Command & {
-  options: Collection<CommandOptionData>; // Automaticely added, this is array of command option
+  options: Collection<CommandOptionData<keyof CommandOptionTypes>>; // Automaticely added, this is array of command option
   exec?: BaseInteractionExec<{ interaction: CommandTypes['context'] | CommandTypes['input'] }>;
   path: string; // Automaticely added, this is path of command
 };
@@ -88,6 +106,11 @@ export type CommandOptionData<T extends keyof CommandOptionTypes> = CommandOptio
 
 //? Command option data params
 export type CommandOptionDataParams = BaseInteractionParams<{ interaction: CommandTypes['input'] }>;
+
+//? InteractionManager Options
+interface BaseInteractionManagerOptions {}
+
+export type InteractionManagerOptions = BaseOptions & BaseInteractionManagerOptions;
 
 //? Permissions
 export interface Permissions {

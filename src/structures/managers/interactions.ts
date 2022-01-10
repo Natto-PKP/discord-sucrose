@@ -2,10 +2,19 @@
 import { readdirSync, existsSync } from 'fs';
 
 /* Typing */
-import { Button, Collection, CommandData, CommandDataParams, CommandOptionData, CommandOptionDataParams, Permissions, SelectMenu } from 'src/structures/typings';
+import {
+  Button,
+  Collection,
+  CommandData,
+  CommandDataParams,
+  CommandOptionData,
+  CommandOptionDataParams,
+  InteractionManagerOptions,
+  Permissions,
+  SelectMenu,
+} from '../typings';
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
 import { Sucrose } from '../sucrose';
-import { Params as CustomParams } from '../typings/custom';
 
 /* Service */
 import { SucroseError, Logger } from '../services/logger';
@@ -20,7 +29,10 @@ const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 /**
  * function for permissions check in a interaction
  */
-const checkPermissions = async (interaction: CommandInteraction | ButtonInteraction | ContextMenuInteraction | SelectMenuInteraction, permissions: Permissions): Promise<boolean> => {
+const checkPermissions = async (
+  interaction: CommandInteraction | ButtonInteraction | ContextMenuInteraction | SelectMenuInteraction,
+  permissions: Permissions
+): Promise<boolean> => {
   if (!interaction.guild) return false;
 
   /**
@@ -32,11 +44,11 @@ const checkPermissions = async (interaction: CommandInteraction | ButtonInteract
    * Client permissions
    */
   if (permissions.client && interaction.guild.me) {
-    const missing_permissions = interaction.guild.me.permissions.missing(permissions.client); // Missing permissions of client
+    const missingPermissions = interaction.guild.me.permissions.missing(permissions.client); // Missing permissions of client
 
-    if (missing_permissions.length) {
+    if (missingPermissions.length) {
       // reply error message to user
-      interaction.reply(contents.MISSING_CLIENT_PERMISSIONS(interaction.client, missing_permissions));
+      interaction.reply(contents.MISSING_CLIENT_PERMISSIONS(interaction.client, missingPermissions));
       return false;
     }
   } // [end] Client permissions
@@ -46,11 +58,11 @@ const checkPermissions = async (interaction: CommandInteraction | ButtonInteract
    */
   if (permissions.user) {
     const member = await interaction.guild.members.fetch(interaction.user.id); // Fetch member to Discord API
-    const missing_permissions = member.permissions.missing(permissions.user); // Missing permissions of member
+    const missingPermissions = member.permissions.missing(permissions.user); // Missing permissions of member
 
-    if (member && missing_permissions.length) {
+    if (member && missingPermissions.length) {
       // reply error message to user
-      interaction.reply(contents.MISSING_MEMBER_PERMISSIONS(member, missing_permissions));
+      interaction.reply(contents.MISSING_MEMBER_PERMISSIONS(member, missingPermissions));
       return false;
     }
   } // [end] Member permissions
@@ -63,11 +75,11 @@ const checkPermissions = async (interaction: CommandInteraction | ButtonInteract
 export class InteractionManager {
   public commands: CommandManager;
   public buttons: Collection<Button<'base' | 'link'>> = new Map();
-  public select_menus: Collection<SelectMenu> = new Map();
+  public selectMenus: Collection<SelectMenu> = new Map();
 
   public sucrose: Sucrose;
 
-  public constructor(sucrose: Sucrose, options: { custom_params: CustomParams }) {
+  public constructor(sucrose: Sucrose, options: InteractionManagerOptions) {
     this.sucrose = sucrose;
 
     this.commands = new CommandManager(sucrose); // New commands manager
@@ -82,7 +94,7 @@ export class InteractionManager {
            * Command handler
            */
 
-          const args: CommandDataParams = { ...options.custom_params, sucrose, interaction }; // Command arguments
+          const args: CommandDataParams = { ...options.customParams, sucrose, interaction }; // Command arguments
           const name = interaction.commandName; // Get command name
 
           if (interaction.guild) {
@@ -90,8 +102,11 @@ export class InteractionManager {
              * Guild & global command handler
              */
 
-            const guild_commands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
-            const command: CommandData | undefined = guild_commands instanceof Map ? guild_commands.get(name) || this.commands.global.get(name) : this.commands.global.get(name); // Get command if exist
+            const guildCommands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
+            const command: CommandData | undefined =
+              guildCommands instanceof Map
+                ? guildCommands.get(name) || this.commands.global.get(name)
+                : this.commands.global.get(name); // Get command if exist
             if (!command) return; // return if command don't exist
             if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction
 
@@ -99,10 +114,10 @@ export class InteractionManager {
              * If is chat input command
              */
             if (interaction.isCommand()) {
-              const _sub_command_group = interaction.options.getSubcommandGroup(false); // Get sub command group name
-              const _sub_command = interaction.options.getSubcommand(false); // Get sub command name
+              const subCommandGroupName = interaction.options.getSubcommandGroup(false); // Get sub command group name
+              const subCommandName = interaction.options.getSubcommand(false); // Get sub command name
 
-              if (_sub_command_group) {
+              if (subCommandGroupName) {
                 /**
                  * If interaction includes group command
                  */
@@ -112,36 +127,46 @@ export class InteractionManager {
                    * If command contains options
                    */
 
-                  const sub_command_group: CommandOptionData<'base'> | undefined = command.options.get(_sub_command_group); // Get sub command group
-                  if (!sub_command_group) return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUP(_sub_command_group));
+                  const subCommandGroup: CommandOptionData<'base'> | undefined =
+                    command.options.get(subCommandGroupName); // Get sub command group
 
-                  if (sub_command_group.permissions && !(await checkPermissions(interaction, sub_command_group.permissions))) return; // Check permissions of sub command group
+                  if (!subCommandGroup) {
+                    return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUP(subCommandGroupName));
+                  }
 
-                  if (_sub_command) {
+                  if (
+                    subCommandGroup.permissions &&
+                    !(await checkPermissions(interaction, subCommandGroup.permissions))
+                  )
+                    return; // Check permissions of sub command group
+
+                  if (subCommandName) {
                     /**
                      * If command group includes sub command
                      */
 
-                    if (sub_command_group.options) {
+                    if (subCommandGroup.options) {
                       /**
                        * If command group contains sub command
                        */
-                      const sub_command: CommandOptionData<'sub'> | undefined = sub_command_group.options.get(_sub_command); // Get sub command
-                      if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
+                      const subCommand: CommandOptionData<'sub'> | undefined =
+                        subCommandGroup.options.get(subCommandName); // Get sub command
+                      if (!subCommand) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(subCommandName));
 
-                      if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
+                      if (subCommand.permissions && !(await checkPermissions(interaction, subCommand.permissions)))
+                        return; // Check permissions of sub command
 
-                      if (sub_command.exec) sub_command.exec(args as CommandOptionDataParams); // Exec guild sub command
+                      if (subCommand.exec) subCommand.exec(args as CommandOptionDataParams); // Exec guild sub command
 
                       // [end] If command group contains sub command
-                    } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(_sub_command_group)); // If group not contains sub command
+                    } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(subCommandGroupName)); // If group not contains sub command
                   } // [end] If command group includes sub command
 
                   // [end] If command contains options
                 } else return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUPS(name)); // if command not contain option
 
                 // [end] If interaction includes group command
-              } else if (_sub_command) {
+              } else if (subCommandName) {
                 /**
                  * If interaction includes sub command
                  */
@@ -150,12 +175,12 @@ export class InteractionManager {
                    * If command contains sub commands
                    */
 
-                  const sub_command: CommandOptionData<'base'> | undefined = command.options.get(_sub_command);
-                  if (!sub_command) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(_sub_command));
+                  const subCommand: CommandOptionData<'base'> | undefined = command.options.get(subCommandName);
+                  if (!subCommand) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(subCommandName));
 
-                  if (sub_command.permissions && !(await checkPermissions(interaction, sub_command.permissions))) return; // Check permissions of sub command
+                  if (subCommand.permissions && !(await checkPermissions(interaction, subCommand.permissions))) return; // Check permissions of sub command
 
-                  if (sub_command.exec) await sub_command.exec(args as CommandOptionDataParams); // Exec guild sub command
+                  if (subCommand.exec) await subCommand.exec(args as CommandOptionDataParams); // Exec guild sub command
 
                   // [end] If command contains sub commands
                 } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
@@ -184,22 +209,22 @@ export class InteractionManager {
 
           if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
 
-          if (button.exec) await button.exec({ ...options.custom_params, sucrose, interaction }); // Exec button
+          if (button.exec) await button.exec({ ...options.customParams, sucrose, interaction }); // Exec button
 
           // [end] Buttons handler
         } else if (interaction.isSelectMenu()) {
           /**
-           * Select_menus handler
+           * SelectMenus handler
            */
 
-          const select_menu = this.select_menus.get(interaction.customId); // Get SelectMenu
-          if (!select_menu) return;
+          const selectMenu = this.selectMenus.get(interaction.customId); // Get SelectMenu
+          if (!selectMenu) return;
 
-          if (select_menu.permissions && !(await checkPermissions(interaction, select_menu.permissions))) return; // Check select_menu permissions
+          if (selectMenu.permissions && !(await checkPermissions(interaction, selectMenu.permissions))) return; // Check selectMenu permissions
 
-          if (select_menu.exec) await select_menu.exec({ ...options.custom_params, sucrose, interaction }); // Exec select_menu
+          if (selectMenu.exec) await selectMenu.exec({ ...options.customParams, sucrose, interaction }); // Exec selectMenu
 
-          // [end] Select_menus handler
+          // [end] SelectMenus handler
         }
       } catch (error) {
         if (error instanceof Error) Logger.error(error, 'INTERACTION_EVENT');
@@ -265,7 +290,7 @@ export class InteractionManager {
        * Loop all select_menus files
        */
       if (files.length) {
-        const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} select_menus processed`;
+        const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} selectMenus processed`;
         const loading = new ConsoleLoading(content()); // Start loading console line
 
         /**
@@ -275,20 +300,20 @@ export class InteractionManager {
           cache.i++;
 
           try {
-            const select_menu = await import(`../../interactions/select_menus/${file}`);
-            this.load({ select_menu }, file);
+            const selectMenu = await import(`../../interactions/select_menus/${file}`);
+            this.load({ selectMenu }, file);
           } catch (error) {
             if (error instanceof Error) cache.errors.push(error);
           }
 
           loading.content = content(); // set new state in loading console line
-        } // [end] Loop all select_menus
+        } // [end] Loop all selectMenus
 
         loading.clear(); // clear loading console line
 
         if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
         Logger.log(`${files.length} select_menus loaded`, 'INTERACTION_MANAGER');
-      } // [end] Loop all select_menus files
+      } // [end] Loop all selectMenus files
     } // [end] Build select menus
   } // [end] Build interactions manager
 
@@ -297,7 +322,7 @@ export class InteractionManager {
    * @param interactions
    * @param file
    */
-  private load(interactions: { button?: Button<'base' | 'link'>; select_menu?: SelectMenu }, file: string): void {
+  private load(interactions: { button?: Button<'base' | 'link'>; selectMenu?: SelectMenu }, file: string): void {
     if (interactions.button) {
       /**
        * If this interaction is a button
@@ -326,18 +351,18 @@ export class InteractionManager {
       }
 
       // [end] If this interaction is a button
-    } else if (interactions.select_menu) {
+    } else if (interactions.selectMenu) {
       /**
-       * If this interaction is a select_menu
+       * If this interaction is a selectMenu
        */
 
-      const select_menu = interactions.select_menu; // Get select_menu
+      const selectMenu = interactions.selectMenu; // Get selectMenu
 
-      if (!select_menu.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
-      if (!select_menu.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID');
-      select_menu.data.type = 'SELECT_MENU'; // Defined intertaction type to select_menu data
+      if (!selectMenu.data) throw new SucroseError('ERROR', 'INTERACTION_MISSING_DATA');
+      if (!selectMenu.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID');
+      selectMenu.data.type = 'SELECT_MENU'; // Defined intertaction type to selectMenu data
 
-      this.select_menus.set(select_menu.data.customId, select_menu);
+      this.selectMenus.set(selectMenu.data.customId, selectMenu);
     }
   } // [end] Load interaction
 }

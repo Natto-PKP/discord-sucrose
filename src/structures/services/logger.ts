@@ -42,7 +42,10 @@ export class SucroseError extends Error {
  * Create logger console
  */
 if (!existsSync('./_logs') || !lstatSync('./_logs').isDirectory()) mkdirSync('./_logs');
-const console_logger = new Console({ stdout: createWriteStream('_logs/output.log'), stderr: createWriteStream('_logs/errors.log') });
+const console_logger = new Console({
+  stdout: createWriteStream('_logs/output.log'),
+  stderr: createWriteStream('_logs/errors.log'),
+});
 
 /**
  * Logger
@@ -55,7 +58,10 @@ export class Logger {
    */
   static get date(): string {
     const date = new Date();
-    return `\x1b[47m\x1b[30m[${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}]\x1b[0m`;
+    return `\x1b[47m\x1b[30m[${date.getHours().toString().padStart(2, '0')}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}]\x1b[0m`;
   }
 
   /**
@@ -124,7 +130,9 @@ export class Logger {
    * @param content
    */
   static success(content: string, section?: ErrorSection): void {
-    const message = `${Logger.date} \x1b[32m✔ SUCCESS\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${content}`;
+    const message = `${Logger.date} \x1b[32m✔ SUCCESS\x1b[0m ${
+      section ? ErrorSections[section] + ' :: ' : ''
+    }${content}`;
     Logger.write(message);
   } // [end] Log a success log
 
@@ -142,7 +150,9 @@ export class Logger {
    * @param error
    */
   static warn(error: Error | string, section?: ErrorSection): void {
-    const message = `${Logger.date} \x1b[33m⚡ WARN\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${error instanceof Error ? error.message : error}`;
+    const message = `${Logger.date} \x1b[33m⚡ WARN\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${
+      error instanceof Error ? error.message : error
+    }`;
 
     Logger.write(message);
     if (error instanceof Error && error.stack) Logger.console.error(error.stack);
@@ -153,7 +163,9 @@ export class Logger {
    * @param error
    */
   static error(error: Error, section?: ErrorSection): void {
-    const message = `${Logger.date} \x1b[31m💢 ERROR\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${error.message}`;
+    const message = `${Logger.date} \x1b[31m💢 ERROR\x1b[0m ${section ? ErrorSections[section] + ' :: ' : ''}${
+      error.message
+    }`;
 
     Logger.write(message);
     if (error.stack) Logger.console.error(error.stack);
