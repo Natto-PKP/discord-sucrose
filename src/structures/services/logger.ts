@@ -1,5 +1,5 @@
 /* Dependencies */
-import { createWriteStream, existsSync, lstatSync, mkdirSync } from 'fs';
+import { createWriteStream, existsSync, lstatSync, mkdirSync } from 'fs-extra';
 import { Console } from 'console';
 
 /* Enums */

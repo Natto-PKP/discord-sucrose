@@ -1,5 +1,5 @@
 /* Dependencies */
-import { readdirSync, existsSync, lstatSync } from 'fs';
+import { existsSync, lstatSync, readdirSync } from 'fs-extra';
 
 /* Services */
 import { SucroseError, Logger } from '../services/logger';
@@ -16,6 +16,7 @@ import {
 } from '../typings/index';
 
 import { Sucrose } from '../sucrose';
+import { lstat } from 'fs/promises';
 
 const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
 

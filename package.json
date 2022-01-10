@@ -20,6 +20,7 @@
   "license": "Apache-2.0 License",
   "devDependencies": {
     "@types/express": "^4.17.13",
+    "@types/fs-extra": "^9.0.13",
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
@@ -33,6 +34,7 @@
   },
   "dependencies": {
     "discord.js": "^13.3.1",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "fs-extra": "^10.0.0"
   }
 }

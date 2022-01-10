@@ -1,5 +1,5 @@
 /* Dependencies */
-import { readdirSync, existsSync } from 'fs';
+import { readdirSync, existsSync } from 'fs-extra';
 
 /* Typing */
 import {

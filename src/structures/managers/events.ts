@@ -1,6 +1,6 @@
 /* Dependencies */
 import { ClientEvents } from 'discord.js';
-import { readdirSync, existsSync } from 'fs';
+import { readdirSync, existsSync } from 'fs-extra';
 
 /* Typing */
 import { Sucrose } from '../sucrose';
