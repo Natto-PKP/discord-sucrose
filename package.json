@@ -1,13 +1,13 @@
 {
   "name": "discord.js-typescript",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Structure for Typescript bot Discord",
   "main": "./dist/index.js",
   "scripts": {
     "build": "npx tsc",
-    "dev": "ts-node ./src/index.ts",
-    "dev:respawn": "ts-node-dev --respawn ./src/index.ts",
-    "start": "npm run build && node ./dist/index.js"
+    "start": "ts-node ./src/index.ts",
+    "start:prod": "npm run build && node ./dist/index.js",
+    "start:respawn": "ts-node-dev --respawn ./src/index.ts"
   },
   "keywords": [
     "discord",
