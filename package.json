@@ -1,5 +1,5 @@
 {
-  "name": "discord.js-bot",
+  "name": "discord.js-typescript",
   "version": "2.1.0",
   "description": "Structure for Typescript bot Discord",
   "main": "./dist/index.js",
