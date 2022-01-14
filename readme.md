@@ -7,4 +7,4 @@ This is a Typescript Discord bot structure
 
 > I'm french but my english is bad, this readme contains only exemples to use Sucrose structure
 
-Documentation : https://structures.sucrose.xyz/
+## Documentation is comming

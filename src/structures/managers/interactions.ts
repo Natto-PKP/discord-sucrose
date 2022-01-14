@@ -1,332 +1,218 @@
 /* Dependencies */
-import { readdirSync, existsSync } from 'fs-extra';
+import { readdirSync, existsSync, lstatSync } from 'fs-extra';
+import path from 'path';
 
 /* Typing */
 import {
   Button,
+  ChatInputData,
+  ChatInputSubCommandGroupData,
   Collection,
-  CommandData,
-  CommandDataParams,
-  CommandOptionData,
-  CommandOptionDataParams,
+  DiscordCommand,
   InteractionManagerOptions,
-  Permissions,
   SelectMenu,
 } from '../typings';
-import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, SelectMenuInteraction } from 'discord.js';
 import { Sucrose } from '../sucrose';
 
 /* Service */
-import { SucroseError, Logger } from '../services/logger';
-import { StringProgressBar, ConsoleLoading } from '../services/util';
-import { interactions as contents } from '../contents';
+import { SucroseError, Logger, ConsoleLoading } from '../services/logger';
+import { hasPermissions, stringProgressBar } from '../services/util';
+import Contents from '../contents';
 
-/* Manager */
-import { CommandManager } from './commands';
-
-const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
-
-/**
- * function for permissions check in a interaction
- */
-const checkPermissions = async (
-  interaction: CommandInteraction | ButtonInteraction | ContextMenuInteraction | SelectMenuInteraction,
-  permissions: Permissions
-): Promise<boolean> => {
-  if (!interaction.guild) return false;
-
-  /**
-   * Ajouter l'immunité de certains rôles, de certains users, certaines guildes et de certains channels
-   * Ajouter les messages d'erreurs customisable
-   */
-
-  /**
-   * Client permissions
-   */
-  if (permissions.client && interaction.guild.me) {
-    const missingPermissions = interaction.guild.me.permissions.missing(permissions.client); // Missing permissions of client
-
-    if (missingPermissions.length) {
-      // reply error message to user
-      interaction.reply(contents.MISSING_CLIENT_PERMISSIONS(interaction.client, missingPermissions));
-      return false;
-    }
-  } // [end] Client permissions
-
-  /**
-   * Member permissions
-   */
-  if (permissions.user) {
-    const member = await interaction.guild.members.fetch(interaction.user.id); // Fetch member to Discord API
-    const missingPermissions = member.permissions.missing(permissions.user); // Missing permissions of member
-
-    if (member && missingPermissions.length) {
-      // reply error message to user
-      interaction.reply(contents.MISSING_MEMBER_PERMISSIONS(member, missingPermissions));
-      return false;
-    }
-  } // [end] Member permissions
-  return true;
-}; // [end] unction for permissions check in a interaction
-
-/**
- * Interactions manager and handler
- */
+//? Interactions manager and handler
 export class InteractionManager {
-  public commands: CommandManager;
+  /**
+   * @property
+   * @public
+   * @type { Collection<Button<'base' | 'link'>> }
+   */
   public buttons: Collection<Button<'base' | 'link'>> = new Map();
+
+  /**
+   * @property
+   * @public
+   * @type { Collection<SelectMenu> }
+   */
   public selectMenus: Collection<SelectMenu> = new Map();
 
-  public sucrose: Sucrose;
-
+  /**
+   * @constructor
+   * @public
+   * @param { Sucrose } sucrose
+   * @param { InteractionManagerOptions } options
+   */
   public constructor(sucrose: Sucrose, options: InteractionManagerOptions) {
-    this.sucrose = sucrose;
+    const { customParams = {} } = options;
 
-    this.commands = new CommandManager(sucrose); // New commands manager
-
-    /**
-     * Listen interactionCreate event and handle interactions/commands
-     */
+    //? Listen interactionCreate event and handle interactions/commands
     sucrose.on('interactionCreate', async (interaction) => {
       try {
+        const params = { sucrose, ...customParams };
+        const guild = interaction.guild;
+
         if (interaction.isCommand() || interaction.isContextMenu()) {
-          /**
-           * Command handler
-           */
+          //? Handle commands and context menus
 
-          const args: CommandDataParams = { ...options.customParams, sucrose, interaction }; // Command arguments
-          const name = interaction.commandName; // Get command name
+          const name = interaction.commandName;
+          const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands.global;
+          const command = commands.get(name) || sucrose.commands.global.get(name);
+          if (!command) return;
 
-          if (interaction.guild) {
-            /**
-             * Guild & global command handler
-             */
+          const permission = guild && (await hasPermissions(interaction, command.permissions || {}));
+          if (permission && !permission.check)
+            return permission.content ? await interaction.reply(permission.content) : undefined;
 
-            const guildCommands = this.commands.guilds.get(interaction.guild.id); // Get guild commands if exist
-            const command: CommandData | undefined =
-              guildCommands instanceof Map
-                ? guildCommands.get(name) || this.commands.global.get(name)
-                : this.commands.global.get(name); // Get command if exist
-            if (!command) return; // return if command don't exist
-            if (command.permissions && !(await checkPermissions(interaction, command.permissions))) return; // Check permissions of this interaction
+          //? handle commands
+          if (interaction.isCommand()) {
+            const chatInput = <ChatInputData>command;
+            const groupName = interaction.options.getSubcommandGroup(false);
+            const optionName = interaction.options.getSubcommand(false);
 
-            /**
-             * If is chat input command
-             */
-            if (interaction.isCommand()) {
-              const subCommandGroupName = interaction.options.getSubcommandGroup(false); // Get sub command group name
-              const subCommandName = interaction.options.getSubcommand(false); // Get sub command name
+            //? handle sub command group / sub command
+            if (groupName || optionName) {
+              const opts = chatInput.options;
+              if (!opts) return await interaction.reply(Contents.MISSING_SUB_COMMAND_GROUPS(command.body.name));
+              const option = groupName ? opts.get(groupName) : optionName ? opts.get(optionName) : null;
+              if (!option) return await interaction.reply(Contents.MISSING_SUB_COMMAND_GROUP(command.body.name));
 
-              if (subCommandGroupName) {
-                /**
-                 * If interaction includes group command
-                 */
+              const permission = guild && (await hasPermissions(interaction, option.permissions || {}));
+              if (permission && !permission.check)
+                return permission.content ? await interaction.reply(permission.content) : undefined;
 
-                if (command.options) {
-                  /**
-                   * If command contains options
-                   */
+              //? handle sub command
+              if (option.option.type === 'SUB_COMMAND_GROUP') {
+                const opts = (<ChatInputSubCommandGroupData>option).options;
+                if (!opts) return await interaction.reply(Contents.MISSING_SUB_COMMANDS(command.body.name));
+                const subOption = optionName && opts.get(optionName);
+                if (!subOption) return await interaction.reply(Contents.MISSING_SUB_COMMAND(command.body.name));
 
-                  const subCommandGroup: CommandOptionData<'base'> | undefined =
-                    command.options.get(subCommandGroupName); // Get sub command group
+                const permission = guild && (await hasPermissions(interaction, subOption.permissions || {}));
+                if (permission && !permission.check)
+                  return permission.content ? await interaction.reply(permission.content) : undefined;
 
-                  if (!subCommandGroup) {
-                    return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUP(subCommandGroupName));
-                  }
+                if (!subOption.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+                return await subOption.exec({ ...params, interaction }); //? Sub command
+              } //? [end] handle sub command
 
-                  if (
-                    subCommandGroup.permissions &&
-                    !(await checkPermissions(interaction, subCommandGroup.permissions))
-                  )
-                    return; // Check permissions of sub command group
+              if (!option.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+              return await option.exec({ ...params, interaction }); //? Sub command
+            } //? [end] handle sub command group / sub command
 
-                  if (subCommandName) {
-                    /**
-                     * If command group includes sub command
-                     */
+            if (!command.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+            return await command.exec({ ...params, interaction: <DiscordCommand>interaction }); //? Command
+          } //? [end] handle commands
 
-                    if (subCommandGroup.options) {
-                      /**
-                       * If command group contains sub command
-                       */
-                      const subCommand: CommandOptionData<'sub'> | undefined =
-                        subCommandGroup.options.get(subCommandName); // Get sub command
-                      if (!subCommand) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(subCommandName));
-
-                      if (subCommand.permissions && !(await checkPermissions(interaction, subCommand.permissions)))
-                        return; // Check permissions of sub command
-
-                      if (subCommand.exec) subCommand.exec(args as CommandOptionDataParams); // Exec guild sub command
-
-                      // [end] If command group contains sub command
-                    } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(subCommandGroupName)); // If group not contains sub command
-                  } // [end] If command group includes sub command
-
-                  // [end] If command contains options
-                } else return interaction.reply(contents.commands.MISSING_SUB_COMMAND_GROUPS(name)); // if command not contain option
-
-                // [end] If interaction includes group command
-              } else if (subCommandName) {
-                /**
-                 * If interaction includes sub command
-                 */
-                if (command.options) {
-                  /**
-                   * If command contains sub commands
-                   */
-
-                  const subCommand: CommandOptionData<'base'> | undefined = command.options.get(subCommandName);
-                  if (!subCommand) return interaction.reply(contents.commands.MISSING_SUB_COMMAND(subCommandName));
-
-                  if (subCommand.permissions && !(await checkPermissions(interaction, subCommand.permissions))) return; // Check permissions of sub command
-
-                  if (subCommand.exec) await subCommand.exec(args as CommandOptionDataParams); // Exec guild sub command
-
-                  // [end] If command contains sub commands
-                } else return interaction.reply(contents.commands.MISSING_SUB_COMMANDS(name)); // If command not contain sub command
-                // [end] If interaction includes sub command
-              } else if (command.exec) await command.exec(args); // Exec guild command
-
-              // [end] If is chat input command
-            } else if (command.exec) await command.exec(args); // Exec User or Message command
-          } else {
-            /**
-             * Global command handler
-             */
-
-            const command = this.commands.global.get(name); // Get global command
-            if (command && command.exec) await command.exec(args); // exec global command
-          } // [end] Global command handler
-
-          // [end] Command handler
-        } else if (interaction.isButton()) {
-          /**
-           * Buttons handler
-           */
-
-          const button = this.buttons.get(interaction.customId); // Get button
+          if (!command.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+          return await command.exec({ ...params, interaction: <DiscordCommand>interaction }); //? ContextMenu
+        } //? Handle buttons
+        else if (interaction.isButton()) {
+          const button = this.buttons.get(interaction.customId);
           if (!button) return;
 
-          if (button.permissions && !(await checkPermissions(interaction, button.permissions))) return; // Check button permissions
+          const permission = guild && (await hasPermissions(interaction, button.permissions || {}));
+          if (permission && !permission.check)
+            return permission.content ? await interaction.reply(permission.content) : undefined;
 
-          if (button.exec) await button.exec({ ...options.customParams, sucrose, interaction }); // Exec button
-
-          // [end] Buttons handler
-        } else if (interaction.isSelectMenu()) {
-          /**
-           * SelectMenus handler
-           */
-
-          const selectMenu = this.selectMenus.get(interaction.customId); // Get SelectMenu
+          if (!button.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(interaction.customId));
+          return await button.exec({ ...params, interaction });
+        } //? Handle selectMenus
+        else if (interaction.isSelectMenu()) {
+          const selectMenu = this.selectMenus.get(interaction.customId);
           if (!selectMenu) return;
 
-          if (selectMenu.permissions && !(await checkPermissions(interaction, selectMenu.permissions))) return; // Check selectMenu permissions
+          const permission = guild && (await hasPermissions(interaction, selectMenu.permissions || {}));
+          if (permission && !permission.check)
+            return permission.content ? await interaction.reply(permission.content) : undefined;
 
-          if (selectMenu.exec) await selectMenu.exec({ ...options.customParams, sucrose, interaction }); // Exec selectMenu
-
-          // [end] SelectMenus handler
+          if (!selectMenu.exec) return interaction.reply(Contents.MISSING_LOCAL_INTERACTION_EXEC(interaction.customId));
+          return await selectMenu.exec({ ...params, interaction });
         }
-      } catch (error) {
-        if (error instanceof Error) Logger.error(error, 'INTERACTION_EVENT');
+      } catch (errors) {
+        if (errors instanceof Error) Logger.error(errors);
+        if (Array.isArray(errors) && errors.every((err) => err instanceof Error)) Logger.handler(errors);
       }
-    }); // [end] Listen interactionCreate event and handle interactions/commands
+    }); //? [end] Listen interactionCreate event and handle interactions/commands
   }
 
   /**
-   * Build interactions manager
+   * build all interactions
+   * @method
+   * @public
+   * @async
+   * @returns { Promise<void> }
    */
   public async build(): Promise<void> {
-    /**
-     * Build commands
-     */
-    await this.commands.build().catch((errors) => Logger.handler(errors, 'COMMAND_MANAGER'));
+    const buttonPath = path.resolve(__dirname, '../../interactions/buttons');
+    const selectMenuPath = path.resolve(__dirname, '../../interactions/select_menus');
 
-    /**
-     * Build buttons
-     */
-    if (existsSync(`./${dir}/interactions/buttons`)) {
-      // Multiples errors handler
-      const cache: { errors: Error[]; i: number } = { errors: [], i: 0 };
-      const files = readdirSync(`./${dir}/interactions/buttons`);
+    //? Build buttons
+    if (existsSync(buttonPath)) {
+      const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile());
+      if (!files.length) return;
 
-      /**
-       * If possible button file detected
-       */
-      if (files.length) {
-        const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} buttons processed`;
-        const loading = new ConsoleLoading(content()); // Start loading console line
+      const cache = { errors: <Error[]>[], i: 0 };
+      const content = () => `${stringProgressBar(cache.i + 1, files.length)}/${files.length} buttons processed`;
+      const loading = new ConsoleLoading(content()); // Start loading console line
 
-        /**
-         * Loop all buttons files
-         */
-        for await (const file of files) {
-          cache.i++; // Increment button index in logger cache
+      //? Loop all buttons files
+      for await (const file of files) {
+        cache.i++;
 
-          try {
-            const button = await import(`../../interactions/buttons/${file}`); // Import button
-            this.load({ button }, file);
-          } catch (error) {
-            if (error instanceof Error) cache.errors.push(error);
-          }
+        try {
+          const button = (await import(`../../interactions/buttons/${file}`)).default;
+          this.load({ button });
 
           loading.content = content(); // set new state in loading console line
-        } // [end] Loop all buttons files
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
+        }
+      } //? [end] Loop all buttons files
 
-        loading.clear(); // clear loading console line
+      loading.clear(); // clear loading console line
 
-        if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
-        Logger.log(`${files.length} buttons loaded`, 'INTERACTION_MANAGER');
-      } // [end] If possible button file detected
-    } // [end] Build buttons
+      if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
+      Logger.log(`${files.length} buttons loaded`, 'INTERACTION_MANAGER');
+    } //? [end] Build buttons
 
-    /**
-     * Build select menus
-     */
-    if (existsSync(`./${dir}/interactions/select_menus`)) {
-      const cache: { errors: Error[]; i: number } = { errors: [], i: 0 };
-      const files = readdirSync(`./${dir}/interactions/select_menus`);
+    //? Build select menus
+    if (existsSync(selectMenuPath)) {
+      const files = readdirSync(selectMenuPath);
+      if (!files.length) return;
 
-      /**
-       * Loop all select_menus files
-       */
-      if (files.length) {
-        const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} selectMenus processed`;
-        const loading = new ConsoleLoading(content()); // Start loading console line
+      const cache = { errors: <Error[]>[], i: 0 };
+      const content = () => `${stringProgressBar(cache.i + 1, files.length)}/${files.length} selectMenus processed`;
+      const loading = new ConsoleLoading(content()); // Start loading console line
 
-        /**
-         * Loop all select_menus
-         */
-        for await (const file of files) {
-          cache.i++;
+      //? Loop all select menus
+      for await (const file of files) {
+        cache.i++;
 
-          try {
-            const selectMenu = await import(`../../interactions/select_menus/${file}`);
-            this.load({ selectMenu }, file);
-          } catch (error) {
-            if (error instanceof Error) cache.errors.push(error);
-          }
+        try {
+          const selectMenu = (await import(`../../interactions/select_menus/${file}`)).default;
+          this.load({ selectMenu });
 
           loading.content = content(); // set new state in loading console line
-        } // [end] Loop all selectMenus
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
+        }
+      } //? [end] Loop all selectMenus
 
-        loading.clear(); // clear loading console line
+      loading.clear(); // clear loading console line
 
-        if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
-        Logger.log(`${files.length} select_menus loaded`, 'INTERACTION_MANAGER');
-      } // [end] Loop all selectMenus files
-    } // [end] Build select menus
-  } // [end] Build interactions manager
+      if (cache.errors.length) throw cache.errors; // throw all errors of interaction section
+      Logger.log(`${files.length} select_menus loaded`, 'INTERACTION_MANAGER');
+    } //? [end] Build select menus
+  } //? [end] build
 
   /**
-   * Load interaction
+   * @method
+   * @private
+   * @async
    * @param interactions
-   * @param file
    */
-  private load(interactions: { button?: Button<'base' | 'link'>; selectMenu?: SelectMenu }, file: string): void {
+  private load(interactions: { button?: Button<'base' | 'link'>; selectMenu?: SelectMenu }): void {
     if (interactions.button) {
-      /**
-       * If this interaction is a button
-       */
+      //? If this interaction is a button
 
       const button = interactions.button; // Get button
 
@@ -334,27 +220,21 @@ export class InteractionManager {
       button.data.type = 'BUTTON'; // Define interaction type to button data
 
       if ('customId' in button.data) {
-        /**
-         * If is classic button
-         */
+        //? If is classic button
 
         if (!button.data.customId) throw new SucroseError('ERROR', 'INTERACTION_MISSING_ID');
         this.buttons.set(button.data.customId, button);
       } else if ('url' in button.data) {
-        /**
-         * If is url button
-         */
+        //? If is url button
 
         if (!button.data.url) throw new SucroseError('ERROR', 'INTERACTION_MISSING_URL');
         button.data.style = 'LINK'; // Define style to url button
         this.buttons.set(button.data.url, button);
       }
 
-      // [end] If this interaction is a button
+      //? [end] If this interaction is a button
     } else if (interactions.selectMenu) {
-      /**
-       * If this interaction is a selectMenu
-       */
+      //? If this interaction is a selectMenu
 
       const selectMenu = interactions.selectMenu; // Get selectMenu
 
@@ -364,5 +244,5 @@ export class InteractionManager {
 
       this.selectMenus.set(selectMenu.data.customId, selectMenu);
     }
-  } // [end] Load interaction
+  } //? [end] Load interaction
 }

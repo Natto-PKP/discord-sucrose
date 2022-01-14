@@ -1,245 +1,162 @@
 /* Dependencies */
 import { existsSync, lstatSync, readdirSync } from 'fs-extra';
+import path from 'path';
 
 /* Services */
-import { SucroseError, Logger } from '../services/logger';
-import { ConsoleLoading, StringProgressBar } from '../services/util';
+import { SucroseError, ConsoleLoading, Logger } from '../services/logger';
+import { stringProgressBar } from '../services/util';
 
 /* Typings */
-import Discord, { ApplicationCommand, ClientApplication, Snowflake } from 'discord.js';
+import { Sucrose } from '../sucrose';
+import Discord from 'discord.js';
 import {
+  BaseAPICommandOptions,
+  BaseLocalCommandOptions,
   Collection,
   CommandData,
-  CommandOptionData,
-  CommandLocalOptions,
-  BaseCommandsMethodOptions,
+  ChatInputData,
+  ChatInputOptionData,
+  ChatInputSubCommandData,
+  ChatInputSubCommandGroupData,
 } from '../typings/index';
 
-import { Sucrose } from '../sucrose';
-import { lstat } from 'fs/promises';
-
-const [dir, ext] = process.env.PROD == 'true' ? ['dist', 'js'] : ['src', 'ts'];
-
 export class CommandManager {
-  // Global and Guilds commands collection
+  /**
+   * @property
+   * @public
+   * @type { Collection<CommandData> }
+   */
   public global: Collection<CommandData> = new Map();
-  public guilds: Collection<Collection<CommandData>> = new Map();
-  private sucrose: Sucrose;
 
-  public constructor(sucrose: Sucrose) {
+  /**
+   * @property
+   * @public
+   * @type { Collection<Collection<CommandData>> }
+   */
+  public guilds: Collection<Collection<CommandData>> = new Map();
+
+  /**
+   * @constructor
+   * @param { Sucrose } sucrose
+   * @example
+   * new CommandManager(sucrose)
+   */
+  public constructor(private sucrose: Sucrose) {
     this.sucrose = sucrose;
   }
 
   /**
-   * Build commands manager
+   * Build global and guilds commands
+   * @method
+   * @public
+   * @returns { Promise<void> }
    */
   public async build(): Promise<void> {
-    if (existsSync(`./${dir}/commands`)) {
-      /**
-       * Global commands
-       */
-      if (existsSync(`./${dir}/commands/global`)) {
-        const cache: { errors: Error[]; i: number } = { errors: [], i: 0 }; // Logger cache of this code
-        const files = readdirSync(`./${dir}/commands/global`).filter(
-          (file) => lstatSync(`./${dir}/commands/global/${file}`).isFile() && file.endsWith(`.${ext}`)
-        );
+    const basePath = path.join(__dirname, '../../commands');
+    if (!existsSync(basePath)) return;
 
-        /**
-         * If possible command file detected
-         */
-        if (files.length) {
-          const content = () => `${StringProgressBar(cache.i + 1, files.length)}/${files.length} commands processed`;
-          const loading = new ConsoleLoading(content()); // Start loading console line
+    const globalPath = path.join(basePath, 'global');
+    const guildsPath = path.join(basePath, 'guilds');
 
-          /**
-           * Loop all command file
-           */
+    //? Global commands
+    if (existsSync(globalPath)) {
+      const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile());
+      if (!files.length) return;
+
+      const cache = { errors: <Error[]>[], i: 0 }; // Logger cache of this code
+      const content = () =>
+        `${stringProgressBar(cache.i + 1, files.length)} ${cache.i}/${files.length} commands processed`;
+      const loading = new ConsoleLoading(content()); // Start loading console line
+
+      //? Loop all command file
+      for await (const file of files) {
+        cache.i++; // Increment command index in logger cache
+
+        try {
+          await this.load(file);
+          loading.content = content(); // set new state in loading console line
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
+          if (Array.isArray(error)) cache.errors.push(...error);
+        }
+      } //? [end] Loop all command file
+
+      loading.clear(); // clear loading console line
+
+      if (cache.errors.length) throw cache.errors; // throw all errors of global commands section
+      Logger.log(`${files.length} global commands loaded`, 'COMMAND_MANAGER');
+    } //? [end] Global commands
+
+    //? Guilds commands
+    if (existsSync(guildsPath)) {
+      const guilds = readdirSync(guildsPath).filter((file) => lstatSync(path.join(guildsPath, file)).isDirectory());
+      if (!guilds.length) return;
+
+      const cache = { errors: <Error[]>[], i: 0, g: 0, commands: 0 }; // Logger cache of this code
+      const content = () =>
+        `${stringProgressBar(cache.g + 1, guilds.length)} ${cache.g} guild of ${guilds.length} guild(s) processed`;
+      const loading = new ConsoleLoading(content()); // Start loading console line
+
+      //? Loop all guild folder
+      for await (const guild of guilds) {
+        cache.g++; // Increment guild index in logger cache
+
+        try {
+          const guildPath = path.join(guildsPath, guild);
+          const files = readdirSync(guildPath).filter((file) => lstatSync(path.join(guildPath, file)).isFile());
+          if (!files.length) return;
+
+          this.guilds.set(guild, new Map()); // Create guild commands collection
+          cache.commands += files.length; // Add guild commands size to total commands size in logger cache
+
+          //? Loop all command of guild
           for await (const file of files) {
-            cache.i++; // Increment command index in logger cache
+            cache.i++; // Increment command index of this guild in logger cache
 
-            await this.load(file).catch((error) => {
-              if (error instanceof Error) cache.errors.push(error); // Push error to logger cache
-            });
-
-            loading.content = content(); // set new state in loading console line
-          } // [end] Loop all command file
-
-          loading.clear(); // clear loading console line
-
-          if (cache.errors.length) throw cache.errors; // throw all errors of global commands section
-          Logger.log(`${files.length} global commands loaded`, 'COMMAND_MANAGER');
-        } // [end] If possible command file detected
-      } // [end] Global commands
-
-      /**
-       * Guilds commands
-       */
-      if (existsSync(`./${dir}/commands/guilds`)) {
-        const cache: { errors: Error[]; i: number; g: number; commands: number } = {
-          errors: [],
-          i: 0,
-          g: 0,
-          commands: 0,
-        }; // Logger cache of this code
-        const guilds = readdirSync(`./${dir}/commands/guilds`).filter((file) =>
-          lstatSync(`./${dir}/commands/guilds/${file}`).isDirectory()
-        );
-
-        /**
-         * If possible guild folder detected
-         */
-        if (guilds.length) {
-          let content = () =>
-            `${StringProgressBar(cache.g + 1, guilds.length)} ${cache.g} guild of ${guilds.length} guild(s)`;
-          const loading = new ConsoleLoading(content()); // Start loading console line
-
-          /**
-           * Loop all guild folder
-           */
-          for await (const guild of guilds) {
-            cache.g++; // Increment guild index in logger cache
-
-            const files = readdirSync(`./${dir}/commands/guilds/${guild}`).filter(
-              (file) => lstatSync(`./${dir}/commands/guilds/${guild}/${file}`).isFile() && file.endsWith(`.${ext}`)
-            );
-            this.guilds.set(guild, new Map()); // Create guild commands collection
-
-            /**
-             * If possible command file detected
-             */
-            if (files.length) {
-              cache.commands += files.length; // Add guild commands size to total commands size in logger cache
-
-              /**
-               * Loop all command of guild
-               */
-              for await (const file of files) {
-                cache.i++; // Increment command index of this guild in logger cache
-
-                try {
-                  await this.load(file, guild);
-                } catch (error) {
-                  if (error instanceof Error) cache.errors.push(error); // Push error to logger cache
-                }
-              } // [end] Loop all command of guild
-
-              loading.content = content(); // set new state in loading console line
-              cache.i = 0; // Reset command index in logger cache
+            try {
+              await this.load(file, guild);
+            } catch (error) {
+              if (error instanceof Error) cache.errors.push(error);
+              if (Array.isArray(error)) cache.errors.push(...error);
             }
+          } //? [end] Loop all command of guild
 
-            loading.clear(); // clear loading console line
+          loading.content = content(); // set new state in loading console line
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
+          if (Array.isArray(error)) cache.errors.push(...error);
+        }
 
-            if (cache.errors.length) throw cache.errors; // throw all errors of guilds commands section
-            Logger.log(`${files.length} guilds commands loaded`, 'COMMAND_MANAGER');
-          } // [end] Loop all guild folder
-        } // [end] If possible guild folder detected
-      } // [end] Guilds commands
-    }
-  } // [end] Build commands manager
+        cache.i = 0; // Reset command index in logger cache
+        loading.clear(); // clear loading console line
 
-  /**
-   * Load a command in collection
-   * @param command
-   * @param target
-   * @async
-   */
-  private async load(target: string, guildId?: string): Promise<CommandData> {
-    const path = `commands/${guildId ? `guilds/${guildId}` : 'global'}`; // Define path of command parent folder
-    const command: CommandData = await import(`../../${path}/${target}`); // Import command
-    command.path = target; // Defined file name in command object
-
-    /**
-     * Get sub commands group or sub commands
-     */
-    const subCommandGroupPath = `${path}/${command.body.name}`; // Define path of command folder
-    if (
-      (!command.body.type || command.body.type === 'CHAT_INPUT') &&
-      existsSync(`./${dir}/${subCommandGroupPath}`) &&
-      lstatSync(`./${dir}/${subCommandGroupPath}`).isDirectory()
-    ) {
-      // Get files in command folder
-      const subCommandGroupFiles = readdirSync(`./${dir}/${subCommandGroupPath}`).filter(
-        (file) => lstatSync(`./${dir}/${subCommandGroupPath}/${file}`).isFile() && file.endsWith(`.${ext}`)
-      );
-
-      // Empty option in command body and command object
-      command.body.options = [];
-      command.options = new Map();
-
-      /**
-       * Loop all sub command groups / sub commands files
-       */
-      for await (const subCommandGroupFile of subCommandGroupFiles) {
-        // Import sub command group / sub command
-        const subCommandGroup: CommandOptionData<'base'> = await import(
-          `../../${subCommandGroupPath}/${subCommandGroupFile}`
-        );
-
-        const subCommandPath = `${path}/${command.body.name}/${subCommandGroup.option.name}`; // Define sub command group / sub command path
-
-        /**
-         * if this CommandOption is a sub command group
-         */
-        if (
-          subCommandGroup.option.type === 'SUB_COMMAND_GROUP' &&
-          existsSync(`./${dir}/${subCommandPath}`) &&
-          lstatSync(`./${dir}/${subCommandPath}`).isDirectory()
-        ) {
-          // Get files in command group folder
-          const subCommandFiles = readdirSync(`./${dir}/${subCommandPath}`).filter(
-            (file) => lstatSync(`./${dir}/${subCommandPath}/${file}`).isFile() && file.endsWith(`.${ext}`)
-          );
-
-          // Empty option in command group option and command group object
-          subCommandGroup.option.options = [];
-          subCommandGroup.options = new Map();
-
-          /**
-           * Loop all sub commands files
-           */
-          for await (const subCommandFile of subCommandFiles) {
-            // Import sub command
-            const subCommand: CommandOptionData<'sub'> = await import(`../../${subCommandPath}/${subCommandFile}`);
-
-            subCommandGroup.option.options.push(subCommand.option); // Push subcommand option in subcommandgroup options
-            subCommandGroup.options.set(subCommand.option.name, subCommand); // Set subcommand in subcommandgroup
-          } // [end] Loop all sub commands files
-        } // [end] if this CommandOption is a sub command group
-
-        command.body.options.push(subCommandGroup.option); // Push subcommandgroup/subcommand option in command options
-        command.options.set(subCommandGroup.option.name, subCommandGroup); // Set subcommandgroup/subcommand in command
-      } // [end] Loop all sub command groups / sub commands files
-    } // [end] Get sub commands group or sub commands
-
-    const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
-    if (!commands) throw new SucroseError('ERROR', 'COMMAND_COLLECTION_NOT_EXIST');
-    commands.set(command.body.name, command); // Set command with all option if exist in commands
-
-    return command;
-  }
+        if (cache.errors.length) throw cache.errors; // throw all errors of guilds commands section
+        Logger.log(`${cache.commands} guilds commands loaded`, 'COMMAND_MANAGER');
+      } //? [end] Loop all guild folder
+    } //? [end] Guilds commands
+  } //? [end] build
 
   /**
    * Create new(s) commands in discord API
+   * @method
+   * @public
    * @async
-   * @param name
-   * @param guildId
-   * @returns
+   * @param { CommandLocalOptions } options
+   * @returns { Promise<ApplicationCommand | Discord.Collection<Snowflake, ApplicationCommand>> }
    * @example
-   * commands.create('*') // reset and create all global commands
-   * commands.create('*', '012345678912345678') // reset and create all commands of guild id (second param)
-   * commands.create('hello') // create command hello
-   * commands.create('hello', '012345678912345678') // create command hello in guild id (second param)
+   * await commands.create()
+   * await commands.create({ guildId: '012345678912345678' })
+   * await commands.create({ commandName: 'hello' })
+   * await commands.create({ commandName: 'hello', guildId: '012345678912345678'})
    */
   public async create(
-    options: CommandLocalOptions
-  ): Promise<ApplicationCommand | Discord.Collection<Snowflake, ApplicationCommand>> {
-    const application = <ClientApplication>this.sucrose.application;
+    options: BaseLocalCommandOptions = {}
+  ): Promise<Discord.ApplicationCommand | Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>> {
+    const application = <Discord.ClientApplication>this.sucrose.application;
     const { commandName, guildId } = options;
 
     if (typeof commandName === 'string') {
-      /**
-       * Create a command
-       */
+      //? Create a command
 
       const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
       if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
@@ -251,9 +168,7 @@ export class CommandManager {
       if (guildId) return await application.commands.create(command.body, guildId);
       else return await application.commands.create(command.body);
     } else {
-      /**
-       * Create all commands
-       */
+      //? Create all commands
 
       const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
       if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
@@ -261,12 +176,10 @@ export class CommandManager {
       // Reset commands in Discord API
       await (guildId ? application?.commands.set([], guildId) : application?.commands.set([]));
 
-      const cache = <{ errors: { name: string; message: string }[]; i: number }>{ errors: [], i: 0 }; // Logger cache of this code
-      const applicationCommandCollection = <Discord.Collection<Snowflake, ApplicationCommand>>new Map();
+      const cache = { errors: <Error[]>[], i: 0 }; // Logger cache of this code
+      const applicationCommandCollection = <Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>>new Map();
 
-      /**
-       * Loop all command of this collection
-       */
+      //? Loop all command of this collection
       for await (const command of commands.values()) {
         cache.i++;
 
@@ -282,7 +195,7 @@ export class CommandManager {
         } catch (error) {
           if (error instanceof Error) cache.errors.push(error); // Push error in logger cache
         }
-      } // [end] Loop all command of this collection
+      } //? [end] Loop all command of this collection
 
       if (cache.errors.length) throw cache.errors;
       return applicationCommandCollection;
@@ -290,33 +203,215 @@ export class CommandManager {
   }
 
   /**
-   * refresh a command
-   * @param name
-   * @param guildId
-   * @returns
+   * Delete one command or many commands in discord api
+   * @method
+   * @public
+   * @async
+   * @param { Partial<BaseAPICommandOptions> } options
+   * @returns { Promise<Discord.ApplicationCommand | Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>> }
+   * @example
+   * await commands.delete()
+   * await commands.delete({ guildId: '012345678912345678' })
+   * await commands.delete({ commandId: '012345678912345678' })
+   * await commands.delete({ commandId: '012345678912345678', guildId: '012345678912345678' })
    */
-  public async refresh(options: CommandLocalOptions): Promise<CommandData | CommandData[]> {
+  public async delete(
+    options: Partial<BaseAPICommandOptions>
+  ): Promise<Discord.ApplicationCommand | Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>> {
+    const commands = await this.fetch(options);
+    if (!commands) throw new SucroseError('ERROR', 'COMMAND_NOT_EXIST_ON_API');
+
+    if (commands instanceof Map) {
+      const results = <Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>>new Map();
+      const errors = <Error[]>[];
+
+      for (const command of commands.values()) {
+        try {
+          const oldCommand = await command.delete();
+          results.set(oldCommand.id, oldCommand);
+        } catch (error) {
+          if (error instanceof Error) errors.push(error);
+        }
+      }
+
+      if (errors.length) throw errors;
+      return results;
+    } else return await commands.delete();
+  }
+
+  /**
+   * Edit a command in discord api
+   * @method
+   * @public
+   * @async
+   * @param { BaseAPICommandOptions & { data: Discord.ApplicationCommandDataResolvable } options
+   * @returns { Promise<Discord.ApplicationCommand> }
+   * @example
+   * const data = { description: 'I love ferret' }
+   *
+   * await commands.edit({ commandId: '012345678912345678', data })
+   * await commands.edit({ commandId: '012345678912345678', data, guildId: '012345678912345678' })
+   */
+  public async edit(
+    options: BaseAPICommandOptions & { data: Discord.ApplicationCommandDataResolvable }
+  ): Promise<Discord.ApplicationCommand> {
+    const { commandId, guildId, data } = options;
+    const application = <Discord.ClientApplication>this.sucrose.application;
+
+    if (guildId) return await application.commands.edit(commandId, data, guildId);
+    else return await application.commands.edit(commandId, data);
+  }
+
+  /**
+   * Fetch a command or collection of commands in discord api
+   * @async
+   * @public
+   * @param { Partial<BaseAPICommandOptions> } options
+   * @returns { Promise<Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand> | Discord.ApplicationCommand | null> }
+   * @example
+   * await commands.fetch()
+   * await commands.fetch({ guildId: '012345678912345678' })
+   * await commands.fetch({ commandId: '012345678912345678' })
+   * await commands.fetch({ commandId: '012345678912345678', guildId: '012345678912345678'})
+   */
+  public async fetch(
+    options: Partial<BaseAPICommandOptions> = {}
+  ): Promise<Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand> | Discord.ApplicationCommand | null> {
+    const application = <Discord.ClientApplication>this.sucrose.application;
+    const { commandId, guildId } = options;
+
+    const commands = application.commands.fetch(commandId, { guildId }) || application.commands.fetch() || null;
+    if (commands instanceof Map && !commands.size) return null;
+    return commands;
+  }
+
+  /**
+   * Load a command and insert this into local commands collection
+   * @method
+   * @private
+   * @async
+   * @param { string } target Target file name
+   * @param { string | undefined } guildId id of guild command
+   * @returns { Promise<CommandData> }
+   */
+  private async load(target: string, guildId?: string): Promise<CommandData> {
+    const basePath = path.join(__dirname, '../../commands', guildId ? `guilds/${guildId}` : 'global');
+    const commandPath = path.join(basePath, target);
+    let command = <CommandData>(await import(commandPath)).default; // Import command
+    const commandFolderPath = path.join(basePath, command.body.name); // Define path of subcommandsgroups folder
+    command.path = commandPath; // Set path of command file
+
+    //? Get sub commands group or sub commands
+    if (
+      (!command.body.type || command.body.type === 'CHAT_INPUT') &&
+      existsSync(commandFolderPath) &&
+      lstatSync(commandFolderPath).isDirectory()
+    ) {
+      command = <ChatInputData>command;
+      const subCommandGroupFiles = readdirSync(commandFolderPath).filter((file) =>
+        lstatSync(path.join(commandFolderPath, file)).isFile()
+      );
+
+      // Empty option in command body and command object
+      command.body.options = [];
+      command.options = new Map();
+
+      //? Loop all sub command groups / sub commands files
+      const cache = { errors: <Error[]>[], i: 0 }; // Logger cache of this code
+      for await (const subCommandGroupFile of subCommandGroupFiles) {
+        cache.i += 1;
+
+        try {
+          const optionPath = path.join(commandFolderPath, subCommandGroupFile);
+          let option = <ChatInputOptionData>(await import(optionPath)).default;
+          const groupPath = path.join(commandFolderPath, option.option.name); // Define sub command group path
+          option.path = optionPath;
+
+          //? if this CommandOption is a sub command group
+          if (
+            option.option.type === 'SUB_COMMAND_GROUP' &&
+            existsSync(groupPath) &&
+            lstatSync(groupPath).isDirectory()
+          ) {
+            option = <ChatInputSubCommandGroupData>option;
+            const subCommandFiles = readdirSync(groupPath).filter((file) =>
+              lstatSync(path.join(groupPath, file)).isFile()
+            );
+
+            // Empty option in command group option and command group object
+            option.option.options = [];
+            option.options = new Map();
+
+            //? Loop all sub commands files
+            const subCache = { errors: <Error[]>[], i: 0 }; // Logger cache of this code
+            for await (const subCommandFile of subCommandFiles) {
+              subCache.i += 1;
+
+              try {
+                const subCommandPath = path.join(groupPath, subCommandFile);
+                const subCommand = <ChatInputSubCommandData>(await import(subCommandPath)).default;
+                subCommand.path = subCommandPath;
+
+                option.option.options.push(subCommand.option); // Push subcommand option in subcommandgroup options
+                option.options.set(subCommand.option.name, subCommand); // Set subcommand in subcommandgroup
+              } catch (error) {
+                if (error instanceof Error) subCache.errors.push(error);
+              }
+            } //? [end] Loop all sub commands files
+
+            if (subCache.errors.length) throw subCache.errors;
+          } //? [end] if this CommandOption is a sub command group
+
+          command.body.options.push(option.option); // Push subcommandgroup/subcommand option in command options
+          command.options.set(option.option.name, option); // Set subcommandgroup/subcommand in command
+        } catch (error) {
+          if (error instanceof Error) cache.errors.push(error);
+          if (Array.isArray(error)) cache.errors.push(...error);
+        }
+      } //? [end] Loop all sub command groups / sub commands files
+
+      if (cache.errors.length) throw cache.errors;
+    } //? [end] Get sub commands group or sub commands
+
+    const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
+    if (!commands) throw new SucroseError('ERROR', 'COMMAND_COLLECTION_NOT_EXIST');
+    if (!command.body.type) command.body.type = 'CHAT_INPUT';
+    commands.set(command.body.name, command); // Set command with all option if exist in commands
+
+    return command;
+  } //? [end] load
+
+  /**
+   * Refresh a local command
+   * @method
+   * @public
+   * @async
+   * @param { CommandLocalOptions } options
+   * @returns { Promise<CommandData | CommandData[]> }
+   * @example
+   * await commands.refresh()
+   * await commands.refresh({ guildId: '012345678912345678' })
+   * await commands.refresh({ commandName: 'hello' })
+   * await commands.refresh({ commandName: 'hello', guildId: '012345678912345678'})
+   */
+  public async refresh(options: BaseLocalCommandOptions = {}): Promise<CommandData | CommandData[]> {
     const { commandName, guildId } = options;
 
     const commands = guildId ? this.guilds.get(guildId) : this.global; // Define commands collection
     if (!(commands instanceof Map)) throw new SucroseError('ERROR', 'COMMAND_FOLDER_GUILD_EMPTY');
 
     if (typeof commandName === 'string') {
-      /**
-       * Refresh one command
-       */
+      //? Refresh one command
 
       const command = commands.get(commandName); // Get command
       if (!command || !command.path) throw new SucroseError('ERROR', 'COMMAND_UKNOWN');
 
       commands.delete(commandName);
-      return await this.load(command.path, guildId);
+      return await this.load(path.basename(command.path), guildId);
     } else {
-      /**
-       * Refresh all commands
-       */
+      //? Refresh all commands
 
-      const cache = <{ errors: { name: string; message: string }[]; i: number }>{ errors: [], i: 0 }; // Logger cache of this code
+      const cache = { errors: <Error[]>[], i: 0 }; // Logger cache of this code
       const commandDataArray = <CommandData[]>[];
 
       for await (const command of commands.values()) {
@@ -325,7 +420,7 @@ export class CommandManager {
         try {
           if (!command) throw new SucroseError('ERROR', 'COMMAND_UKNOWN');
           commands.delete(command.body.name);
-          commandDataArray.push(await this.load(command.path, guildId));
+          commandDataArray.push(await this.load(path.basename(command.path), guildId));
         } catch (error) {
           if (error instanceof Error) cache.errors.push(error); // Push error in logger cache
         }
@@ -334,38 +429,5 @@ export class CommandManager {
       if (cache.errors.length) throw cache.errors;
       return commandDataArray;
     }
-  } // [end] refresh a command
-
-  /**
-   * Delete a command in discord API
-   * @async
-   * @param commandId
-   * @param guildId
-   * @returns
-   */
-  public async delete(options: BaseCommandsMethodOptions): Promise<ApplicationCommand> {
-    const { commandId, guildId } = options;
-
-    const command = await this.fetch({ commandId, guildId }); // Fetch command in Discord API
-    if (!(command instanceof ApplicationCommand)) throw new SucroseError('ERROR', 'COMMAND_NOT_EXIST_ON_API');
-    return await command.delete(); // Delete command of Discord API
-  }
-
-  /**
-   * Fetch a command or collection of commands to Discord API
-   * @param options
-   * @returns
-   */
-  public async fetch(
-    options?: BaseCommandsMethodOptions
-  ): Promise<Discord.Collection<Snowflake, ApplicationCommand> | ApplicationCommand | undefined> {
-    if (options) {
-      const { commandId, guildId } = options;
-
-      if (options.guildId) {
-        const guild = await this.sucrose.guilds.fetch(options.guildId); // Fetch guild in Discord API
-        if (guild) return await (options.commandId ? guild.commands.fetch(options.commandId) : guild.commands.fetch()); // Fetch all guild commands or a guild command with commandId
-      } else return await this.sucrose.application?.commands.fetch(options.commandId); // Fetch a global command with commandId
-    } else return await this.sucrose.application?.commands.fetch(); // Fetch all global commands
-  }
+  } //? [end] refresh a command
 }

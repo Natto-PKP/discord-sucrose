@@ -1,6 +1,6 @@
-import { Command } from 'src/structures/typings';
+import { ChatInput } from 'src/structures/typings';
 
-export = <Command>{
+export default <ChatInput>{
   body: {
     name: 'hello',
     description: 'test command',
@@ -9,14 +9,14 @@ export = <Command>{
   exec: async ({ interaction, sucrose }) => {
     const button = sucrose.interactions.buttons.get('useme');
     const url = sucrose.interactions.buttons.get('https://google.com');
-    const select_menu = sucrose.interactions.selectMenus.get('selectme');
-    if (!button || !select_menu || !url) return;
+    const selectMenu = sucrose.interactions.selectMenus.get('selectme');
+    if (!button || !selectMenu || !url) return;
 
     interaction.reply({
       content: 'Hello world !',
       components: [
         { type: 'ACTION_ROW', components: [button.data, url.data] },
-        { type: 'ACTION_ROW', components: [select_menu.data] },
+        { type: 'ACTION_ROW', components: [selectMenu.data] },
       ],
     });
   },

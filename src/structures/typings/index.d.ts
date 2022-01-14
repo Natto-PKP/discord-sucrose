@@ -15,111 +15,140 @@ export type Collection<V> = Map<string, V>;
 //! SUCROSE
 // # Exports
 
-//? Sucrose options
 export type SucroseOptions = BaseOptions & { events?: BaseEventManagerOptions };
 
 //! EVENTS
 // # Exports
-export type Params<K extends keyof Discord.ClientEvents> = BaseParams & { args: Discord.ClientEvents[K] }; //? Events params
+export type Params<K extends keyof Discord.ClientEvents> = BaseParams & { args: Discord.ClientEvents[K] };
 
-//? Event options
 interface BaseEventManagerOptions {
   ignores?: Array<keyof Discord.ClientEvents>;
 }
 
+export type EventHandler<T extends keyof Discord.ClientEvents> = (params: Params<T>) => Discord.Awaitable<void>;
+export type EventListener<T extends keyof Discord.ClientEvents> = (
+  ...args: Discord.ClientEvents[T]
+) => Discord.Awaitable<void>;
 export type EventManagerOptions = BaseOptions & BaseEventManagerOptions;
 
 //! INTERACTIONS
 // # Types
-type BaseInteractionParams<T> = BaseParams & T; //? Interactions params
-type BaseInteractionExec<T> = (params: BaseInteractionParams<T>) => any | Promise<any>; //? Interactions exec
+type BaseInteractionParams<T> = BaseParams & T;
+type BaseInteractionExec<T> = (params: BaseInteractionParams<T>) => Discord.Awaitable<void>;
 
 // # Interfaces
-//? Base interaction object
 interface BaseInteraction {
   permissions?: Permissions;
 }
 
-//? Buttons types
-interface ButtonTypes {
-  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
-  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
-}
+// interface BaseInteractionManagerOptions {}
 
-//? Command methods options
-export interface BaseCommandsMethodOptions {
-  commandId: string;
-  guildId?: string;
-}
+// # Export
+export type InteractionManagerOptions = BaseOptions; // & BaseInteractionManagerOptions;
 
-export interface CommandLocalOptions {
-  commandName?: string;
-  guildId?: string;
-}
-
-//? Command options types
-interface CommandOptionTypes {
-  base: Discord.ApplicationCommandOptionData;
-  sub: Discord.ApplicationCommandSubCommandData;
-}
-
-//? Command types
-interface CommandTypes {
-  context: Discord.ContextMenuInteraction;
-  input: Discord.CommandInteraction;
-}
-
-// # Exports
-//? Button object
-export type Button<T extends keyof ButtonTypes> = BaseInteraction & {
-  data: ButtonTypes[T];
-  exec?: BaseInteractionExec<{ interaction: Discord.ButtonInteraction }>;
-};
-
-//? Command object
-export type Command<T extends keyof CommandTypes = 'input'> = BaseInteraction & {
-  body: Discord.ApplicationCommandData;
-  exec?: BaseInteractionExec<{ interaction: CommandTypes[T] }>;
-};
-
-//? Command data
-export type CommandData = Command & {
-  options: Collection<CommandOptionData<keyof CommandOptionTypes>>; // Automaticely added, this is array of command option
-  exec?: BaseInteractionExec<{ interaction: CommandTypes['context'] | CommandTypes['input'] }>;
-  path: string; // Automaticely added, this is path of command
-};
-
-//? Command data params
-export type CommandDataParams = BaseInteractionParams<{ interaction: CommandTypes['context'] | CommandTypes['input'] }>;
-
-//? Command option object
-export type CommandOption = BaseInteraction & {
-  option: Discord.ApplicationCommandOptionData;
-  exec?: BaseInteractionExec<{ interaction: CommandTypes['input'] }>;
-};
-
-//? Command option data
-export type CommandOptionData<T extends keyof CommandOptionTypes> = CommandOption & {
-  option: CommandOptionTypes[T];
-  options?: Collection<CommandOptionData>; // Automaticely added, this is array of command option
-};
-
-//? Command option data params
-export type CommandOptionDataParams = BaseInteractionParams<{ interaction: CommandTypes['input'] }>;
-
-//? InteractionManager Options
-interface BaseInteractionManagerOptions {}
-
-export type InteractionManagerOptions = BaseOptions & BaseInteractionManagerOptions;
-
-//? Permissions
 export interface Permissions {
   client?: Discord.PermissionResolvable;
   user?: Discord.PermissionResolvable;
 }
 
-//? SelectMenu object
+//! BUTTONS
+// # Interfaces
+interface ButtonTypes {
+  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
+  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
+}
+
+// # Exports
+export type Button<T extends keyof ButtonTypes> = BaseInteraction & {
+  data: ButtonTypes[T];
+  exec?: BaseInteractionExec<{ interaction: Discord.ButtonInteraction }>;
+};
+
+//! COMMANDS
+// # Exports
+export type ChatInput = BaseInteraction & {
+  body: Discord.ChatInputApplicationCommandData;
+  exec?: BaseInteractionExec<{ interaction: Discord.CommandInteraction }>;
+};
+
+export type ChatInputData = ChatInput & {
+  options?: Collection<ChatInputOptionData>;
+  path: string;
+};
+
+export type DiscordCommand = Discord.ContextMenuInteraction & Discord.CommandInteraction;
+export type ChatInputOption = ChatInputSubCommand | ChatInputSubCommandGroup;
+export type ChatInputOptionData = ChatInputSubCommandData | ChatInputSubCommandGroupData;
+export type Command = ChatInput | UserContextMenu | MessageContextMenu;
+export type CommandData = ChatInputData | UserContextMenuData | MessageContextMenuData;
+
+//! SUBCOMMANDGROUP
+// # Exports
+export type ChatInputSubCommandGroup = BaseInteraction & {
+  option: Discord.ApplicationCommandSubGroupData;
+  exec?: BaseInteractionExec<{ interaction: Discord.CommandInteraction }>;
+};
+
+export type ChatInputSubCommandGroupData = ChatInputSubCommandGroup & {
+  options: Collection<ChatInputSubCommandData>;
+  path: string;
+};
+
+//! SUBCOMMAND
+// # Exports
+export type ChatInputSubCommand = BaseInteraction & {
+  option: Discord.ApplicationCommandSubCommandData;
+  exec?: BaseInteractionExec<{ interaction: Discord.CommandInteraction }>;
+};
+
+export type ChatInputSubCommandData = ChatInputSubCommand & {
+  path: string;
+};
+
+//! USERCONTEXTMENU
+// # Exports
+export type UserContextMenu = BaseInteraction & {
+  body: Discord.UserApplicationCommandData;
+  exec?: BaseInteractionExec<{ interaction: Discord.ContextMenuInteraction }>;
+};
+
+export type UserContextMenuData = UserContextMenu & {
+  path: string;
+};
+
+//! MESSAGECONTEXTMENU
+// # Exports
+export type MessageContextMenu = BaseInteraction & {
+  body: Discord.MessageApplicationCommandData;
+  exec?: BaseInteractionExec<{ interaction: Discord.ContextMenuInteraction }>;
+};
+
+export type MessageContextMenuData = MessageContextMenu & {
+  path: string;
+};
+
+//! SELECTMENU
+// # Exports
 export type SelectMenu = BaseInteraction & {
   data: Required<Discord.BaseMessageComponentOptions> & Discord.MessageSelectMenuOptions;
   exec?: BaseInteractionExec<{ interaction: Discord.SelectMenuInteraction }>;
 };
+
+//! SUCROSE
+// # Exports
+export interface BaseAPICommandOptions {
+  commandId: string;
+  guildId?: string;
+}
+
+export interface BaseLocalCommandOptions {
+  commandName?: string;
+  guildId?: string;
+}
+
+//! UTILS
+type ApplicationInteraction =
+  | Discord.CommandInteraction
+  | Discord.ContextMenuInteraction
+  | Discord.ButtonInteraction
+  | Discord.SelectMenuInteraction;
