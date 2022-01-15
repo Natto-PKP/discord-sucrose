@@ -142,7 +142,7 @@ export class CommandManager {
    * @public
    * @async
    * @param { CommandLocalOptions } options
-   * @returns { Promise<ApplicationCommand | Discord.Collection<Snowflake, ApplicationCommand>> }
+   * @returns { Promise<Discord.ApplicationCommand | Discord.Collection<Discord.Snowflake, Discord.ApplicationCommand>> }
    * @example
    * await commands.create()
    * await commands.create({ guildId: '012345678912345678' })

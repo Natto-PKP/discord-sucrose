@@ -73,7 +73,7 @@ export class Sucrose extends Client {
 
     //? Fetch client application
     await new Promise<void>((resolve, reject) => {
-      this.on('ready', async () => {
+      this.on('ready', () => {
         this.application
           ?.fetch()
           .then(() => resolve())
