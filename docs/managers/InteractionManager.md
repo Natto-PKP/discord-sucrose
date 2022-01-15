@@ -8,8 +8,8 @@
 
 > ### `public` buttons
 >
-> `return` [Collection](../typings#collection)<[Button](../typings#button)>
+> `return` [Collection](../typings.md#collection)<[Button](../typings.md#button)>
 
 > ### `public` selectMenus
 >
-> `return` [Collection](../typings#collection)<[Button](../typings#selectmenus)>
+> `return` [Collection](../typings.md#collection)<[Button](../typings.md#selectmenus)>

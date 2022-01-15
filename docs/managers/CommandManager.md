@@ -15,12 +15,12 @@
 > ### `public` global
 >
 > Global commands collection  
-> `return` [Collection](../typings#collection)<[CommandData](../typings#commanddata)>
+> `return` [Collection](../typings.md#collection)<[CommandData](../typings.md#commanddata)>
 
 > ### `public` guilds
 >
 > Colection of guild commands collection  
-> `return` [Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#collection)<[Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#collection)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#commanddata)>>
+> `return` [Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#collection)<[Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#collection)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#commanddata)>>
 
 ## # Methods
 
@@ -28,9 +28,9 @@
 >
 > Create command in discord api
 >
-> | parameter |                                                        type                                                        | optional | default | description |
-> | :-------: | :----------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
-> |  options  | [BaseLocalCommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#baselocalcommandoptions) |   true   |         |             |
+> | parameter |                                                         type                                                          | optional | default | description |
+> | :-------: | :-------------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
+> |  options  | [BaseLocalCommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#baselocalcommandoptions) |   true   |         |             |
 >
 > #### examples:
 >
@@ -48,7 +48,7 @@
 > Delete command in discord api
 > | parameter | type | optional | default | description |
 > | :-------: | :----------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
-> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#baseapicommandoptions) | true | | |
+> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#baseapicommandoptions) | true | | |
 >
 > #### examples:
 >
@@ -66,7 +66,7 @@
 > Edit command in discord api
 > | parameter | type | optional | default | description |
 > | :-------: | :----------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
-> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#baseapicommandoptions) | | | |
+> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#baseapicommandoptions) | | | |
 > |options.data|[Discord.ApplicationCommandDataResolvable](https://discord.js.org/#/docs/discord.js/stable/typedef/ApplicationCommandData)||||
 >
 > #### examples:
@@ -85,7 +85,7 @@
 > Fetch command in discord api
 > | parameter | type | optional | default | description |
 > | :-------: | :----------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
-> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#baseapicommandoptions) |true | | |
+> | options | [BaseAPICommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#baseapicommandoptions) |true | | |
 >
 > #### examples:
 >
@@ -103,7 +103,7 @@
 > Refresh local command
 > | parameter | type | optional | default | description |
 > | :-------: | :----------------------------------------------------------------------------------------------------------------: | :------: | :-----: | :---------- |
-> | options | [BaseLocalCommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#baselocalcommandoptions) | true | | |
+> | options | [BaseLocalCommandOptions](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#baselocalcommandoptions) | true | | |
 >
 > #### examples:
 >
@@ -114,4 +114,4 @@
 > await commands.refresh({ commandName: 'hello', guildId: '012345678912345678' });
 > ```
 >
-> `return` [Promise](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#commanddata) | [Array](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Array)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#commanddata)>>
+> `return` [Promise](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#commanddata) | [Array](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Array)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings.md#commanddata)>>

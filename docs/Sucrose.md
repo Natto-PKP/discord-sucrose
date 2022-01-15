@@ -15,7 +15,7 @@ new Sucrose(clientOptions, sucroseOptions);
 |   parameter    |                                          type                                          | optional | default | description                  |
 | :------------: | :------------------------------------------------------------------------------------: | :------: | :-----: | :--------------------------- |
 | clientOptions  | [clientOptions](https://discord.js.org/#/docs/discord.js/stable/typedef/ClientOptions) |          |         | Options of discord.js client |
-| sucroseOptions |                       [sucroseOptions](./typings#sucroseoptions)                       |   true   |   {}    | Options of sucrose           |
+| sucroseOptions |                     [sucroseOptions](./typings.md#sucroseoptions)                      |   true   |   {}    | Options of sucrose           |
 
 ### example:
 
