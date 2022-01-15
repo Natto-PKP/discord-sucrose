@@ -10,7 +10,7 @@ This is a Typescript Discord bot structure
 ## Documentation
 
 - **managers**
-  - [CommandManager](https://github.com/Natto-PKP/discord.js-typescript/docs/managers/CommandManager)
+  - [CommandManager](./docs/managers/CommandManager)
   - [Event](https://github.com/Natto-PKP/discord.js-typescript/docs/managers/Event)
   - [EventManager](https://github.com/Natto-PKP/discord.js-typescript/docs/managers/EventManager)
   - [InteractionManager](https://github.com/Natto-PKP/discord.js-typescript/docs/managers/InteractionManager)
