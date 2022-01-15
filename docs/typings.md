@@ -10,6 +10,7 @@
 - [Command](#commanddata)
 - [BaseAPICommandOptions](#baseapicommandoptions)
 - [BaseLocalCommandOptions](#baselocalcommandoptions)
+- [Collection](#collection)
 
 ## Contents
 
@@ -44,3 +45,7 @@
 > ### BaseLocalCommandOptions
 >
 > `return` { commandName: [string](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/String), guildId: [string](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/String) }
+
+> ### Collection
+>
+> `return` [Map](developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Map)<[string](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/String), V>

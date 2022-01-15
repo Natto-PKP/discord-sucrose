@@ -8,8 +8,8 @@
 
 > ### `public` buttons
 >
-> `return` [Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#collection)<[Button](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#button)>
+> `return` [Collection](../typings#collection)<[Button](../typings#button)>
 
 > ### `public` selectMenus
 >
-> `return` [Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#collection)<[Button](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#selectmenus)>
+> `return` [Collection](../typings#collection)<[Button](../typings#selectmenus)>

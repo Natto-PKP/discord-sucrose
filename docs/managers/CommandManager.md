@@ -15,7 +15,7 @@
 > ### `public` global
 >
 > Global commands collection  
-> `return` [Collection](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#collection)<[CommandData](https://github.com/Natto-PKP/discord.js-typescript/docs/typings#commanddata)>
+> `return` [Collection](../typings#collection)<[CommandData](../typings#commanddata)>
 
 > ### `public` guilds
 >
