@@ -55,7 +55,7 @@ class Event<T extends keyof Discord.ClientEvents> {
   }
 
   /**
-   * Build an event
+   * Build/Active an event
    * @method
    * @public
    * @async
@@ -74,23 +74,8 @@ class Event<T extends keyof Discord.ClientEvents> {
 
     this.handler = handler;
     this.listener = listener;
-
-    await this.listen();
+    this.sucrose.on(this.name, listener);
   } //? [end] build
-
-  /**
-   * Listen/Active an event
-   * @method
-   * @public
-   * @async
-   * @returns { Promise<void> }
-   * @example
-   * await event.listen()
-   */
-  public async listen(): Promise<void> {
-    if (!this.listener) throw new SucroseError('ERROR', 'EVENT_LISTENER_NULL');
-    this.sucrose.on(this.name, this.listener);
-  }
 
   /**
    * Refresh an event
