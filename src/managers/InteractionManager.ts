@@ -1,43 +1,44 @@
-import path from 'path';
-import { existsSync, readdirSync, lstatSync } from 'fs';
+/* eslint-disable consistent-return */
 
-import { Logger } from '../services/logger';
-import { SError, STypeError } from '../services/errors';
-import { stringProgressBar } from '../utils/stringProgressBar';
-import { hasPermissions } from '../utils/hasPermissions';
-import { Collection } from '../utils/Collection';
+import { Collection } from 'discord.js';
+import path from 'path';
+import { existsSync, lstatSync, readdirSync } from 'fs';
 
 /* Types */
 import type Types from '../../typings';
 
-export class InteractionManager implements Types.InteractionManager {
-  public buttons: Types.Collection<string, Types.ButtonData> = new Collection();
-  public selectMenus: Types.Collection<string, Types.SelectMenuData> = new Collection();
+import { SError } from '../errors';
+import ButtonInteractionManager from './ButtonInteractionManager';
+import SelectMenuInteractionManager from './SelectMenuInteractionManager';
+import Logger from '../services/Logger';
+import hasPermissions from '../utils/hasPermissions';
 
-  /**
-   * Manage interactionCreate discord client event
-   * @param sucrose
-   * @param options
-   */
+export default class InteractionManager implements Types.InteractionManager {
+  private builded = false;
+
+  public buttons: Types.ButtonInteractionManager;
+
+  public selectMenus: Types.SelectMenuInteractionManager;
+
   public constructor(sucrose: Types.Sucrose, private options: Types.InteractionManagerOptions) {
-    const { contents } = options;
+    this.buttons = new ButtonInteractionManager({ ...options, path: path.join(options.path, 'buttons') });
+    this.selectMenus = new SelectMenuInteractionManager({ ...options, path: path.join(options.path, 'select-menus') });
+    const { content } = options;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sucrose.on('interactionCreate', async (interaction): Promise<any> => {
+    sucrose.on('interactionCreate', (interaction) => {
       try {
         const params = { sucrose };
-        const guild = interaction.guild;
+        const { guild } = interaction;
 
-        // ! command / context menu
+        // ! command or context menu
         if (interaction.isCommand() || interaction.isContextMenu()) {
           const name = interaction.commandName;
-          const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands.global;
-          const command = commands.get(name) || sucrose.commands.global.get(name);
+          const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands;
+          const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
           if (!command) return;
 
-          // # check command permissions
-          const missing = await hasPermissions(contents, interaction, command.permissions);
-          if (missing) return await interaction.reply(missing);
+          const commandPermission = hasPermissions(interaction, command.permissions || {}, content);
+          if (commandPermission) return interaction.reply(commandPermission);
 
           // ! command
           if (interaction.isCommand()) {
@@ -45,280 +46,102 @@ export class InteractionManager implements Types.InteractionManager {
             const groupName = interaction.options.getSubcommandGroup(false);
             const optionName = interaction.options.getSubcommand(false);
 
-            // ! group
-            if (groupName) {
-              const group = <Types.SubCommandGroupData>chatInput.options?.get(groupName);
-              if (!group || group.option.type !== 'SUB_COMMAND_GROUP')
-                return await interaction.reply(contents.MISSING_SUB_COMMAND_GROUP(name));
+            // ! sub command group or sub command
+            if (groupName || optionName) {
+              const option =
+                chatInput.options &&
+                ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
+              if (!option) return interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
 
-              // # check group permissions
-              const missing = await hasPermissions(contents, interaction, group.permissions);
-              if (missing) return await interaction.reply(missing);
+              const optionPermission = hasPermissions(interaction, option.permissions || {}, content);
+              if (optionPermission) return interaction.reply(optionPermission);
 
-              // ! group sub command
-              if (optionName) {
-                const sub = group.options.get(optionName);
-                if (!sub) return await interaction.reply(contents.MISSING_SUB_COMMAND(name));
+              // ! sub command
+              if (option.option.type === 'SUB_COMMAND_GROUP') {
+                const opts = (<Types.SubCommandGroupData>option).options;
+                const subOption = optionName && opts.get(optionName);
+                if (!subOption) return interaction.reply(content.MISSING_SUB_COMMAND(name));
 
-                // # check group sub command permissions
-                const missing = await hasPermissions(contents, interaction, sub.permissions);
-                if (missing) return await interaction.reply(missing);
+                const subCommandPermission = hasPermissions(interaction, subOption.permissions || {}, content);
+                if (subCommandPermission) return interaction.reply(subCommandPermission);
 
-                // # exec group sub command
-                if (!sub.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-                return await sub.exec({ ...params, interaction });
-              } // [end] group sub command
-            } // [end] group
+                if (!subOption.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+                return subOption.exec({ ...params, interaction });
+              } // [end] sub command
 
-            // ! sub command
-            if (optionName) {
-              const sub = <Types.SubCommandData>chatInput.options?.get(optionName);
-              if (!sub) return await interaction.reply(contents.MISSING_SUB_COMMAND(name));
+              if (!option.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+              return option.exec({ ...params, interaction });
+            } // [end] sub command group or sub command
 
-              // # check sub command permissions
-              const missing = await hasPermissions(contents, interaction, sub.permissions);
-              if (missing) return await interaction.reply(missing);
-
-              // # exec sub command
-              if (!sub.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-              return await sub.exec({ ...params, interaction });
-            } // [end] sub command
-
-            // # exec command
-            if (!chatInput.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-            await chatInput.exec({ ...params, interaction });
+            if (!chatInput.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+            return chatInput.exec({ ...params, interaction });
           } // [end] command
-          // ! context menu
-          else {
-            const context = <Types.UserContextMenuData | Types.MessageContextMenuData>command;
 
-            // ! user context menu
-            if (interaction.isUserContextMenu()) {
-              if (context.body.type !== 'USER') return interaction.reply(contents.MISSING_COMMAND(name));
-              const userContext = <Types.UserContextMenuData>context;
+          if (!command.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+          return command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
+        } // [end] command or context menu
 
-              // # check user context menu permissions
-              const missing = await hasPermissions(contents, interaction, userContext.permissions);
-              if (missing) return await interaction.reply(missing);
-
-              // # exec user context menu
-              if (!userContext.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-              return await userContext.exec({ ...params, interaction });
-            } // [end] user context menu
-            // ! message context menu
-            else if (interaction.isMessageContextMenu()) {
-              if (context.body.type !== 'MESSAGE') return interaction.reply(contents.MISSING_COMMAND(name));
-              const messageContext = <Types.MessageContextMenuData>context;
-
-              // # check message context menu permissions
-              const missing = await hasPermissions(contents, interaction, messageContext.permissions);
-              if (missing) return await interaction.reply(missing);
-
-              // # exec message context menu
-              if (!messageContext.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-              return await messageContext.exec({ ...params, interaction });
-            } // [end] message context menu
-          } // [end] context menu
-        } // [end] command / context menu
-        // ! button
-        else if (interaction.isButton()) {
-          const id = interaction.customId;
-          const button = this.buttons.get(id);
-          if (!button) return;
-
-          // # check button permissions
-          const missing = await hasPermissions(contents, interaction, button.permissions || null);
-          if (missing) return await interaction.reply(missing);
-
-          // # exec button
-          if (!button.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(id));
-          await button.exec({ ...params, interaction });
-        } // [end] button
         // ! select menu
-        else if (interaction.isSelectMenu()) {
-          const id = interaction.customId;
-          const selectMenu = this.selectMenus.get(id);
-          if (!selectMenu) return;
+        if (interaction.isSelectMenu()) {
+          const { customId } = interaction;
+          const selectMenu = this.selectMenus.collection.get(customId);
+          if (!selectMenu) return interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
 
-          // # check select menu permissions
-          const missing = await hasPermissions(contents, interaction, selectMenu.permissions || null);
-          if (missing) return await interaction.reply(missing);
+          const permission = hasPermissions(interaction, selectMenu.permissions || {}, content);
+          if (permission) return interaction.reply(permission);
 
-          // # exec select menu
-          if (!selectMenu.exec) return await interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(id));
-          await selectMenu.exec({ ...params, interaction });
+          if (!selectMenu.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
+          return selectMenu.exec({ ...params, interaction });
         } // [end] select menu
+
+        // ! button
+        if (interaction.isButton()) {
+          const { customId } = interaction;
+          const button = this.buttons.collection.get(customId);
+          if (!button) return interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
+
+          const permission = hasPermissions(interaction, button.permissions || {}, content);
+          if (permission) return interaction.reply(permission);
+
+          if (!button.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
+          return button.exec({ ...params, interaction });
+        } // [end] button
       } catch (err) {
-        if (err instanceof Error) Logger.log(err, 'ERROR', 'INTERACTION_MANAGER');
-        if (Array.isArray(err)) Logger.handle(err, 'INTERACTION_MANAGER');
+        if (err instanceof Error) Logger.error(err);
+        if (Array.isArray(err)) Logger.handle(...err);
       }
     });
   }
 
-  /**
-   * Add interaction(s) in collections
-   * @param type
-   * @param files
-   * @example
-   * await interactions.refresh('buttons', ['useme', 'clickme']);
-   * await interactions.refresh('selectMenus', 'selectMe');
-   */
-  public async add<T extends keyof Types.InteractionManagerReturn>(
-    type: T,
-    files: string[]
-  ): Promise<Types.InteractionManagerReturn[T][]>;
-  public async add<T extends keyof Types.InteractionManagerReturn>(
-    type: T,
-    files: string
-  ): Promise<Types.InteractionManagerReturn[T]>;
-  public async add(
-    type: unknown,
-    files: unknown
-  ): Promise<
-    | Types.InteractionManagerReturn[keyof Types.InteractionManagerReturn]
-    | Types.InteractionManagerReturn[keyof Types.InteractionManagerReturn][]
-  > {
-    if (!['buttons', 'selectMenus'].includes(<string>type)) throw STypeError('type', 'buttons | selectMenus', type);
-
-    // ! valid types
-    if (Array.isArray(files) || typeof files === 'string') {
-      const collection = type === 'buttons' ? this.buttons : this.selectMenus;
-      const to = path.join(this.options.path, type === 'buttons' ? 'buttons' : 'select-menus');
-
-      const errors = <Error[]>[];
-      const results = <Types.InteractionManagerReturn[keyof Types.InteractionManagerReturn][]>[];
-
-      // ? loop all interaction files
-      for (const file of Array.isArray(files) ? files : [files]) {
-        try {
-          const toFile = path.join(to, file);
-          if (!existsSync(toFile) || !lstatSync(toFile).isFile())
-            throw SError('ERROR', 'INTERACTIONS_MANAGER_MISSING_FILE');
-
-          const interaction = (await import(toFile)).default;
-          if (collection.has(interaction.data.customId || interaction.data.url))
-            throw SError('ERROR', 'INTERACTIONS_MANAGER_ALREADY_EXIST');
-
-          collection.set(interaction.data.customId || interaction.data.url, interaction);
-          results.push(interaction);
-        } catch (err) {
-          if (err instanceof Error) errors.push(err);
-        }
-      } // [end] loop all interaction files
-
-      if (errors.length) throw errors.length > 1 ? errors : errors[0];
-      return Array.isArray(files) ? results : results[0];
-    } // [end] valid types
-    else throw STypeError('files', 'string | string[]', files);
-  }
-
-  /**
-   * Build all interactions
-   * @returns
-   */
   public async build(): Promise<void> {
-    // ! buttons
+    if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
+
+    // ! buttons manager
     const buttonPath = path.join(this.options.path, 'buttons');
-    this.buttons = new Collection();
     if (existsSync(buttonPath) && lstatSync(buttonPath).isDirectory()) {
-      const files = readdirSync(buttonPath).filter((f) => lstatSync(path.join(buttonPath, f)).isFile());
-      if (!files) return;
+      const files = readdirSync(buttonPath).filter((file) => {
+        return lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`);
+      });
 
-      const cache = { errors: <Error[]>[], i: 0 };
-      const content = () => `${stringProgressBar(cache.i, files.length)} ${cache.i}/${files.length} buttons processed`;
-      const loading = new Logger.loading(content());
+      this.buttons.collection = new Collection();
+      if (!files.length) return;
 
-      // ? loop all buttons files
-      for await (const file of files) {
-        try {
-          await this.add('buttons', file);
+      await this.buttons.add(files);
+    }
 
-          loading.content = content();
-          cache.i += 1;
-        } catch (err) {
-          if (err instanceof Error) cache.errors.push(err);
-          if (Array.isArray(err)) cache.errors.push(...err);
-        }
-      } // [end] loop all buttons files
-
-      loading.clear();
-
-      if (cache.i) Logger.log(`${cache.i} buttons loaded`, 'SUCCESS', 'COMMAND_MANAGER');
-      if (cache.errors.length) throw cache.errors;
-    } // [end] buttons
-
-    // ! select menus
+    // ! select menus manager
     const selectMenuPath = path.join(this.options.path, 'select-menus');
-    this.selectMenus = new Collection();
     if (existsSync(selectMenuPath) && lstatSync(selectMenuPath).isDirectory()) {
-      const files = readdirSync(selectMenuPath).filter((f) => lstatSync(path.join(selectMenuPath, f)).isFile());
-      if (!files) return;
+      const files = readdirSync(selectMenuPath).filter((file) => {
+        return lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`);
+      });
 
-      const cache = { errors: <Error[]>[], i: 0 };
-      const content = () =>
-        `${stringProgressBar(cache.i, files.length)} ${cache.i}/${files.length} selectMenus processed`;
-      const loading = new Logger.loading(content());
+      this.selectMenus.collection = new Collection();
+      if (!files.length) return;
 
-      // ? loop all buttons files
-      for await (const file of files) {
-        try {
-          await this.add('selectMenus', file);
+      await this.selectMenus.add(files);
+    }
 
-          loading.content = content();
-          cache.i += 1;
-        } catch (err) {
-          if (err instanceof Error) cache.errors.push(err);
-          if (Array.isArray(err)) cache.errors.push(...err);
-        }
-      } // [end] loop all buttons files
-
-      loading.clear();
-
-      if (cache.i) Logger.log(`${cache.i} selectMenus loaded`, 'SUCCESS', 'COMMAND_MANAGER');
-      if (cache.errors.length) throw cache.errors;
-    } // [end] select menus
-  }
-
-  /**
-   * Remove and readd interaction(s)
-   * @param type
-   * @param names
-   * @example
-   * await interactions.refresh('buttons', ['useme', 'clickme']);
-   * await interactions.refresh('selectMenus', 'selectMe');
-   */
-  public async refresh<T extends keyof Types.InteractionManagerReturn>(
-    type: T,
-    names: string[]
-  ): Promise<Types.InteractionManagerReturn[T][]>;
-  public async refresh<T extends keyof Types.InteractionManagerReturn>(
-    type: T,
-    names: string
-  ): Promise<Types.InteractionManagerReturn[T]>;
-  public async refresh(
-    type: unknown,
-    names: unknown
-  ): Promise<
-    | Types.InteractionManagerReturn[keyof Types.InteractionManagerReturn][]
-    | Types.InteractionManagerReturn[keyof Types.InteractionManagerReturn]
-  > {
-    if (!['buttons', 'selectMenus'].includes(<string>type)) throw STypeError('type', 'buttons | selectMenus', type);
-
-    // ! valid types
-    if (Array.isArray(names) || typeof names === 'string') {
-      const collection = type === 'buttons' ? this.buttons : this.selectMenus;
-      const array = <string[]>(Array.isArray(names) ? names : [names]);
-      if (!collection.hasAll(...array)) throw SError('ERROR', 'INTERACTIONS_MANAGER_MISSING');
-
-      for (const name of names) collection.delete(name);
-
-      const files = array.map((name): string => collection.get(name)?.path || '');
-
-      return await this.add(
-        <keyof Types.InteractionManagerReturn>type,
-        <string[]>(Array.isArray(names) ? files : files[0])
-      );
-    } // [end] valid types
-    else throw STypeError('names', 'string | string[]', names);
+    this.builded = true;
   }
 }

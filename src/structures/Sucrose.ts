@@ -1,78 +1,92 @@
 import { Client } from 'discord.js';
+import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
-import { Logger } from '../services/logger';
-import { interactionsContents } from '../utils/contents';
+import Logger from '../services/Logger';
+import { SError } from '../errors';
 
-/* Managers */
-import { CommandManager } from '../managers/CommandManager';
-import { InteractionManager } from '../managers/InteractionManager';
-import { EventManager } from '../managers/EventManager';
+import EventManager from '../managers/EventManager';
+import CommandManager from '../managers/CommandManager';
+import InteractionManager from '../managers/InteractionManager';
+
+import * as contents from '../services/Messages';
 
 /* Types */
 import type Types from '../../typings';
 
-export class Sucrose extends Client implements Types.Sucrose {
+export default class Sucrose extends Client implements Types.Sucrose {
   public readonly commands: Types.CommandManager;
-  public readonly interactions: Types.InteractionManager;
+
   public readonly events: Types.EventManager;
+
+  public readonly interactions: Types.InteractionManager;
 
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    // ! ENVIRONMENT
-    const env = <Types.EnvironmentOptions>{
-      type: options.env?.type || process.env.NODE_ENV || 'development',
-      outputDir: options.env?.outputDir || process.env.OUTPUT_DIRECTORY || 'dist',
-      sourceDir: options.env?.sourceDir || process.env.OUTPUT_DIRECTORY || 'src',
-    };
+    const environment = process.env.NODE_ENV || options.env?.type || 'development';
+    const outputDir = process.env.OUTPUT_ENV || options.env?.directories?.output || 'dist';
+    const sourceDir = process.env.SOURCE_ENV || options.env?.directories?.source || 'src';
+    const commandsDir = process.env.COMMANDS_DIR || options.env?.directories?.commands || 'commands';
+    const eventsDir = process.env.EVENTS_DIR || options.env?.directories?.events || 'events';
+    const interactionsDir = process.env.INTERACTIONS_DIR || options.env?.directories?.interactions || 'interactions';
+    const [dir, ext] = environment === 'production' ? [outputDir, 'js'] : [sourceDir, 'ts'];
+    const basePath = path.join(process.cwd(), dir);
 
-    [env.directory, env.extension] = env.type === 'production' ? [env.outputDir, 'js'] : [env.sourceDir, 'ts'];
+    if (!existsSync(basePath)) SError('FATAL', 'working folder path does not exist');
+    if (!lstatSync(basePath).isDirectory()) SError('FATAL', 'working folder path is not a folder');
 
-    // # commands
-    const commandsDir = options.events?.directory || process.env.COMMANDS_DIRECTORY || 'commands';
-    this.commands = new CommandManager(this, {
-      directory: commandsDir,
-      env,
-      path: path.join(env.directory, commandsDir),
-    });
+    const env = <Types.EnvironmentOptions>{ ext, path: basePath };
 
-    // # events
-    const eventsDir = options.events?.directory || process.env.EVENTS_DIRECTORY || 'events';
+    // # EventManager
     this.events = new EventManager(this, {
-      directory: eventsDir,
       env,
-      ignore: [...(options.events?.ignore || [])],
-      path: path.join(env.directory, eventsDir),
+      path: path.join(basePath, eventsDir),
+      ignores: options.ignores?.events || [],
     });
 
-    // # interactions
-    const interactionsDir = options.interactions?.directory || process.env.INTERACTIONS_DIRECTORY || 'interactions';
+    // # CommandManager
+    this.commands = new CommandManager(this, { env, path: path.join(basePath, commandsDir) });
+
+    // # InteractionManager
     this.interactions = new InteractionManager(this, {
-      contents: { ...interactionsContents, ...options.interactions?.contents },
-      directory: interactionsDir,
+      content: {
+        ...(<Required<Types.InteractionContent>>contents.interaction),
+        ...(options.contents?.interaction || {}),
+      },
       env,
-      path: path.join(env.directory, interactionsDir),
+      path: path.join(basePath, interactionsDir),
     });
   }
 
   /**
-   * Buid an new client of Sucrose
+   * Build your application
    * @param options
    * @returns
-   * @example
-   * const sucrose = await Sucrose.build({ intents: [] })
    */
   static async build(options: Types.SucroseOptions): Promise<Types.Sucrose> {
     const sucrose = new Sucrose(options);
 
-    await sucrose.login(options.token || process.env.DISCORD_TOKEN || process.env.TOKEN);
-    await new Promise((res) => sucrose.once('ready', res));
+    const now = Date.now();
+
+    // # application log
+    await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
+    await new Promise<void>((res) => {
+      sucrose.once('ready', () => {
+        Logger.give('SUCCESS', 'Application is connected to discord');
+        res();
+      });
+    });
 
     // # managers
-    await sucrose.commands.build().catch((err) => Logger.handle(err, 'COMMAND_MANAGER'));
-    await sucrose.interactions.build().catch((err) => Logger.handle(err, 'INTERACTION_MANAGER'));
-    await sucrose.events.build().catch((err) => Logger.handle(err, 'EVENT_MANAGER'));
+    await sucrose.events.build().then(() => Logger.give('SUCCESS', 'Discord.js events loaded'), Logger.handle);
+    await sucrose.commands.build().then(() => Logger.give('SUCCESS', 'Slash commands loaded'), Logger.handle);
+    await sucrose.interactions.build().then(() => Logger.give('SUCCESS', 'Interactions loaded'), Logger.handle);
+
+    Logger.write('');
+    Logger.give('INFO', 'https://github.com/Natto-PKP/typescript-discord');
+    Logger.give('INFO', `Sucrose structure was launched in ${Date.now() - now}ms`);
+    Logger.write('\n');
 
     return sucrose;
   }

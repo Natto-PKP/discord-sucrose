@@ -1,7 +1,8 @@
-import type { ChatInputSubCommand } from '../../../../../../typings/index';
+import type { SubCommand } from '../../../../../../typings/index';
 
-export default <ChatInputSubCommand>{
+export default <SubCommand>{
   option: {
+    type: "SUB_COMMAND",
     name: 'sub',
     description: 'Sub commands',
   },

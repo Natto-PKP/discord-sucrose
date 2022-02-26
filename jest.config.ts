@@ -1,8 +1,7 @@
-import type { Config } from '@jest/types';
+import { defaults } from 'jest-config';
 
-export default <Config.InitialOptions>{
-  moduleFileExtensions: ['js', 'ts', 'd.ts'],
+export default {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts'],
   verbose: true,
 };

@@ -1,30 +1,27 @@
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-export const hasPermissions = async (
-  contents: Types.InteractionContentOptions,
+export default function hasPermissions(
   interaction: Discord.Interaction,
-  permissions: Types.Permissions | null | undefined
-): Promise<Discord.InteractionReplyOptions | null> => {
-  if (!interaction.guild || !permissions) return null;
+  permissions: Types.Permissions,
+  content: Required<Types.InteractionContent>
+): Discord.InteractionReplyOptions | null {
+  if (!interaction.guild) return null;
 
-  /**
-   * Ajouter l'immunité de certains rôles, de certains users, certaines guildes et de certains channels
-   * Ajouter les messages d'erreurs customisable
-   */
+  const { client, member } = interaction;
 
-  //? Client permissions
+  // ! client permissions
   if (permissions.client && interaction.guild.me) {
     const missingPermissions = interaction.guild.me.permissions.missing(permissions.client);
-    if (missingPermissions.length) return contents.MISSING_CLIENT_PERMISSIONS(interaction.client, missingPermissions);
-  } //? [end] Client permissions
+    if (missingPermissions.length) return content.MISSING_CLIENT_PERMISSIONS(client, missingPermissions);
+  }
 
-  //? Member permissions
-  if (permissions.user) {
-    const member = await interaction.guild.members.fetch(interaction.user.id);
-    const missingPermissions = member.permissions.missing(permissions.user);
-    if (member && missingPermissions.length) return contents.MISSING_MEMBER_PERMISSIONS(member, missingPermissions);
-  } //? [end] Member permissions
+  // ! member permissions
+  if (permissions.user && member) {
+    const missingPermissions = (<Discord.Permissions>member.permissions).missing(permissions.user);
+    if (missingPermissions.length)
+      return content.MISSING_MEMBER_PERMISSIONS(<Discord.GuildMember>member, missingPermissions);
+  }
 
   return null;
-};
+}
