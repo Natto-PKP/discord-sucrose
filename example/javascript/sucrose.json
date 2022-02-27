@@ -1,0 +1,5 @@
+{
+  "token": "your discord bot token",
+
+  "env": { "extension": "js", "source": "./" }
+}
