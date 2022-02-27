@@ -1,5 +1,7 @@
 # Discord bot structure using discord.js
 
+[See examples here](./example/)
+
 ## Documentation
 
 Currently unavailable.
@@ -95,7 +97,7 @@ Some message should appear in the console indicating the app is working properly
 ### # Adding a simple command
 
 - `./commands` Create a commands folder which will contain all of our slash commands
-- `./commands/global` Inside of this folder, a global folder should be made that will include our bots global commands. 
+- `./commands/global` Inside of this folder, a global folder should be made that will include our bots global commands.
 - `./commands/global/avatar.js` Create a avatar.js file inside of this folder create a avatar slash command.
 
 _./commands/global/avatar.js_
@@ -431,7 +433,7 @@ module.exports = {
     description: 'Get a animal image',
   },
 
-   // No need for a function to be executed as it will be handled by subcommands in the group
+  // No need for a function to be executed as it will be handled by subcommands in the group
 };
 ```
 
@@ -450,7 +452,7 @@ export default <SubCommandGroup>{
     description: 'Get a animal image',
   },
 
-   // No need for a function to be executed as it will be handled by subcommands in the group
+  // No need for a function to be executed as it will be handled by subcommands in the group
 };
 ```
 
