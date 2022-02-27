@@ -1,8 +1,11 @@
-import dotenv from 'dotenv';
-dotenv.config();
+/**
+ * Welcome to Sucrose structure for discord bot in typescript !
+ */
 
-/** Sucrose */
-import { Sucrose } from './structures/sucrose';
+import SucroseImport from './structures/Sucrose';
+import LoggerImport from './services/Logger';
 
-// Create new Sucrose client
-new Sucrose({ intents: 14319, partials: ['CHANNEL'] });
+export const Sucrose = SucroseImport;
+export const Logger = LoggerImport;
+
+export default SucroseImport;

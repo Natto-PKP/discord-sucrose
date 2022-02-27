@@ -1,39 +1,50 @@
 {
-  "name": "discord.js-typescript",
-  "version": "3.0.0",
-  "description": "Structure for Typescript bot Discord",
-  "main": "./dist/index.js",
+  "name": "discord-sucrose",
+  "version": "4.0.32-dev",
+  "description": "Structure for discord bot with discord.js",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "typings",
+    "docs"
+  ],
+  "types": "./typings/index.d.ts",
   "scripts": {
-    "build": "npx tsc",
-    "start": "ts-node ./src/index.ts",
-    "start:prod": "npm run build && node ./dist/index.js",
-    "start:respawn": "ts-node-dev --respawn ./src/index.ts"
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "jest",
+    "simulate": "ts-node ./tests/index.ts"
   },
   "keywords": [
     "discord",
-    "typescript",
     "bot",
-    "discord.js",
-    "javascript"
+    "discord.js"
   ],
-  "author": "Nat'",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Natto-PKP/discord-sucrose.git"
+  },
+  "author": "Natto-PKP",
   "license": "Apache-2.0 License",
   "devDependencies": {
-    "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^27.4.0",
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
+    "dotenv": "^14.2.0",
     "eslint": "^8.2.0",
+    "eslint-config-airbnb-typescript": "^16.1.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^26.1.1",
     "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^27.4.7",
     "prettier": "^2.4.1",
+    "ts-jest": "^27.1.3",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.2"
   },
   "dependencies": {
-    "discord.js": "^13.3.1",
-    "dotenv": "^10.0.0",
-    "fs-extra": "^10.0.0"
+    "discord.js": "^13.6.0"
   }
 }
