@@ -7,6 +7,7 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
+import imported from '../utils/imported';
 
 export default class ButtonInteractionManager implements Types.ButtonInteractionManager {
   public collection: Discord.Collection<string, Types.ButtonData> = new Collection();
@@ -29,7 +30,7 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
         if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
         if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-        const button = <Types.ButtonData>(await import(path.join(process.cwd(), to))).default;
+        const button = <Types.ButtonData>await imported(path.join(process.cwd(), to), 'button');
         button.path = to;
 
         if ('url' in button.data) {

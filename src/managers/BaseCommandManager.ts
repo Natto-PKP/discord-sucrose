@@ -7,6 +7,7 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
+import imported from '../utils/imported';
 
 export default class BaseCommandManager implements Types.BaseCommandManager {
   protected builded = false;
@@ -37,7 +38,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
         if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
         if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
 
-        const command = <Types.CommandData>(await import(path.join(process.cwd(), to))).default;
+        const command = <Types.CommandData>await imported(path.join(process.cwd(), to), 'command');
         command.path = to;
 
         if (this.collection.has(command.body.name))
@@ -61,7 +62,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
             await Promise.all(
               options.map(async (file) => {
                 const optionPath = path.join(folder, file);
-                const option = <Types.CommandOptionData>(await import(path.join(process.cwd(), optionPath))).default;
+                const option = <Types.CommandOptionData>await imported(path.join(process.cwd(), optionPath), 'option');
                 option.path = optionPath;
                 option.parent = parent.body.name;
 
@@ -92,7 +93,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
                   await Promise.all(
                     groupFiles.map(async (groupFile) => {
                       const subPath = path.join(groupPath, groupFile);
-                      const sub = <Types.SubCommandData>(await import(path.join(process.cwd(), subPath))).default;
+                      const sub = <Types.SubCommandData>await imported(path.join(process.cwd(), subPath), 'option');
 
                       sub.path = subPath;
                       sub.parent = group.option.name;

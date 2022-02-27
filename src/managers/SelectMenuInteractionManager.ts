@@ -7,6 +7,7 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
+import imported from '../utils/imported';
 
 export default class SelectMenuInteractionManager implements Types.SelectMenuInteractionManager {
   public collection: Discord.Collection<string, Types.SelectMenuData> = new Collection();
@@ -28,7 +29,7 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
         if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
         if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-        const selectMenu = <Types.SelectMenuData>(await import(path.join(process.cwd(), to))).default;
+        const selectMenu = <Types.SelectMenuData>await imported(path.join(process.cwd(), to), 'interaction');
         selectMenu.path = to;
 
         const { customId } = selectMenu.data;

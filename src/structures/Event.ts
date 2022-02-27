@@ -5,8 +5,9 @@ import path from 'path';
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-import { SError } from '../errors';
+import { SError, STypeError } from '../errors';
 import Logger from '../services/Logger';
+import imported from '../utils/imported';
 
 export default class Event<E extends keyof Discord.ClientEvents> implements Types.Event {
   private disabled = false;
@@ -41,7 +42,9 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
     if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
 
-    const handler = <Types.EventHandler<E>>(await import(path.join(process.cwd(), to))).handler;
+    const handler = <Types.EventHandler<E>>await imported(path.join(process.cwd(), to), 'handler');
+    if (typeof handler !== 'function') throw STypeError('handler', 'function', handler);
+
     const listener = async (...args: Discord.ClientEvents[E]) => {
       try {
         await handler({ sucrose: this.sucrose, args });
