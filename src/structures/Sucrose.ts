@@ -24,38 +24,33 @@ export default class Sucrose extends Client implements Types.Sucrose {
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    const environment = process.env.NODE_ENV || options.env?.type || 'development';
-    const outputDir = process.env.OUTPUT_ENV || options.env?.directories?.output || 'dist';
-    const sourceDir = process.env.SOURCE_ENV || options.env?.directories?.source || 'src';
-    const commandsDir = process.env.COMMANDS_DIR || options.env?.directories?.commands || 'commands';
-    const eventsDir = process.env.EVENTS_DIR || options.env?.directories?.events || 'events';
-    const interactionsDir = process.env.INTERACTIONS_DIR || options.env?.directories?.interactions || 'interactions';
-    const [dir, ext] = environment === 'production' ? [outputDir, 'js'] : [sourceDir, 'ts'];
-    const basePath = path.join(process.cwd(), dir);
+    // ! file extension
+    const ext = options.env?.extension || 'js';
+    if (!/(js|ts)$/.test(ext)) throw SError('FATAL', 'extension must be ".js" or ".ts"');
 
-    if (!existsSync(basePath)) SError('FATAL', 'working folder path does not exist');
-    if (!lstatSync(basePath).isDirectory()) SError('FATAL', 'working folder path is not a folder');
+    // ! source directory
+    const source = path.join('./', options.env?.source || './');
+    if (!existsSync(source)) SError('FATAL', `source directory "${source}" does not exist`);
+    if (!lstatSync(source).isDirectory()) SError('FATAL', `source directory "${source}" is not a folder`);
+    const env = { ext, path: source };
 
-    const env = <Types.EnvironmentOptions>{ ext, path: basePath };
+    // ! event manager
+    const eventsDir = path.join(source, 'events');
+    this.events = new EventManager(this, { env, path: eventsDir, ignores: options.ignores?.events || [] });
 
-    // # EventManager
-    this.events = new EventManager(this, {
-      env,
-      path: path.join(basePath, eventsDir),
-      ignores: options.ignores?.events || [],
-    });
+    // ! command manager
+    const commandsDir = path.join(source, 'commands');
+    this.commands = new CommandManager(this, { env, path: commandsDir });
 
-    // # CommandManager
-    this.commands = new CommandManager(this, { env, path: path.join(basePath, commandsDir) });
-
-    // # InteractionManager
+    // ! interaction manager
+    const interactionsDir = path.join(source, 'interactions');
     this.interactions = new InteractionManager(this, {
       content: {
         ...(<Required<Types.InteractionContent>>contents.interaction),
         ...(options.contents?.interaction || {}),
       },
       env,
-      path: path.join(basePath, interactionsDir),
+      path: interactionsDir,
     });
   }
 
@@ -69,7 +64,7 @@ export default class Sucrose extends Client implements Types.Sucrose {
 
     const now = Date.now();
 
-    // # application log
+    // ! application log
     await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
     await new Promise<void>((res) => {
       sucrose.once('ready', () => {
@@ -78,10 +73,21 @@ export default class Sucrose extends Client implements Types.Sucrose {
       });
     });
 
-    // # managers
-    await sucrose.events.build().then(() => Logger.give('SUCCESS', 'Discord.js events loaded'), Logger.handle);
-    await sucrose.commands.build().then(() => Logger.give('SUCCESS', 'Slash commands loaded'), Logger.handle);
-    await sucrose.interactions.build().then(() => Logger.give('SUCCESS', 'Interactions loaded'), Logger.handle);
+    // ! managers
+    await sucrose.events.build().then(() => {
+      if (!sucrose.events.collection.size) return;
+      Logger.give('SUCCESS', 'Discord.js events loaded');
+    }, Logger.handle);
+
+    await sucrose.commands.build().then(() => {
+      if (!sucrose.commands.collection.size && !sucrose.commands.guilds.size) return;
+      Logger.give('SUCCESS', 'Slash commands loaded');
+    }, Logger.handle);
+
+    await sucrose.interactions.build().then(() => {
+      if (!sucrose.interactions.buttons.collection && !sucrose.interactions.selectMenus.collection.size) return;
+      Logger.give('SUCCESS', 'Interactions loaded');
+    }, Logger.handle);
 
     Logger.write('');
     Logger.give('INFO', 'https://github.com/Natto-PKP/typescript-discord');

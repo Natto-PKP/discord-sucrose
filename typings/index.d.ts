@@ -99,14 +99,8 @@ interface BaseEventManagerOptions {
 }
 
 interface BaseEnvironmentOptions {
-  directories?: {
-    commands?: string;
-    events?: string;
-    interactions?: string;
-    output?: string;
-    source?: string;
-  };
-  type?: EnvironmentType;
+  source?: string;
+  extension?: 'js' | 'ts';
 }
 
 interface ButtonTypes {
@@ -231,7 +225,6 @@ type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[
 type DiscordCommand = Discord.UserContextMenuInteraction &
   Discord.MessageContextMenuInteraction &
   Discord.CommandInteraction;
-type EnvironmentType = 'production' | 'development';
 type EventIgnores = Array<keyof Discord.ClientEvents>;
 type InteractionData = CommandData | ButtonData | SelectMenuData;
 

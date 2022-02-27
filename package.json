@@ -1,7 +1,7 @@
 {
-  "name": "typescript-discord",
-  "version": "4.0.0-dev",
-  "description": "Structure for Typescript bot Discord",
+  "name": "discord-sucrose",
+  "version": "4.0.1-dev",
+  "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "files": [
     "dist",
@@ -13,7 +13,7 @@
     "build": "tsc",
     "prepare": "npm run build",
     "test": "jest",
-    "simulate": "npx ts-node ./tests/index.ts"
+    "simulate": "ts-node ./tests/index.ts"
   },
   "keywords": [
     "discord",
@@ -22,7 +22,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Natto-PKP/discord.js-typescript.git"
+    "url": "git+https://github.com/Natto-PKP/discord-sucrose.git"
   },
   "author": "Natto-PKP",
   "license": "Apache-2.0 License",

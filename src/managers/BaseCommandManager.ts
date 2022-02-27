@@ -37,7 +37,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
         if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
         if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
 
-        const command = <Types.CommandData>(await import(to)).default;
+        const command = <Types.CommandData>(await import(path.join(process.cwd(), to))).default;
         command.path = to;
 
         if (this.collection.has(command.body.name))
@@ -61,7 +61,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
             await Promise.all(
               options.map(async (file) => {
                 const optionPath = path.join(folder, file);
-                const option = <Types.CommandOptionData>(await import(optionPath)).default;
+                const option = <Types.CommandOptionData>(await import(path.join(process.cwd(), optionPath))).default;
                 option.path = optionPath;
                 option.parent = parent.body.name;
 
@@ -92,7 +92,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
                   await Promise.all(
                     groupFiles.map(async (groupFile) => {
                       const subPath = path.join(groupPath, groupFile);
-                      const sub = <Types.SubCommandData>(await import(subPath)).default;
+                      const sub = <Types.SubCommandData>(await import(path.join(process.cwd(), subPath))).default;
 
                       sub.path = subPath;
                       sub.parent = group.option.name;

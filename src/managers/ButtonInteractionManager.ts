@@ -25,10 +25,11 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
     await Promise.all(
       names.map(async (file) => {
         const to = path.join(this.options.path, file);
+
         if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
         if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-        const button = <Types.ButtonData>(await import(to)).default;
+        const button = <Types.ButtonData>(await import(path.join(process.cwd(), to))).default;
         button.path = to;
 
         if ('url' in button.data) {

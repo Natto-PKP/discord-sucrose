@@ -1,4 +1,5 @@
 import { existsSync, lstatSync } from 'fs';
+import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
@@ -39,7 +40,7 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
     if (!existsSync(to)) throw SError('ERROR', 'event file no longer exists');
     if (!lstatSync(to).isFile()) throw SError('ERROR', 'event path is not a file');
 
-    const handler = <Types.EventHandler<E>>(await import(to)).handler;
+    const handler = <Types.EventHandler<E>>(await import(path.join(process.cwd(), to))).handler;
     const listener = async (...args: Discord.ClientEvents[E]) => {
       try {
         await handler({ sucrose: this.sucrose, args });
