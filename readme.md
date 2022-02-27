@@ -1,10 +1,8 @@
 # Discord bot structure using discord.js
 
-[See examples here](./example/)
+### [See examples here](./example/)
 
-## Documentation
-
-Currently unavailable.
+### [See documentation here](./docs/)
 
 ## Getting started
 
