@@ -564,8 +564,6 @@ module.exports = {
 };
 ```
 
-</details>
-
 <details>
 <summary>with typescript<summary>
 
@@ -611,8 +609,6 @@ module.exports = {
 };
 ```
 
-</details>
-
 <details>
 <summary>with typescript<summary>
 
@@ -622,7 +618,7 @@ _./interactions/buttons/click-me.ts_
 // Import button type
 import type { Button } from 'discord-sucrose';
 
-// Button<'url'> pour un boutton de type url
+// Button<'url'> for url button
 export default <Button<'base'>>{
   data: {
     type: 'BUTTON',
@@ -696,3 +692,5 @@ export default <SelectMenu>{
   },
 };
 ```
+
+</details>
