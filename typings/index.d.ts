@@ -77,7 +77,6 @@ export interface SucroseOptions extends Discord.ClientOptions {
   contents?: { interaction?: InteractionContent };
   env?: BaseEnvironmentOptions;
   token?: string;
-  ignores?: { events?: EventIgnores };
 }
 
 // # Event
@@ -139,7 +138,6 @@ interface EventOptions {
 
 interface EventManagerOptions {
   env: EnvironmentOptions;
-  ignores: EventIgnores;
   path: string;
 }
 
@@ -225,7 +223,6 @@ type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[
 type DiscordCommand = Discord.UserContextMenuInteraction &
   Discord.MessageContextMenuInteraction &
   Discord.CommandInteraction;
-type EventIgnores = Array<keyof Discord.ClientEvents>;
 type InteractionData = CommandData | ButtonData | SelectMenuData;
 
 export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {

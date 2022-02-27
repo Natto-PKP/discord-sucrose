@@ -36,7 +36,7 @@ export default class Sucrose extends Client implements Types.Sucrose {
 
     // ! event manager
     const eventsDir = path.join(source, 'events');
-    this.events = new EventManager(this, { env, path: eventsDir, ignores: options.ignores?.events || [] });
+    this.events = new EventManager(this, { env, path: eventsDir });
 
     // ! command manager
     const commandsDir = path.join(source, 'commands');
