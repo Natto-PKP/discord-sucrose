@@ -25,7 +25,7 @@ export default class InteractionManager implements Types.InteractionManager {
     this.selectMenus = new SelectMenuInteractionManager({ ...options, path: path.join(options.path, 'select-menus') });
     const { content } = options;
 
-    sucrose.on('interactionCreate', (interaction) => {
+    sucrose.on('interactionCreate', async (interaction) => {
       try {
         const params = { sucrose };
         const { guild } = interaction;
@@ -38,7 +38,7 @@ export default class InteractionManager implements Types.InteractionManager {
           if (!command) return;
 
           const commandPermission = hasPermissions(interaction, command.permissions || {}, content);
-          if (commandPermission) return interaction.reply(commandPermission);
+          if (commandPermission) return await interaction.reply(commandPermission);
 
           // ! command
           if (interaction.isCommand()) {
@@ -51,60 +51,60 @@ export default class InteractionManager implements Types.InteractionManager {
               const option =
                 chatInput.options &&
                 ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
-              if (!option) return interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
+              if (!option) return await interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
 
               const optionPermission = hasPermissions(interaction, option.permissions || {}, content);
-              if (optionPermission) return interaction.reply(optionPermission);
+              if (optionPermission) return await interaction.reply(optionPermission);
 
               // ! sub command
               if (option.option.type === 'SUB_COMMAND_GROUP') {
                 const opts = (<Types.SubCommandGroupData>option).options;
                 const subOption = optionName && opts.get(optionName);
-                if (!subOption) return interaction.reply(content.MISSING_SUB_COMMAND(name));
+                if (!subOption) return await interaction.reply(content.MISSING_SUB_COMMAND(name));
 
                 const subCommandPermission = hasPermissions(interaction, subOption.permissions || {}, content);
-                if (subCommandPermission) return interaction.reply(subCommandPermission);
+                if (subCommandPermission) return await interaction.reply(subCommandPermission);
 
-                if (!subOption.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-                return subOption.exec({ ...params, interaction });
+                if (!subOption.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+                return await subOption.exec({ ...params, interaction });
               } // [end] sub command
 
-              if (!option.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-              return option.exec({ ...params, interaction });
+              if (!option.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+              return await option.exec({ ...params, interaction });
             } // [end] sub command group or sub command
 
-            if (!chatInput.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-            return chatInput.exec({ ...params, interaction });
+            if (!chatInput.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+            return await chatInput.exec({ ...params, interaction });
           } // [end] command
 
-          if (!command.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-          return command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
+          if (!command.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
+          return await command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
         } // [end] command or context menu
 
         // ! select menu
         if (interaction.isSelectMenu()) {
           const { customId } = interaction;
           const selectMenu = this.selectMenus.collection.get(customId);
-          if (!selectMenu) return interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
+          if (!selectMenu) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
 
           const permission = hasPermissions(interaction, selectMenu.permissions || {}, content);
-          if (permission) return interaction.reply(permission);
+          if (permission) return await interaction.reply(permission);
 
-          if (!selectMenu.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
-          return selectMenu.exec({ ...params, interaction });
+          if (!selectMenu.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
+          return await selectMenu.exec({ ...params, interaction });
         } // [end] select menu
 
         // ! button
         if (interaction.isButton()) {
           const { customId } = interaction;
           const button = this.buttons.collection.get(customId);
-          if (!button) return interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
+          if (!button) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
 
           const permission = hasPermissions(interaction, button.permissions || {}, content);
-          if (permission) return interaction.reply(permission);
+          if (permission) return await interaction.reply(permission);
 
-          if (!button.exec) return interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
-          return button.exec({ ...params, interaction });
+          if (!button.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
+          return await button.exec({ ...params, interaction });
         } // [end] button
       } catch (err) {
         if (err instanceof Error) Logger.error(err);
