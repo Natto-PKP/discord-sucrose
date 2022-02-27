@@ -1,38 +1,36 @@
-# Structure for discord bot with discord.js
+# Discord bot structure using discord.js
 
-## Documentations
+## Documentation
 
-Pas encore dispo
+Currently unavailable.
 
 ## Getting started
 
-[Click here to get a example bot](./example)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Sample program](#sample-program)
+- [Executing your program](#executing-your-program)
+- [Adding a simple command](#adding-a-simple-command)
+- [Listening to the ready event](#listening-to-the-ready-event)
+- [Register a command to the api](#register-a-command-to-the-api)
+- [Restart your program](#restart-your-program)
+- [Adding a command with subcommands](#adding-a-command-with-subcommands)
+- [Adding a command with subcommand groups](#adding-a-command-with-subcommand-groups)
+- [Creating a command for a guild](#creating-a-command-for-a-guild)
+- [Creating a button](#creating-a-button)
+- [Creating a select menu](#creating-a-select-menu)
 
-- [Installations des modules](#installations-des-modules)
-- [Configuration de sucrose](#configuration-de-sucrose)
-- [Créez le fichier principal](#cr%C3%A9ez-le-fichier-principal)
-- [Executez le fichier index](#executez-le-fichier-index)
-- [Ajoutez une commande simple](#ajoutez-une-commande-simple)
-- [Ajouter un évent ready](#ajouter-un-%C3%A9vent-ready)
-- [Enregistrez votre commande avatar dans l'API](#enregistrez-votre-commande-avatar-dans-lapi)
-- [Relancez votre application](#relancez-votre-application)
-- [Ajoutez une commande avec des sous commandes](#ajoutez-une-commande-avec-des-sous-commandes)
-- [Ajoutez une commande avec des groupes de sous commandes](#ajoutez-une-commande-avec-des-groupes-de-sous-commandes)
-- [Créez une commande pour une guilde](#cr%C3%A9ez-une-commande-pour-une-guilde)
-- [Créez un bouton](#cr%C3%A9ez-un-bouton)
-- [Créez un select menu](#cr%C3%A9ez-un-select-menu)
+Creating a bot with events, interactions and slash commands.
 
-Création d'un bot discord avec des events, interactions et slash commands
-
-### # Installations des modules
+### # Installation
 
 ```bash
 npm i discord-sucrose
 ```
 
-L'installation de ce module installe également discord.js
+This module will also automatically install discord.js
 
-### # Configuration de sucrose
+### # Configuration
 
 _sucrose.json_
 
@@ -41,70 +39,70 @@ _sucrose.json_
   "token": "your discord bot token",
 
   "env": {
-    "extension": "js", // Mettre ts si vos fichiers sont en typescript
-    "source": "./" // Dossier source de votre application
+    "extension": "js", // Specify ts if you're using typescript
+    "source": "./" // Root folder of your application
   }
 }
 ```
 
-### # Créez le fichier principal
+### # Sample Program
 
 _index.js_
 
 ```js
-// On récupère notre client Sucrose
+// importing Sucrose from discord-sucrose
 const { Sucrose } = require('discord-sucrose');
 
-// On récupère les intents de discord.js
+// importing Intents from discord.js
 const { Intents } = require('discord.js');
 
-// On récupère la config de notre client Sucrose
+// importing the sucrose config file
 const config = require('./sucrose.json');
 
-// On build notre Sucrose
+// building the sucrose client
 Sucrose.build({ intents: [Intents.FLAGS.GUILDS], ...config });
 ```
 
 <details>
 <summary>with typescript</summary>
 
-_./commands/global/avatar.ts_
+_index.ts_
 
 ```ts
-// On récupère notre client Sucrose
+// importing Sucrose from discord-sucrose
 import { Sucrose } from 'discord-sucrose';
 
-// On récupère les intents de discord.js
+// importing Intents from discord.js
 import { Intents } from 'discord.js';
 
-// On récupère la config de notre client Sucrose
+// importing the sucrose config file
 import config from './sucrose.json';
 
-// On build notre Sucrose
+// building the sucrose client
 Sucrose.build({ intents: [Intents.FLAGS.GUILDS], ...config });
 ```
 
 </details>
 
-### # Executez le fichier index
+### # Executing your program
 
 ```bash
 node ./index.js
 ```
 
-Vous devriez voir plusieurs message dans votre terminal indiquant que l'application est bien lancée
+Some message should appear in the console indicating the app is working properly.
 
-### # Ajoutez une commande simple
+### # Adding a simple command
 
-- `./commands` Créez un dossier commands qui comportera tout nos slash commandes
-- `./commands/global` Dans celui-ci créez un dossier global qui comportera les commandes globales de notre application
-- `./commands/global/avatar.js` Créez ensuite le fichier avatar.js qui contiendra notre commande avatar
+- `./commands` Create a commands folder which will contain all of our slash commands
+- `./commands/global` Inside of this folder, a global folder should be made that will include our bots global commands. 
+- `./commands/global/avatar.js` Create a avatar.js file inside of this folder create a avatar slash command.
 
 _./commands/global/avatar.js_
 
 ```js
 module.exports = {
-  // body indique le corp de la commande qui sera envoyer à l'API
+  // The body is the part that will be sent to the api to create commands
   body: {
     name: 'avatar',
     description: 'Get member avatar',
@@ -117,7 +115,7 @@ module.exports = {
     ],
   },
 
-  // Cette fonction sera envoyée a chaque appel de la commande
+  // This function will be called every time a user executes the command /avatar
   exec: ({ interaction }) => {
     const member = interaction.options.getMember();
     const avatar = member.displayAvatarUrl({ dynamic: true });
@@ -136,7 +134,7 @@ _./commands/global/avatar.ts_
 import type { ChatInput } from 'discord-sucrose';
 
 export default <ChatInput>{
-  // body indique le corp de la commande qui sera envoyer à l'API
+  // The body is the part that will be sent to the api to create commands
   body: {
     name: 'avatar',
     description: 'Get member avatar',
@@ -149,7 +147,7 @@ export default <ChatInput>{
     ],
   },
 
-  // Cette fonction sera envoyée a chaque appel de la commande
+  // This function will be called every time a user executes the command /avatar
   exec: ({ interaction }) => {
     const member = interaction.options.getMember();
     const avatar = member.displayAvatarUrl({ dynamic: true });
@@ -161,16 +159,16 @@ export default <ChatInput>{
 
 </details>
 
-### # Ajouter un évent ready
+### # Listening to the ready event
 
-- `./events` Créez le dossier contenant vos events
-- `./events/ready` Créez le dossier concernant votre event
-- `./events/ready/handler.js` Créez le fichier principal de votre event
+- `./events` Create a folder called "events" which will include all of your events
+- `./events/ready` Create a folder named after the event you want to listen to
+- `./events/ready/handler.js` Create a handler for this event.
 
 _./events/ready/handler.js_
 
 ```js
-// Cette fonction sera executée à chaque appel de l'évent
+// This function will be executed every time this event is triggered
 module.exports = ({ sucrose }) => {
   console.log(`${sucrose.user.username} is connected`);
 };
@@ -184,6 +182,7 @@ _./events/ready/handler.ts_
 ```ts
 import type { EventHandler } from 'discord-sucrose';
 
+// This function will be executed every time this event is triggered
 export const handler: EventHandler<'ready'> = ({ sucrose }) => {
   console.log(`${sucrose.user.username} is connected`);
 };
@@ -191,11 +190,11 @@ export const handler: EventHandler<'ready'> = ({ sucrose }) => {
 
 </details>
 
-### # Enregistrez votre commande avatar dans l'API
+### # Register a command to the api
 
-Restez dans votre handler de l'évent ready
+In the handler for your ready event:
 
-> Attention, votre commande peut mettre un certain temps avant d'être enregistrée dans l'API
+> Note that commands can take a certain time before being registered by the API.
 
 _./events/ready/handler.js_
 
@@ -203,7 +202,7 @@ _./events/ready/handler.js_
 module.exports = async ({ sucrose }) => {
   console.log(`${sucrose.user.username} is connected`);
 
-  // Cette commande va engistrer le body de avatar dans l'API
+  // This line will register the body of the avatar command in the Discord API.
   await sucrose.commands.define('avatar');
 };
 ```
@@ -219,22 +218,22 @@ import type { EventHandler } from 'discord-sucrose';
 export const handler: EventHandler<'ready'> = async ({ sucrose }) => {
   console.log(`${sucrose.user.username} is connected`);
 
-  // Cette commande va engistrer le body de avatar dans l'API
+  // This line will register the body of the avatar command in the Discord API.
   await sucrose.commands.define('avatar');
 };
 ```
 
 </details>
 
-### # Relancez votre application
+### # Restart your program
 
 ```bash
 node ./index.js
 ```
 
-Votre évent et votre commande est maintenant chargée au sein de la structure. Votre évent ready a bien renvoyer son console.log() et votre commande est maintenant disponible sur votre bot, vous pouvez même l'utiliser
+Your event and your commands are now loaded by the structure. Your ready event should write console.log your bots username and you should be able to execute your command.
 
-### # Ajoutez une commande avec des sous commandes
+### # Adding a command with subcommands
 
 _./commands/global/games.js_
 
@@ -245,7 +244,7 @@ module.exports = {
     description: 'Play games',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+  // We don't need a function here since sub commands will handle that
 };
 ```
 
@@ -263,16 +262,16 @@ export default <ChatInput>{
     description: 'Play games',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+  // We don't need a function here since sub commands will handle that
 };
 ```
 
 </details>
 
-Maintenant on va créer une sous commande contenant un jeu
+Now we can create a subcommand for our games command
 
-- `./commands/global/games` Créez un dossier qui contiendra nos sous commande
-- `./commands/global/games/rock.js` Créez une sous commande
+- `./commands/global/games` Create a games folder which will include our subcommands
+- `./commands/global/games/rock.js` Create a file for your subcommand.
 
 _./commands/global/games/rock.js_
 
@@ -301,7 +300,7 @@ module.exports = {
     const user = interaction.options.getString('choice');
     const bot = choices[Math.floor(Math.random() * choices.length)];
 
-    // Le reste du code ...
+    // ... The rest of the code ...
   },
 };
 ```
@@ -313,8 +312,6 @@ _./commands/global/games/rock.ts_
 
 ```ts
 import type { SubCommand } from 'discord-sucrose';
-
-const choices = ['rock', 'paper', 'couic'];
 
 export default <SubCommand>{
   option: {
@@ -338,14 +335,14 @@ export default <SubCommand>{
     const user = interaction.options.getString('choice');
     const bot = choices[Math.floor(Math.random() * choices.length)];
 
-    // Le reste du code ...
+    // ... The rest of the code  ...
   },
 };
 ```
 
 </details>
 
-Et ajoutez une autre sous commande
+And add another subcommand
 
 _./commands/global/games/random.js_
 
@@ -354,10 +351,10 @@ module.exports = {
   option: {
     name: 'random',
     description: 'Get random number between 0 and 100',
-  },
+  }
 
   exec: ({ interaction }) => {
-    interaction.reply(Math.ceil(Math.random() * 100));
+    interaction.reply(Math.ceil(Math.random() * 100))
   },
 };
 ```
@@ -373,18 +370,18 @@ import type { SubCommand } from 'discord-sucrose';
 export default <SubCommand>{
   option: {
     name: 'random',
-    description: 'Get random number between 0 and 100',
-  },
+    description: 'Get random number between 0 and 100'
+  }
 
   exec: ({ interaction }) => {
-    interaction.reply(Math.ceil(Math.random() * 100));
+    interaction.reply(Math.ceil(Math.random() * 100))
   },
 };
 ```
 
 </details>
 
-### # Ajoutez une commande avec des groupes de sous commandes
+### # Adding a command with subcommand groups
 
 _./commands/global/image.js_
 
@@ -395,7 +392,7 @@ module.exports = {
     description: 'Get a image',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+  // No need for a function to be executed as it will be handled by subcommand groups
 };
 ```
 
@@ -413,16 +410,16 @@ export default <ChatInput>{
     description: 'Get a image',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+  // No need for a function to be executed as it will be handled by subcommand groups
 };
 ```
 
 </details>
 
-Maintenant on va créer votre premier groupe de sous commande pour la commande image
+Now let's create a first subcommand group for our image command
 
-- `./commands/global/image` Créez un dossier contenant vos groupes de sous commandes
-- `./commands/global/image/animal.js` Créer notre fichier pour le groupe animal
+- `./commands/global/image` Create a folder which will include your subcommand groups
+- `./commands/global/image/animal.js` Create a file for our "animal" subcommand group
 
 _./commands/global/image/animal.js_
 
@@ -434,7 +431,7 @@ module.exports = {
     description: 'Get a animal image',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+   // No need for a function to be executed as it will be handled by subcommands in the group
 };
 ```
 
@@ -453,16 +450,16 @@ export default <SubCommandGroup>{
     description: 'Get a animal image',
   },
 
-  // Ici, pas besoins de fonction pour executé, car c'est partie ne s'executera jamais
+   // No need for a function to be executed as it will be handled by subcommands in the group
 };
 ```
 
 </details>
 
-Il ne vous reste à créer le dossier contenant tout les sous commandes de votre groupe
+Now all you have to do is create a folder for this subcommand group and define your subcommands
 
-- `./commands/global/image/animal` Créez un sous dossier contenant les sous commande du groupe animal
-- `./commands/global/image/animal/ferret.js` Créez un fichier pour une sous commande
+- `./commands/global/image/animal` Create a subfolder inside of your image folder for the subcommands of your animal subcommand group
+- `./commands/global/image/animal/ferret.js` Create a file for your subcommand
 
 _./commands/global/image/animal/ferret.js_
 
@@ -503,7 +500,7 @@ export default <SubCommand>{
 
 </details>
 
-Et une autre sous commande
+And another subcommand
 
 _./commands/global/image/animal/cat.js_
 
@@ -544,13 +541,13 @@ export default <SubCommand>{
 
 </details>
 
-### # Créez une commande pour une guilde
+### # Creating a command for a guild
 
-`<GuildId>` représente l'id de votre guilde
+`<GuildId>` should be replaced by your guild's id
 
-- `./commands/guilds` Créez le dossier contenant les guildes
-- `./commands/guilds/<GuildId>` Créez le dossier de votre guilde
-- `./commands/guilds/<GuildId>/say.js` Créez la commande pour votre guilde uniquement
+- `./commands/guilds` Create a subfolder for your guild commands
+- `./commands/guilds/<GuildId>` Create a subfolder for the guild named with the guild's id
+- `./commands/guilds/<GuildId>/say.js` Create a command specific to this guild.
 
 _./commands/guilds/\<GuildId>/say.js_
 
@@ -591,11 +588,11 @@ export default <ChatInput>{
 
 </details>
 
-### # Créez un bouton
+### # Creating a button
 
-- `./interactions` Créez le dossier contenant vos interactions
-- `./interactions/buttons` Créez le dossier contenant vos boutons
-- `./interactions/buttons/click-me.js` Créez le fichier de votre bouton
+- `./interactions` Create a subfolder for discord interactions
+- `./interactions/buttons` Create a subfolder for your buttons
+- `./interactions/buttons/click-me.js` Create a file for this button
 
 _./interactions/buttons/click-me.js_
 
@@ -603,11 +600,11 @@ _./interactions/buttons/click-me.js_
 module.exports = {
   data: {
     type: 'BUTTON',
-    customId: 'useme', // Ou url
-    style: 'DANGER', // Pas disponible pour un bouton url
+    customId: 'useme', // Or url
+    style: 'DANGER', // Not available for URL buttons
   },
 
-  // Pas besoins de l'exec si le bouton est un url
+  // You don't need a function if your button is a url button.
   exec: ({ interaction }) => {
     interaction.reply('Yeeaaaaah !');
   },
@@ -629,11 +626,11 @@ import type { Button } from 'discord-sucrose';
 export default <Button<'base'>>{
   data: {
     type: 'BUTTON',
-    customId: 'useme', // Ou url
-    style: 'DANGER', // Pas disponible pour un bouton url
+    customId: 'useme', // Or url
+    style: 'DANGER', // Not available for URL buttons
   },
 
-  // Pas besoins de l'exec si le bouton est un url
+  // You don't need a function if your button is a url button.
   exec: ({ interaction }) => {
     interaction.reply('Yeeaaaaah !');
   },
@@ -642,11 +639,11 @@ export default <Button<'base'>>{
 
 </details>
 
-### # Créez un select menu
+### # Creating a select menu
 
-- `./interactions` Créez le dossier contenant vos interactions
-- `./interactions/select-menus` Créez le dossier contenant vos select menus
-- `./interactions/select-menus/select-me.js` Créez le fichier de votre select menu
+- `./interactions` Create a folder containing your discord interactions
+- `./interactions/select-menus` Create a subfolder for your select menus
+- `./interactions/select-menus/select-me.js` Create a file for your select menu
 
 _./interactions/select-menus/select-me.js_
 
