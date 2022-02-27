@@ -46,3 +46,13 @@ node ./index.js
 ```
 
 Your discord bot is ready
+
+### Add command
+
+Create command file in global folder in commands folder
+
+_./commands/global/avatar.js_
+
+```js
+module.export;
+```

@@ -34,7 +34,7 @@ declare class CommandManager extends BaseCommandManager {
 
 // # EventManager
 declare class EventManager {
-  public collection: Discord.Collection<string, Event>;
+  public collection: Discord.Collection<keyof Discord.ClientEvents, Event>;
   public build(): Promise<void>;
   public add(events: Array<keyof Discord.ClientEvents>): Promise<Event[]>;
   public add(events: keyof Discord.ClientEvents): Promise<Event>;

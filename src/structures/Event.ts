@@ -34,11 +34,12 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
    * @returns
    */
   public async listen(): Promise<this> {
-    if (this.disabled) throw SError('ERROR', 'event is disabled');
+    if (this.disabled) throw SError('ERROR', `event "${this.name}" is disabled`);
+    if (this.listener) throw SError('ERROR', `event "${this.name}" already hare listener`);
 
     const to = this.options.path;
-    if (!existsSync(to)) throw SError('ERROR', 'event file no longer exists');
-    if (!lstatSync(to).isFile()) throw SError('ERROR', 'event path is not a file');
+    if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
+    if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
 
     const handler = <Types.EventHandler<E>>(await import(path.join(process.cwd(), to))).handler;
     const listener = async (...args: Discord.ClientEvents[E]) => {
@@ -51,11 +52,11 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
       }
     };
 
-    if (this.sucrose.listeners(this.name).includes(listener)) throw SError('ERROR', 'listener already active');
+    if (this.sucrose.listeners(this.name).includes(listener))
+      throw SError('ERROR', `event "${this.name}" listener already active`);
 
     this.sucrose.on(this.name, listener);
     this.listener = listener;
-
     return this;
   } // [end] listen()
 

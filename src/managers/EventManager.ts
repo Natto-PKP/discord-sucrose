@@ -12,7 +12,7 @@ import Event from '../structures/Event';
 export default class EventManager implements Types.EventManager {
   private builded = false;
 
-  public collection: Discord.Collection<string, Types.Event> = new Collection();
+  public collection: Discord.Collection<keyof Discord.ClientEvents, Types.Event> = new Collection();
 
   public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {}
 

@@ -2,6 +2,9 @@ import { Client } from 'discord.js';
 import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
+/* Types */
+import type Types from '../../typings';
+
 import Logger from '../services/Logger';
 import { SError } from '../errors';
 
@@ -10,9 +13,6 @@ import CommandManager from '../managers/CommandManager';
 import InteractionManager from '../managers/InteractionManager';
 
 import * as contents from '../services/Messages';
-
-/* Types */
-import type Types from '../../typings';
 
 export default class Sucrose extends Client implements Types.Sucrose {
   public readonly commands: Types.CommandManager;
@@ -65,13 +65,13 @@ export default class Sucrose extends Client implements Types.Sucrose {
     const now = Date.now();
 
     // ! application log
+    const connected = () => Logger.give('SUCCESS', 'Application is connected to discord');
     await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
-    await new Promise<void>((res) => {
-      sucrose.once('ready', () => {
-        Logger.give('SUCCESS', 'Application is connected to discord');
-        res();
+    if (!sucrose.isReady()) {
+      await new Promise<void>((res) => {
+        res(connected());
       });
-    });
+    } else connected();
 
     // ! managers
     await sucrose.events.build().then(() => {
@@ -85,7 +85,7 @@ export default class Sucrose extends Client implements Types.Sucrose {
     }, Logger.handle);
 
     await sucrose.interactions.build().then(() => {
-      if (!sucrose.interactions.buttons.collection && !sucrose.interactions.selectMenus.collection.size) return;
+      if (!sucrose.interactions.buttons.collection.size && !sucrose.interactions.selectMenus.collection.size) return;
       Logger.give('SUCCESS', 'Interactions loaded');
     }, Logger.handle);
 

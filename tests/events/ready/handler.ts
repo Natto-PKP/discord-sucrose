@@ -1,6 +1,6 @@
 import type { EventHandler } from '../../../typings/index';
 
-export const handler: EventHandler<'ready'> = (obj) => {
+export const handler: EventHandler<'ready'> = ({ sucrose }) => {
   // console.log(`${sucrose.user.tag} is connected !`);
-  console.log(obj);
+  console.log(sucrose.user?.username);
 };
