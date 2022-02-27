@@ -31,6 +31,8 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
         if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
         const button = <Types.ButtonData>await imported(path.join(process.cwd(), to), 'button');
+        if (button && typeof button !== 'object') throw STypeError('button', 'object', button);
+
         button.path = to;
 
         if ('url' in button.data) {

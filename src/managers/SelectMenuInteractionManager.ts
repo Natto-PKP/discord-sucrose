@@ -30,6 +30,8 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
         if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
         const selectMenu = <Types.SelectMenuData>await imported(path.join(process.cwd(), to), 'interaction');
+        if (selectMenu && typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);
+
         selectMenu.path = to;
 
         const { customId } = selectMenu.data;
