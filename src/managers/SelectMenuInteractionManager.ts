@@ -9,11 +9,24 @@ import type Types from '../../typings';
 import { SError, STypeError } from '../errors';
 import imported from '../utils/imported';
 
+/**
+ * Select menu manager
+ */
 export default class SelectMenuInteractionManager implements Types.SelectMenuInteractionManager {
+  /**
+   * Select menu collection
+   */
   public collection: Discord.Collection<string, Types.SelectMenuData> = new Collection();
 
   constructor(private options: Types.InteractionManagerOptions) {}
 
+  /**
+   * Add select menu(s)
+   * @param files
+   * @example
+   * await selectMenus.add(['selectme', 'noselectme'])
+   * await selectMenus.add('selectme')
+   */
   public async add(files: string): Promise<Types.SelectMenuData>;
   public async add(files: string[]): Promise<Types.SelectMenuData[]>;
   public async add(files: unknown): Promise<Types.SelectMenuData | Types.SelectMenuData[]> {
@@ -45,8 +58,15 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
     ); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  }
+  } // [end] add()
 
+  /**
+   * Remove and add select menu(s)
+   * @param names
+   * @example
+   * await selectMenus.refresh(['selectme', 'noselectme'])
+   * await selectMenus.refresh('selectme')
+   */
   public async refresh(names: string): Promise<Types.SelectMenuData>;
   public async refresh(names: string[]): Promise<Types.SelectMenuData[]>;
   public async refresh(names: unknown): Promise<Types.SelectMenuData | Types.SelectMenuData[]> {
@@ -61,8 +81,15 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
         return this.add(path.basename(selectMenu.path));
       })
     );
-  }
+  } // [end] refresh()
 
+  /**
+   * Remove select menu(s)
+   * @param names
+   * @example
+   * await selectMenus.remove(['selectme', 'noselectme'])
+   * await selectMenus.remove('selectme')
+   */
   public remove(names: string): void;
   public remove(names: string[]): void;
   public remove(names: unknown): void {
@@ -70,5 +97,5 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
 
     if (Array.isArray(names)) names.forEach((name) => this.collection.delete(name));
     else this.collection.delete(names);
-  }
+  } // [end] remove()
 }

@@ -8,7 +8,13 @@ import type Types from '../../typings/index';
 import { SError } from '../errors';
 import BaseCommandManager from './BaseCommandManager';
 
+/**
+ * Guild command manager
+ */
 export default class GuildCommandManager extends BaseCommandManager implements Types.GuildCommandManager {
+  /**
+   * Guild id
+   */
   public readonly guildId: string;
 
   public constructor(guildId: string, sucrose: Types.Sucrose, options: Types.CommandManagerOptions) {
@@ -17,6 +23,10 @@ export default class GuildCommandManager extends BaseCommandManager implements T
     this.guildId = guildId;
   }
 
+  /**
+   * Build all guild command
+   * @returns
+   */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);
 
@@ -30,5 +40,5 @@ export default class GuildCommandManager extends BaseCommandManager implements T
 
     if (files.length) await this.add(files);
     this.builded = true;
-  }
+  } // [end] build()
 }

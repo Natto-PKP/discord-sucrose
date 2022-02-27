@@ -9,6 +9,9 @@ import BaseCommandManager from './BaseCommandManager';
 import GuildCommandManager from './GuildCommandManager';
 import { SError } from '../errors';
 
+/**
+ * Command manager
+ */
 export default class CommandManager extends BaseCommandManager implements Types.CommandManager {
   public guilds: Collection<string, Types.GuildCommandManager> = new Collection();
 

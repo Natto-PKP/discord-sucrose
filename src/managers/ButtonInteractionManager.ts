@@ -9,11 +9,24 @@ import type Types from '../../typings';
 import { SError, STypeError } from '../errors';
 import imported from '../utils/imported';
 
+/**
+ * Button manager
+ */
 export default class ButtonInteractionManager implements Types.ButtonInteractionManager {
+  /**
+   * buttons collection
+   */
   public collection: Discord.Collection<string, Types.ButtonData> = new Collection();
 
   constructor(private options: Types.InteractionManagerOptions) {}
 
+  /**
+   * Add button(s)
+   * @param files
+   * @example
+   * await buttons.add(["useme", "google"]);
+   * await buttons.add("useme");
+   */
   public async add(files: string): Promise<Types.ButtonData>;
   public async add(files: string[]): Promise<Types.ButtonData[]>;
   public async add(files: unknown): Promise<Types.ButtonData | Types.ButtonData[]> {
@@ -50,8 +63,15 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
     ); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  }
+  } // [end] add()
 
+  /**
+   * Remove and add button(s)
+   * @param names
+   * @example
+   * await buttons.refresh(["useme", "google"]);
+   * await buttons.refresh("useme");
+   */
   public async refresh(names: string): Promise<Types.ButtonData>;
   public async refresh(names: string[]): Promise<Types.ButtonData[]>;
   public async refresh(names: unknown): Promise<Types.ButtonData | Types.ButtonData[]> {
@@ -66,8 +86,15 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
         return this.add(path.basename(button.path));
       })
     );
-  }
+  } // [end] refresh()
 
+  /**
+   * Remove button(s)
+   * @param names
+   * @example
+   * await buttons.remove(["useme", "google"]);
+   * await buttons.remove("useme");
+   */
   public remove(names: string): void;
   public remove(names: string[]): void;
   public remove(names: unknown): void {
@@ -75,5 +102,5 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
 
     if (Array.isArray(names)) names.forEach((name) => this.collection.delete(name));
     else this.collection.delete(names);
-  }
+  } // [end] remove()
 }

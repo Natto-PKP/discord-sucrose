@@ -9,6 +9,9 @@ import type Types from '../../typings';
 import { SError, STypeError } from '../errors';
 import Event from '../structures/Event';
 
+/**
+ * Event manager
+ */
 export default class EventManager implements Types.EventManager {
   private builded = false;
 

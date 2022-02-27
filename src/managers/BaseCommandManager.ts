@@ -9,9 +9,15 @@ import type Types from '../../typings';
 import { SError, STypeError } from '../errors';
 import imported from '../utils/imported';
 
+/**
+ * Base command manager
+ */
 export default class BaseCommandManager implements Types.BaseCommandManager {
   protected builded = false;
 
+  /**
+   * commands collection
+   */
   public collection: Discord.Collection<string, Types.CommandData> = new Collection();
 
   public constructor(protected sucrose: Types.Sucrose, protected options: Types.CommandManagerOptions) {}

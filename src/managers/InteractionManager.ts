@@ -13,11 +13,20 @@ import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 import Logger from '../services/Logger';
 import hasPermissions from '../utils/hasPermissions';
 
+/**
+ * Interaction manager
+ */
 export default class InteractionManager implements Types.InteractionManager {
   private builded = false;
 
+  /**
+   * Button manager
+   */
   public buttons: Types.ButtonInteractionManager;
 
+  /**
+   * Select menu manager
+   */
   public selectMenus: Types.SelectMenuInteractionManager;
 
   public constructor(sucrose: Types.Sucrose, private options: Types.InteractionManagerOptions) {
@@ -113,6 +122,10 @@ export default class InteractionManager implements Types.InteractionManager {
     });
   }
 
+  /**
+   * Build all interactions
+   * @returns
+   */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
 
@@ -143,5 +156,5 @@ export default class InteractionManager implements Types.InteractionManager {
     }
 
     this.builded = true;
-  }
+  } // [end] build()
 }
