@@ -19,8 +19,8 @@ _secret.json_
   "token": "your discord bot token",
 
   "env": {
-    "source": "./",
-    "extension": "js"
+    "extension": "js",
+    "source": "./"
   }
 }
 ```
@@ -38,3 +38,11 @@ const config = require('./secret.json');
 
 Sucrose.build({ intents: [Intents.FLAGS.GUILDS], ...config });
 ```
+
+### Run index file
+
+```bash
+node ./index.js
+```
+
+Your discord bot is ready
