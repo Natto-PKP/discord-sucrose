@@ -90,7 +90,7 @@ export default class Sucrose extends Client implements Types.Sucrose {
     }, Logger.handle);
 
     Logger.write('');
-    Logger.give('INFO', 'https://github.com/Natto-PKP/typescript-discord');
+    Logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
     Logger.give('INFO', `Sucrose structure was launched in ${Date.now() - now}ms`);
     Logger.write('\n');
 

@@ -64,6 +64,7 @@ Sucrose.build({ intents: [Intents.FLAGS.GUILDS], ...config });
 ```
 
 <details>
+
 <summary>with typescript</summary>
 
 _index.ts_
@@ -126,6 +127,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript</summary>
 
 _./commands/global/avatar.ts_
@@ -175,6 +177,7 @@ module.exports = ({ sucrose }) => {
 ```
 
 <details>
+
 <summary>with typescript</summary>
 
 _./events/ready/handler.ts_
@@ -208,6 +211,7 @@ module.exports = async ({ sucrose }) => {
 ```
 
 <details>
+
 <summary>with typescript</summary>
 
 _./events/ready/handler.ts_
@@ -249,6 +253,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/games.ts_
@@ -306,6 +311,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/games/rock.ts_
@@ -360,6 +366,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/games/random.ts_
@@ -397,6 +404,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/image.ts_
@@ -436,6 +444,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/image/animal.ts_
@@ -478,6 +487,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/image/animal/ferret.ts_
@@ -519,6 +529,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/global/image/animal/cat.ts_
@@ -565,6 +576,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./commands/guilds/\<GuildId>/say.ts_
@@ -610,6 +622,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./interactions/buttons/click-me.ts_
@@ -665,6 +678,7 @@ module.exports = {
 ```
 
 <details>
+
 <summary>with typescript<summary>
 
 _./interactions/select-menus/select-me.ts_
