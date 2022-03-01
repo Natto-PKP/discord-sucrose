@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 
 import type Discord from 'discord.js';
+import type { Code } from '../src/enums/errors';
 
 // ? MANAGERS
 // # command manager
@@ -59,6 +60,18 @@ declare class InteractionManager {
 
   public selectMenus: SelectMenuInteractionManager;
   public build(): Promise<void>;
+}
+
+// ? SERVICES
+
+declare class Logger {
+  static console: Console;
+  static date(format: boolean) : string | Date;
+  static error(err: Error): void;
+  static handle(...errors: Error[]): void;
+  static give(code: Code, content: string): void;
+  static table(content: object | unknown[]): void;
+  static write(message: string): void;
 }
 
 // ? STRUCTURES
@@ -221,8 +234,8 @@ type CommandOption = SubCommandGroup | SubCommand;
 type CommandOptionData = SubCommandGroupData | SubCommandData;
 type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[T];
 type DiscordCommand = Discord.UserContextMenuInteraction &
-  Discord.MessageContextMenuInteraction &
-  Discord.CommandInteraction;
+Discord.MessageContextMenuInteraction &
+Discord.CommandInteraction;
 type InteractionData = CommandData | ButtonData | SelectMenuData;
 
 export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {

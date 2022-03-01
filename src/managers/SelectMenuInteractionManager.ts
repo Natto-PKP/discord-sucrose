@@ -35,27 +35,23 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
     const names: string[] = Array.isArray(files) ? files : [files];
     const results = <Types.SelectMenuData[]>[];
 
-    // ? loop all files
-    await Promise.all(
-      names.map(async (file) => {
-        const to = path.join(this.options.path, file);
-        if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
-        if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
+    await Promise.all(names.map(async (file) => {
+      const to = path.join(this.options.path, file);
+      if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
+      if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-        const selectMenu = <Types.SelectMenuData>await imported(path.join(process.cwd(), to), 'interaction');
-        if (selectMenu && typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);
+      const selectMenu = <Types.SelectMenuData> await imported(path.join(process.cwd(), to), 'interaction');
+      if (selectMenu && typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);
 
-        selectMenu.path = to;
+      selectMenu.path = to;
 
-        const { customId } = selectMenu.data;
-        if (!customId) throw STypeError('customId', 'string', customId);
-        if (this.collection.has(customId))
-          throw SError('ERROR', `select menu "${customId}" already exists in collection`);
+      const { customId } = selectMenu.data;
+      if (!customId) throw STypeError('customId', 'string', customId);
+      if (this.collection.has(customId)) { throw SError('ERROR', `select menu "${customId}" already exists in collection`); }
 
-        this.collection.set(customId, selectMenu);
-        results.push(selectMenu);
-      })
-    ); // [end] loop all files
+      this.collection.set(customId, selectMenu);
+      results.push(selectMenu);
+    }));
 
     return Array.isArray(files) ? results : results[0];
   } // [end] add()
@@ -72,15 +68,16 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
   public async refresh(names: unknown): Promise<Types.SelectMenuData | Types.SelectMenuData[]> {
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
     const selectMenus = Array.isArray(names) ? names : [names];
+    const results = <Types.SelectMenuData[]>[];
 
-    return Promise.all(
-      selectMenus.map((name) => {
-        const selectMenu = this.collection.get(name);
-        if (!selectMenu) throw SError('ERROR', `select menu "${name}" not exist`);
-        this.remove(name);
-        return this.add(path.basename(selectMenu.path));
-      })
-    );
+    await Promise.all(selectMenus.map(async (name) => {
+      const selectMenu = this.collection.get(name);
+      if (!selectMenu) throw SError('ERROR', `select menu "${name}" not exist`);
+      this.remove(name);
+      results.push(await this.add(path.basename(selectMenu.path)));
+    }));
+
+    return Array.isArray(names) ? results : results[0];
   } // [end] refresh()
 
   /**

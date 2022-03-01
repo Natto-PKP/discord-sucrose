@@ -57,21 +57,18 @@ export default class EventManager implements Types.EventManager {
     const results = <Types.Event[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
-    // ? loop all event name
-    await Promise.all(
-      names.map(async (name) => {
-        if (this.collection.has(name)) throw SError('ERROR', `event "${name}" already exists`);
-        const to = path.join(this.options.path, name, `handler.${this.options.env.ext}`);
-        if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
-        if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
+    await Promise.all(names.map(async (name) => {
+      if (this.collection.has(name)) throw SError('ERROR', `event "${name}" already exists`);
+      const to = path.join(this.options.path, name, `handler.${this.options.env.ext}`);
+      if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
+      if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
 
-        const event = new Event(name, { path: to, sucrose: this.sucrose });
-        await event.listen();
+      const event = new Event(name, { path: to, sucrose: this.sucrose });
+      await event.listen();
 
-        this.collection.set(name, event);
-        results.push(event);
-      })
-    ); // [end] loop all event name
+      this.collection.set(name, event);
+      results.push(event);
+    }));
 
     return Array.isArray(events) ? results : results[0];
   } // [end] create()
@@ -91,16 +88,13 @@ export default class EventManager implements Types.EventManager {
     const results = <Types.Event[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
-    // ? loop all event name
-    await Promise.all(
-      names.map(async (name) => {
-        const event = this.collection.get(name);
-        if (!event) throw SError('ERROR', `event ${name} does not exist`);
-        if (name === 'ready') this.sucrose.emit('ready', <Discord.Client>this.sucrose);
+    Promise.all(names.map(async (name) => {
+      const event = this.collection.get(name);
+      if (!event) throw SError('ERROR', `event ${name} does not exist`);
+      if (name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
 
-        results.push(await event.listen());
-      })
-    ); // [end] loop all event name
+      results.push(await event.listen());
+    }));
 
     return Array.isArray(events) ? results : results[0];
   } // [end] listen()
@@ -120,15 +114,12 @@ export default class EventManager implements Types.EventManager {
     const results = <Types.Event[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
-    // ? loop all event name
-    await Promise.all(
-      names.map(async (name) => {
-        const event = this.collection.get(name);
-        if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    await Promise.all(names.map(async (name) => {
+      const event = this.collection.get(name);
+      if (!event) throw SError('ERROR', `event ${name} does not exist`);
 
-        results.push(await event.mute());
-      })
-    ); // [end] loop all event name
+      results.push(await event.mute());
+    }));
 
     return Array.isArray(events) ? results : results[0];
   } // [end] mute()
@@ -148,15 +139,14 @@ export default class EventManager implements Types.EventManager {
     const results = <Types.Event[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
-    // ? loop all event name
     await Promise.all(
       names.map(async (name) => {
         const event = this.collection.get(name);
         if (!event) throw SError('ERROR', `event ${name} does not exist`);
 
         results.push(await event.refresh());
-      })
-    ); // [end] loop all event name
+      }),
+    );
 
     return Array.isArray(events) ? results : results[0];
   } // [end] refresh

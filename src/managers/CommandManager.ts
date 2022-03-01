@@ -25,9 +25,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
     if (existsSync(globalPath) && lstatSync(globalPath).isDirectory()) {
       this.collection = new Collection();
 
-      const files = readdirSync(globalPath).filter((file) => {
-        return lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`);
-      });
+      const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
 
       if (files.length) await this.add(files);
     }
@@ -50,7 +48,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
           await manager.build();
 
           this.guilds.set(dir, manager);
-        })
+        }),
       );
     }
 

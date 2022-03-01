@@ -1,7 +1,12 @@
 /* eslint-disable no-console */
 
 import { Console } from 'console';
-import { mkdirSync, existsSync, lstatSync, createWriteStream } from 'fs';
+import {
+  mkdirSync,
+  existsSync,
+  lstatSync,
+  createWriteStream,
+} from 'fs';
 import path from 'path';
 
 import { Code, Codes } from '../enums/errors';

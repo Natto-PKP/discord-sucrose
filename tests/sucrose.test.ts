@@ -46,33 +46,33 @@ path;
 //   });
 // });
 
-// describe('# event manager', () => {
-//   let sucrose: Types.Sucrose;
+describe('# event manager', () => {
+  let sucrose: Types.Sucrose;
 
-//   beforeAll(async () => (sucrose = await Sucrose.build(options)));
-//   afterAll(() => sucrose.destroy());
+  beforeAll(async () => (sucrose = await Sucrose.build(options)));
+  afterAll(() => sucrose.destroy());
 
-//   it('events loaded', () => {
-//     expect.hasAssertions();
+  it('events loaded', () => {
+    expect.hasAssertions();
 
-//     expect(sucrose.events.collection.size).toBeTruthy();
-//   });
+    expect(sucrose.events.collection.size).toBeTruthy();
+  });
 
-//   it('event manage', async () => {
-//     expect.hasAssertions();
+  it('event manage', async () => {
+    expect.hasAssertions();
 
-//     const event = <Types.Event>sucrose.events.collection.random();
+    const event = <Types.Event>sucrose.events.collection.random();
 
-//     expect(typeof event.name).toBe('string');
-//     expect(event.manager).toBe(sucrose.events);
-//     await expect(event.mute()).resolves.toBeTruthy();
-//     await expect(event.mute()).rejects.toThrow(/event does not have a listener$/);
-//     await expect(event.listen()).resolves.toBeTruthy();
-//     await expect(event.refresh()).resolves.toBeTruthy();
-//     await expect(event.remove()).resolves.toBeFalsy();
-//     await expect(event.listen()).rejects.toThrow(/event is disabled$/);
-//   });
-// });
+    expect(typeof event.name).toBe('string');
+    expect(event.manager).toBe(sucrose.events);
+    await expect(event.mute()).resolves.toBeTruthy();
+    await expect(event.mute()).rejects.toThrow(/does not have a listener$/);
+    await expect(event.listen()).resolves.toBeTruthy();
+    await expect(event.refresh()).resolves.toBeTruthy();
+    await expect(event.remove()).resolves.toBeFalsy();
+    await expect(event.listen()).rejects.toThrow(/is disabled$/);
+  });
+});
 
 // describe('# command manager', () => {
 //   let sucrose: Types.Sucrose;

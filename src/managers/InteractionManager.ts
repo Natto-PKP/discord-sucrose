@@ -57,9 +57,8 @@ export default class InteractionManager implements Types.InteractionManager {
 
             // ! sub command group or sub command
             if (groupName || optionName) {
-              const option =
-                chatInput.options &&
-                ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
+              const option = chatInput.options
+                && ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
               if (!option) return await interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
 
               const optionPermission = hasPermissions(interaction, option.permissions || {}, content);
@@ -132,9 +131,7 @@ export default class InteractionManager implements Types.InteractionManager {
     // ! buttons manager
     const buttonPath = path.join(this.options.path, 'buttons');
     if (existsSync(buttonPath) && lstatSync(buttonPath).isDirectory()) {
-      const files = readdirSync(buttonPath).filter((file) => {
-        return lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`);
-      });
+      const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
 
       this.buttons.collection = new Collection();
       if (!files.length) return;
@@ -145,9 +142,7 @@ export default class InteractionManager implements Types.InteractionManager {
     // ! select menus manager
     const selectMenuPath = path.join(this.options.path, 'select-menus');
     if (existsSync(selectMenuPath) && lstatSync(selectMenuPath).isDirectory()) {
-      const files = readdirSync(selectMenuPath).filter((file) => {
-        return lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`);
-      });
+      const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
 
       this.selectMenus.collection = new Collection();
       if (!files.length) return;
