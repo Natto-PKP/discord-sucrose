@@ -67,11 +67,8 @@ export default class Sucrose extends Client implements Types.Sucrose {
     // ! application log
     const connected = () => Logger.give('SUCCESS', 'Application is connected to discord');
     await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
-    if (!sucrose.isReady()) {
-      await new Promise<void>((res) => {
-        res(connected());
-      });
-    } else connected();
+    if (!sucrose.isReady()) await new Promise<void>((res) => { sucrose.on('ready', () => res(connected())); });
+    else connected();
 
     // ! managers
     await sucrose.events.build().then(() => {
@@ -85,7 +82,8 @@ export default class Sucrose extends Client implements Types.Sucrose {
     }, Logger.handle);
 
     await sucrose.interactions.build().then(() => {
-      if (!sucrose.interactions.buttons.collection.size && !sucrose.interactions.selectMenus.collection.size) return;
+      if (!sucrose.interactions.buttons.collection.size
+        && !sucrose.interactions.selectMenus.collection.size) return;
       Logger.give('SUCCESS', 'Interactions loaded');
     }, Logger.handle);
 
