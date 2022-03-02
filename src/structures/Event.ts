@@ -58,6 +58,8 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
     if (this.sucrose.listeners(this.name).includes(listener)) { throw SError('ERROR', `event "${this.name}" listener already active`); }
 
     this.sucrose.on(this.name, listener);
+    if (this.name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
+
     this.listener = listener;
     return this;
   } // [end] listen()
