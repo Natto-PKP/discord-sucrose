@@ -242,7 +242,9 @@ export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseIntera
   data: ButtonTypes[T];
   exec?: BaseExec<{ interaction: Discord.ButtonInteraction }>;
 };
-export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{ args: Discord.ClientEvents[E] }>;
+export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
+  args: Discord.ClientEvents[E]
+}>;
 
 // ? CONTENTS
 

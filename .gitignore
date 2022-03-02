@@ -1,6 +1,7 @@
 # Environnement
 node_modules
-package-lock.json 
+package-lock.json
+docker-compose.yml
 .env
 
 #

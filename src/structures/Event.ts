@@ -7,7 +7,7 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 import Logger from '../services/Logger';
-import imported from '../utils/imported';
+import * as helpers from '../helpers';
 
 export default class Event<E extends keyof Discord.ClientEvents> implements Types.Event {
   private disabled = false;
@@ -42,7 +42,7 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
     if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
 
-    const handler = <Types.EventHandler<E>>await imported(path.join(process.cwd(), to), 'handler');
+    const handler = <Types.EventHandler<E>> await helpers.imported(path.join(process.cwd(), to), 'handler');
     if (typeof handler !== 'function') throw STypeError('handler', 'function', handler);
 
     const listener = async (...args: Discord.ClientEvents[E]) => {
@@ -55,8 +55,7 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
       }
     };
 
-    if (this.sucrose.listeners(this.name).includes(listener))
-      throw SError('ERROR', `event "${this.name}" listener already active`);
+    if (this.sucrose.listeners(this.name).includes(listener)) { throw SError('ERROR', `event "${this.name}" listener already active`); }
 
     this.sucrose.on(this.name, listener);
     this.listener = listener;
@@ -71,7 +70,7 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
     if (this.disabled) throw SError('ERROR', 'event already disabled');
     if (!this.listener) throw SError('ERROR', 'event does not have a listener');
 
-    this.sucrose.removeListener(this.name, <(...args: unknown[]) => void>(<unknown>this.listener));
+    this.sucrose.removeListener(this.name, <(...args: unknown[]) => void>(<unknown> this.listener));
     this.listener = null;
 
     return this;

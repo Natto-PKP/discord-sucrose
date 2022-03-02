@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable consistent-return */
 
 import { Collection } from 'discord.js';
@@ -11,7 +12,7 @@ import { SError } from '../errors';
 import ButtonInteractionManager from './ButtonInteractionManager';
 import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 import Logger from '../services/Logger';
-import hasPermissions from '../utils/hasPermissions';
+import * as helpers from '../helpers';
 
 /**
  * Interaction manager
@@ -46,7 +47,7 @@ export default class InteractionManager implements Types.InteractionManager {
           const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
           if (!command) return;
 
-          const commandPermission = hasPermissions(interaction, command.permissions || {}, content);
+          const commandPermission = helpers.hasPermissions(interaction, command.permissions || {}, content);
           if (commandPermission) return await interaction.reply(commandPermission);
 
           // ! command
@@ -57,11 +58,10 @@ export default class InteractionManager implements Types.InteractionManager {
 
             // ! sub command group or sub command
             if (groupName || optionName) {
-              const option = chatInput.options
-                && ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
+              const option = chatInput.options && ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
               if (!option) return await interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
 
-              const optionPermission = hasPermissions(interaction, option.permissions || {}, content);
+              const optionPermission = helpers.hasPermissions(interaction, option.permissions || {}, content);
               if (optionPermission) return await interaction.reply(optionPermission);
 
               // ! sub command
@@ -70,7 +70,7 @@ export default class InteractionManager implements Types.InteractionManager {
                 const subOption = optionName && opts.get(optionName);
                 if (!subOption) return await interaction.reply(content.MISSING_SUB_COMMAND(name));
 
-                const subCommandPermission = hasPermissions(interaction, subOption.permissions || {}, content);
+                const subCommandPermission = helpers.hasPermissions(interaction, subOption.permissions || {}, content);
                 if (subCommandPermission) return await interaction.reply(subCommandPermission);
 
                 if (!subOption.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
@@ -95,7 +95,7 @@ export default class InteractionManager implements Types.InteractionManager {
           const selectMenu = this.selectMenus.collection.get(customId);
           if (!selectMenu) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
 
-          const permission = hasPermissions(interaction, selectMenu.permissions || {}, content);
+          const permission = helpers.hasPermissions(interaction, selectMenu.permissions || {}, content);
           if (permission) return await interaction.reply(permission);
 
           if (!selectMenu.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
@@ -108,7 +108,7 @@ export default class InteractionManager implements Types.InteractionManager {
           const button = this.buttons.collection.get(customId);
           if (!button) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
 
-          const permission = hasPermissions(interaction, button.permissions || {}, content);
+          const permission = helpers.hasPermissions(interaction, button.permissions || {}, content);
           if (permission) return await interaction.reply(permission);
 
           if (!button.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));

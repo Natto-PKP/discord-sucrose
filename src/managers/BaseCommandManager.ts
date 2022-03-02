@@ -7,7 +7,8 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
-import imported from '../utils/imported';
+import * as helpers from '../helpers';
+import * as validations from '../validations';
 
 /**
  * Base command manager
@@ -20,7 +21,10 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
    */
   public collection: Discord.Collection<string, Types.CommandData> = new Collection();
 
-  public constructor(protected sucrose: Types.Sucrose, protected options: Types.CommandManagerOptions) {}
+  public constructor(
+    protected sucrose:Types.Sucrose,
+    protected options: Types.CommandManagerOptions,
+  ) {}
 
   /**
    * Add new command(s)
@@ -37,105 +41,99 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     const names: string[] = Array.isArray(files) ? files : [files];
     const results = <Types.CommandData[]>[];
 
-    // ? loop all files
-    await Promise.all(
-      names.map(async (name) => {
-        const to = path.join(this.options.path, name);
-        if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
-        if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
+    // ! loop all files
+    await Promise.all(names.map(async (name) => {
+      const to = path.join(this.options.path, name);
+      if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
+      if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
 
-        const command = <Types.CommandData>await imported(path.join(process.cwd(), to), 'command');
-        if (command && typeof command !== 'object') throw STypeError('command', 'object', command);
+      const command = <Types.CommandData> await helpers.imported(path.join(process.cwd(), to), 'command');
+      validations.command(command, command?.body?.name || 'unknown');
 
-        command.path = to;
+      command.path = to;
 
-        if (this.collection.has(command.body.name))
-          throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
+      if (this.collection.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
 
-        // ! chat input
-        if (!command.body.type || command.body.type === 'CHAT_INPUT') {
-          const parent = <Types.ChatInputData>command;
-          const folder = path.join(this.options.path, parent.body.name);
+      // ! chat input
+      if (!command.body.type || command.body.type === 'CHAT_INPUT') {
+        const parent = <Types.ChatInputData>command;
+        const folder = path.join(this.options.path, parent.body.name);
+        if (!command.body.description || typeof command.body.description !== 'string') throw STypeError('command.body.description', 'string', command.body.description);
 
-          // ! sub command groups or sub commands
-          if (existsSync(folder) && lstatSync(folder).isDirectory()) {
-            const options = readdirSync(folder).filter((f) => lstatSync(path.join(folder, f)).isFile());
-            if (!options.length) throw SError('WARN', 'COMMAND_MANAGER_SUB_FOLDER_EMPTY');
+        // ! sub command groups or sub commands
+        if (existsSync(folder) && lstatSync(folder).isDirectory()) {
+          const options = readdirSync(folder).filter((f) => {
+            const p = lstatSync(path.join(folder, f));
+            return p.isFile() && f.endsWith(`.${this.options.env.ext}`);
+          });
 
-            // # define options objects
-            parent.body.options = [];
-            parent.options = new Collection();
+          if (!options.length) throw SError('ERROR', `command "${parent.body.name}" has an empty subcommands folder`);
 
-            // ? loop all group folders or sub command subFiles
-            await Promise.all(
-              options.map(async (file) => {
-                const optionPath = path.join(folder, file);
-                const option = <Types.CommandOptionData>await imported(path.join(process.cwd(), optionPath), 'option');
-                if (option && typeof option !== 'object') throw STypeError('option', 'object', option);
+          // # define options objects
+          parent.body.options = [];
+          parent.options = new Collection();
 
-                option.path = optionPath;
-                option.parent = parent.body.name;
+          // ? loop all group folders or sub command subFiles
+          await Promise.all(options.map(async (file) => {
+            const optionPath = path.join(folder, file);
+            const option = <Types.CommandOptionData> await helpers.imported(path.join(process.cwd(), optionPath), 'option');
+            validations.command(option, `${command.body.name} ${option?.option?.name || 'unknown'}`);
 
-                // ! sub command group
-                if (option.option.type === 'SUB_COMMAND_GROUP') {
-                  const group = <Types.SubCommandGroupData>option;
-                  const groupPath = path.join(folder, group.option.name);
+            option.path = optionPath;
+            option.parent = parent.body.name;
 
-                  if (!existsSync(groupPath))
-                    throw SError(
-                      'ERROR',
-                      `sub command group "${`${parent.body.name} ${group.option.name}`}" folder not exist`
-                    );
-                  if (!lstatSync(groupPath).isDirectory())
-                    throw SError(
-                      'ERROR',
-                      `sub command group "${`${parent.body.name} ${group.option.name}`}" folder is not a folder`
-                    );
+            // ! sub command group
+            if (option.option.type === 'SUB_COMMAND_GROUP') {
+              const group = <Types.SubCommandGroupData>option;
+              const groupPath = path.join(folder, group.option.name);
 
-                  const groupFiles = readdirSync(groupPath).filter((f) => lstatSync(path.join(groupPath, f)).isFile());
-                  if (!groupFiles.length) throw SError('ERROR', 'sub command group has no sub command');
+              if (!existsSync(groupPath)) throw SError('ERROR', `sub command group "${`${parent.body.name} ${group.option.name}`}" folder not exist`);
+              if (!lstatSync(groupPath).isDirectory()) throw SError('ERROR', `sub command group "${`${parent.body.name} ${group.option.name}`}" folder is not a folder`);
 
-                  // # defined options objects
-                  group.option.options = [];
-                  group.options = new Collection();
+              const groupFiles = readdirSync(groupPath).filter((f) => {
+                const p = lstatSync(path.join(groupPath, f));
+                return p.isFile() && f.endsWith(`.${this.options.env.ext}`);
+              });
 
-                  // ! loop all group sub command files
-                  await Promise.all(
-                    groupFiles.map(async (groupFile) => {
-                      const subPath = path.join(groupPath, groupFile);
-                      const sub = <Types.SubCommandData>await imported(path.join(process.cwd(), subPath), 'option');
-                      if (sub && typeof sub !== 'object') throw STypeError('sub', 'object', sub);
+              if (!groupFiles.length) throw SError('ERROR', 'sub command group has no sub command');
 
-                      sub.path = subPath;
-                      sub.parent = group.option.name;
+              // # defined options objects
+              group.option.options = [];
+              group.options = new Collection();
 
-                      // # define sub option on group
-                      group.option.options?.push(sub.option);
-                      group.options.set(sub.option.name, sub);
-                    }) // [end] loop all group sub command files
-                  );
+              // ! loop all group sub command files
+              await Promise.all(groupFiles.map(async (groupFile) => {
+                const subPath = path.join(groupPath, groupFile);
+                const sub = <Types.SubCommandData> await helpers.imported(path.join(process.cwd(), subPath), 'option');
+                validations.command(option, `${command.body.name} ${option.option.name} ${sub?.option?.name || 'unknown'}`);
 
-                  // # define group on parent
-                  parent.body.options?.push(group.option);
-                  parent.options?.set(group.option.name, group);
-                } // [end] sub command group
-                // ! sub command
-                else if (option.option.type === 'SUB_COMMAND') {
-                  const sub = <Types.SubCommandData>option;
+                sub.path = subPath;
+                sub.parent = group.option.name;
 
-                  // # define sub command on parent
-                  parent.body.options?.push(sub.option);
-                  parent.options?.set(sub.option.name, sub);
-                } // [end] sub command
-              })
-            ); // [end] loop all group folders or sub command subFiles
-          } // [end] sub command groups or sub commands
-        } // [end] chat input
+                // # define sub option on group
+                group.option.options?.push(sub.option);
+                group.options.set(sub.option.name, sub);
+              }));// [end] loop all group sub command files
 
-        results.push(command);
-        this.collection.set(command.body.name, command);
-      })
-    ); // [end] loop all files
+              // # define group on parent
+              parent.body.options?.push(group.option);
+              parent.options?.set(group.option.name, group);
+
+              // [end] sub command group
+            } else if (option.option.type === 'SUB_COMMAND') { // ! sub command
+              const sub = <Types.SubCommandData>option;
+
+              // # define sub command on parent
+              parent.body.options?.push(sub.option);
+              parent.options?.set(sub.option.name, sub);
+            } // [end] sub command
+          })); // [end] loop all group folders or sub command subFiles
+        } // [end] sub command groups or sub commands
+      } // [end] chat input
+
+      results.push(command);
+      this.collection.set(command.body.name, command);
+    })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
   } // [end] add()
@@ -149,22 +147,26 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
    */
   public async define(names: string): Promise<Discord.ApplicationCommand>;
   public async define(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async define(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]> {
+  public async define(names: unknown): Promise<Discord.ApplicationCommand
+  | Discord.ApplicationCommand[]> {
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
 
     const files: string[] = Array.isArray(names) ? names : [names];
-    const guildId = 'guildId' in this ? (<{ guildId: string }>this).guildId : undefined;
+    const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
     const results = <Discord.ApplicationCommand[]>[];
 
     // ? loop all files
-    await Promise.all(
-      files.map(async (name) => {
-        const localCommand = this.collection.get(name);
-        if (!localCommand) throw SError('ERROR', `command "${name}" not exist`);
-        const apiCommand = await this.sucrose.application?.commands.create(localCommand.body, guildId);
-        if (apiCommand) results.push(apiCommand);
-      })
-    ); // [end] loop all files
+    await Promise.all(files.map(async (name) => {
+      const localCommand = this.collection.get(name);
+      if (!localCommand) throw SError('ERROR', `command "${name}" not exist`);
+
+      const apiCommand = await this.sucrose.application?.commands.create(
+        localCommand.body,
+        guildId,
+      );
+
+      if (apiCommand) results.push(apiCommand);
+    })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
   } // [end] define()
@@ -178,21 +180,20 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
    */
   public async delete(names: string): Promise<Discord.ApplicationCommand>;
   public async delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async delete(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]> {
+  public async delete(names: unknown): Promise<Discord.ApplicationCommand
+  | Discord.ApplicationCommand[]> {
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
 
     const files: string[] = Array.isArray(names) ? names : [names];
-    const guildId = 'guildId' in this ? (<{ guildId: string }>this).guildId : undefined;
+    const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
     const results = <Discord.ApplicationCommand[]>[];
 
     // ? loop all files
-    await Promise.all(
-      files.map(async (name) => {
-        if (!this.collection.has(name)) throw SError('ERROR', `command "${name}" not exist`);
-        const apiCommand = await this.sucrose.application?.commands.delete(name, guildId);
-        if (apiCommand) results.push(apiCommand);
-      })
-    ); // [end] loop all files
+    await Promise.all(files.map(async (name) => {
+      if (!this.collection.has(name)) throw SError('ERROR', `command "${name}" not exist`);
+      const apiCommand = await this.sucrose.application?.commands.delete(name, guildId);
+      if (apiCommand) results.push(apiCommand);
+    })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
   } // [end] delete()
@@ -210,14 +211,12 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
     const commands = Array.isArray(names) ? names : [names];
 
-    return Promise.all(
-      commands.map((name) => {
-        const command = this.collection.get(name);
-        if (!command) throw SError('ERROR', `command "${name}" not exist`);
-        this.remove(name);
-        return this.add(path.basename(command.path));
-      })
-    );
+    return Promise.all(commands.map((name) => {
+      const command = this.collection.get(name);
+      if (!command) throw SError('ERROR', `command "${name}" not exist`);
+      this.remove(name);
+      return this.add(path.basename(command.path));
+    }));
   } // [end] refresh()
 
   /**
@@ -229,7 +228,8 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
    */
   public async restore(names: string): Promise<Discord.ApplicationCommand>;
   public async restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async restore(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]> {
+  public async restore(names: unknown): Promise<Discord.ApplicationCommand
+  | Discord.ApplicationCommand[]> {
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
 
     if (Array.isArray(names)) {

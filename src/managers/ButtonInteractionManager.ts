@@ -7,7 +7,8 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
-import imported from '../utils/imported';
+import * as helpers from '../helpers';
+import * as validations from '../validations';
 
 /**
  * Button manager
@@ -36,31 +37,29 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
     const results = <Types.ButtonData[]>[];
 
     // ? loop all files
-    await Promise.all(
-      names.map(async (file) => {
-        const to = path.join(this.options.path, file);
+    await Promise.all(names.map(async (file) => {
+      const to = path.join(this.options.path, file);
 
-        if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
-        if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
+      if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
+      if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-        const button = <Types.ButtonData>await imported(path.join(process.cwd(), to), 'button');
-        if (button && typeof button !== 'object') throw STypeError('button', 'object', button);
+      const button = <Types.ButtonData> await helpers.imported(path.join(process.cwd(), to), 'button');
+      validations.button(button);
 
-        button.path = to;
+      button.path = to;
 
-        if ('url' in button.data) {
-          const { url } = button.data;
-          if (this.collection.has(url)) throw SError('ERROR', `url button "${url}" already exists in collection`);
-          this.collection.set(url, button);
-        } else {
-          const { customId } = button.data;
-          if (this.collection.has(customId)) throw SError('ERROR', `button "${customId}" already exists in collection`);
-          this.collection.set(customId, button);
-        }
+      if ('url' in button.data) {
+        const { url } = button.data;
+        if (this.collection.has(url)) throw SError('ERROR', `url button "${url}" already exists in collection`);
+        this.collection.set(url, button);
+      } else {
+        const { customId } = button.data;
+        if (this.collection.has(customId)) throw SError('ERROR', `button "${customId}" already exists in collection`);
+        this.collection.set(customId, button);
+      }
 
-        results.push(button);
-      })
-    ); // [end] loop all files
+      results.push(button);
+    })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
   } // [end] add()
@@ -78,14 +77,12 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
     if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
     const buttons = Array.isArray(names) ? names : [names];
 
-    return Promise.all(
-      buttons.map((name) => {
-        const button = this.collection.get(name);
-        if (!button) throw SError('ERROR', `button "${name}" not exist`);
-        this.remove(name);
-        return this.add(path.basename(button.path));
-      })
-    );
+    return Promise.all(buttons.map((name) => {
+      const button = this.collection.get(name);
+      if (!button) throw SError('ERROR', `button "${name}" not exist`);
+      this.remove(name);
+      return this.add(path.basename(button.path));
+    }));
   } // [end] refresh()
 
   /**

@@ -139,14 +139,12 @@ export default class EventManager implements Types.EventManager {
     const results = <Types.Event[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
-    await Promise.all(
-      names.map(async (name) => {
-        const event = this.collection.get(name);
-        if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    await Promise.all(names.map(async (name) => {
+      const event = this.collection.get(name);
+      if (!event) throw SError('ERROR', `event ${name} does not exist`);
 
-        results.push(await event.refresh());
-      }),
-    );
+      results.push(await event.refresh());
+    }));
 
     return Array.isArray(events) ? results : results[0];
   } // [end] refresh

@@ -7,7 +7,8 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
-import imported from '../utils/imported';
+import * as helpers from '../helpers';
+import * as validations from '../validations';
 
 /**
  * Select menu manager
@@ -40,8 +41,8 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
       if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
       if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
-      const selectMenu = <Types.SelectMenuData> await imported(path.join(process.cwd(), to), 'interaction');
-      if (selectMenu && typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);
+      const selectMenu = <Types.SelectMenuData> await helpers.imported(path.join(process.cwd(), to), 'interaction');
+      validations.selectMenu(selectMenu);
 
       selectMenu.path = to;
 

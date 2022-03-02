@@ -32,24 +32,29 @@ export default class CommandManager extends BaseCommandManager implements Types.
 
     const guildsPath = path.join(this.options.path, 'guilds');
     if (existsSync(guildsPath) && lstatSync(guildsPath).isDirectory()) {
-      const dirs = readdirSync(guildsPath).filter((file) => lstatSync(path.join(guildsPath, file)).isDirectory());
+      const dirs = readdirSync(guildsPath).filter((file) => {
+        const p = lstatSync(path.join(guildsPath, file));
+        return p.isDirectory();
+      });
 
-      await Promise.all(
-        dirs.map(async (dir) => {
-          const guildPath = path.join(guildsPath, dir);
-          const files = readdirSync(guildPath).filter((file) => lstatSync(path.join(guildPath, file)).isFile());
-          this.guilds = new Collection();
-          if (!files.length) return;
+      await Promise.all(dirs.map(async (dir) => {
+        const guildPath = path.join(guildsPath, dir);
+        const files = readdirSync(guildPath).filter((file) => {
+          const p = lstatSync(path.join(guildPath, file));
+          return p.isFile() && file.endsWith(`.${this.options.env.ext}`);
+        });
 
-          const { options } = this;
-          options.path = guildPath;
+        this.guilds = new Collection();
+        if (!files.length) return;
 
-          const manager = new GuildCommandManager(dir, this.sucrose, options);
-          await manager.build();
+        const { options } = this;
+        options.path = guildPath;
 
-          this.guilds.set(dir, manager);
-        }),
-      );
+        const manager = new GuildCommandManager(dir, this.sucrose, options);
+        await manager.build();
+
+        this.guilds.set(dir, manager);
+      }));
     }
 
     this.builded = true;
