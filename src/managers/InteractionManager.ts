@@ -115,8 +115,9 @@ export default class InteractionManager implements Types.InteractionManager {
           return await button.exec({ ...params, interaction });
         } // [end] button
       } catch (err) {
-        if (err instanceof Error) Logger.error(err);
-        if (Array.isArray(err)) Logger.handle(...err);
+        if (!(err instanceof Error)) return;
+        Logger.error(err);
+        return (<Types.DiscordCommand>interaction).reply(content.ERROR(err));
       }
     });
   }

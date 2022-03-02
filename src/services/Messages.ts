@@ -1,12 +1,16 @@
 import type Types from '../../typings';
 
 export const interaction = <Types.InteractionContent>{
+  ERROR(err) {
+    return { content: `❌ \`| \` An error has occurred: \`${err?.message}\`` };
+  },
+
   /**
    * Missing client permissions
    * @returns
    */
   MISSING_CLIENT_PERMISSIONS() {
-    return { content: `❌ \`| \` I don't have permissions to use this command here...` };
+    return { content: '❌ `| ` I don\'t have permissions to use this command here...' };
   },
 
   /**

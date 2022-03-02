@@ -249,6 +249,7 @@ export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
 // ? CONTENTS
 
 interface InteractionContent {
+  ERROR?: (err: Error) => Discord.InteractionReplyOptions;
   MISSING_CLIENT_PERMISSIONS?: (
     client: Discord.Client,
     permissions: Discord.PermissionString[]
