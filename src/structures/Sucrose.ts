@@ -73,11 +73,6 @@ export default class Sucrose extends Client implements Types.Sucrose {
     } else connected();
 
     // ! managers
-    await sucrose.events.build().then(() => {
-      if (!sucrose.events.collection.size) return;
-      Logger.give('SUCCESS', 'Discord.js events loaded');
-    }, Logger.handle);
-
     await sucrose.commands.build().then(() => {
       if (!sucrose.commands.collection.size && !sucrose.commands.guilds.size) return;
       Logger.give('SUCCESS', 'Slash commands loaded');
@@ -87,6 +82,11 @@ export default class Sucrose extends Client implements Types.Sucrose {
       if (!sucrose.interactions.buttons.collection.size
         && !sucrose.interactions.selectMenus.collection.size) return;
       Logger.give('SUCCESS', 'Interactions loaded');
+    }, Logger.handle);
+
+    await sucrose.events.build().then(() => {
+      if (!sucrose.events.collection.size) return;
+      Logger.give('SUCCESS', 'Discord.js events loaded');
     }, Logger.handle);
 
     Logger.write('');
