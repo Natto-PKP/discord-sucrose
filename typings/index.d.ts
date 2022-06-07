@@ -205,13 +205,11 @@ export interface MessageContextMenu extends BaseInteraction {
 }
 
 export interface Permissions {
-  allow?: Omit<Permissions, 'allow' | 'deny'>;
   channels?: Discord.Snowflake[];
   client?: Discord.PermissionResolvable;
-  deny?: Omit<Permissions, 'allow' | 'deny'>;
   guilds?: Discord.Snowflake[];
-  members?: Discord.Snowflake[];
-  user?: Discord.PermissionResolvable;
+  users?: Discord.Snowflake[];
+  member?: Discord.PermissionResolvable;
   roles?: Discord.Snowflake[];
 }
 
@@ -260,16 +258,32 @@ export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
 
 interface InteractionContent {
   ERROR?: (err: Error) => Discord.InteractionReplyOptions;
-  MISSING_CLIENT_PERMISSIONS?: (
-    client: Discord.Client,
-    permissions: Discord.PermissionString[]
-  ) => Discord.InteractionReplyOptions;
   MISSING_SUB_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_SUB_COMMAND_GROUP?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_LOCAL_INTERACTION?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_LOCAL_INTERACTION_EXEC?: (name: string) => Discord.InteractionReplyOptions;
-  MISSING_MEMBER_PERMISSIONS?: (
+  PERMISSIONS_MISSING_ALLOW_CHANNELS?: (
+    member: Discord.GuildMember,
+    channels: Discord.Collection<string, Discord.GuildChannel | Discord.GuildBasedChannel>
+  ) => Discord.InteractionReplyOptions;
+  PERMISSIONS_MISSING_ALLOW_GUILDS?: (
+    member: Discord.GuildMember,
+    guilds: Discord.Collection<string, Discord.Guild>
+  ) => Discord.InteractionReplyOptions;
+  PERMISSIONS_MISSING_ALLOW_USERS?: (
+    user: Discord.User,
+    users: Discord.Collection<string, Discord.User>
+  ) => Discord.InteractionReplyOptions;
+  PERMISSIONS_MISSING_ALLOW_ROLES?: (
+    member: Discord.GuildMember,
+    roles: Discord.Collection<string, Discord.Role>
+  ) => Discord.InteractionReplyOptions;
+  PERMISSIONS_MISSING_CLIENT?: (
+    client: Discord.Client,
+    permissions: Discord.PermissionString[]
+  ) => Discord.InteractionReplyOptions;
+  PERMISSIONS_MISSING_MEMBER?: (
     member: Discord.GuildMember,
     permissions: Discord.PermissionString[]
   ) => Discord.InteractionReplyOptions;
