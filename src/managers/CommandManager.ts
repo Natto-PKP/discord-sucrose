@@ -21,7 +21,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');
 
-    const globalPath = path.join(this.options.path, 'global');
+    const globalPath = this.options.path;
     if (existsSync(globalPath) && lstatSync(globalPath).isDirectory()) {
       this.collection = new Collection();
 
@@ -30,7 +30,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
       if (files.length) await this.add(files);
     }
 
-    const guildsPath = path.join(this.options.path, 'guilds');
+    const guildsPath = path.join(this.options.path, '../guilds');
     if (existsSync(guildsPath) && lstatSync(guildsPath).isDirectory()) {
       const dirs = readdirSync(guildsPath).filter((file) => {
         const p = lstatSync(path.join(guildsPath, file));
