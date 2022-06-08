@@ -37,6 +37,8 @@ export default class InteractionManager implements Types.InteractionManager {
 
     sucrose.on('interactionCreate', async (interaction) => {
       try {
+        if (interaction.isMessageComponent()) return;
+
         const params = { sucrose };
         const { guild } = interaction;
 
