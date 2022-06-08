@@ -119,7 +119,9 @@ export default class InteractionManager implements Types.InteractionManager {
       } catch (err) {
         if (!(err instanceof Error)) return;
         Logger.error(err);
-        return (<Types.DiscordCommand>interaction).reply(content.ERROR(err));
+
+        const { channel } = <Types.DiscordCommand>interaction;
+        if (channel) await channel.send(content.ERROR(err));
       }
     });
   }
