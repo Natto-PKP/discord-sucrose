@@ -55,6 +55,9 @@ export default function hasPermissions(
         message = content.PERMISSIONS_MISSING_ALLOW_CHANNELS(member, channels);
       }
     }
+
+    // ! Private
+    if (typeof permissions.private === 'boolean' && permissions.private) message = content.PERMISSIONS_DENY_GUILDS();
   } // [end] Guild check
 
   // ! Users
@@ -66,6 +69,9 @@ export default function hasPermissions(
       message = content.PERMISSIONS_MISSING_ALLOW_USERS(user, users);
     }
   }
+
+  // ! Private
+  if (typeof permissions.private === 'boolean' && !permissions.private) message = content.PERMISSIONS_DENY_PRIVATE();
 
   return message;
 }

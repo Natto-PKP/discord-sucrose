@@ -211,6 +211,7 @@ export interface Permissions {
   users?: Discord.Snowflake[];
   member?: Discord.PermissionResolvable;
   roles?: Discord.Snowflake[];
+  private?: boolean;
 }
 
 export interface SelectMenu extends BaseInteraction {
@@ -263,6 +264,8 @@ interface InteractionContent {
   MISSING_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_LOCAL_INTERACTION?: (name: string) => Discord.InteractionReplyOptions;
   MISSING_LOCAL_INTERACTION_EXEC?: (name: string) => Discord.InteractionReplyOptions;
+  PERMISSIONS_DENY_GUILDS?: () => Discord.InteractionReplyOptions;
+  PERMISSIONS_DENY_PRIVATE?: () => Discord.InteractionReplyOptions;
   PERMISSIONS_MISSING_ALLOW_CHANNELS?: (
     member: Discord.GuildMember,
     channels: Discord.Collection<string, Discord.GuildChannel | Discord.GuildBasedChannel>

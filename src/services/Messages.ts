@@ -41,6 +41,20 @@ export const interaction = <Types.InteractionContent>{
   },
 
   /**
+   * Deny guilds
+   */
+  PERMISSIONS_DENY_GUILDS() {
+    return { content: '❌ `| ` interaction is not available in guilds' };
+  },
+
+  /**
+   * Deny private messages
+   */
+  PERMISSIONS_DENY_PRIVATE() {
+    return { content: '❌ `| ` interaction is not available in private messages' };
+  },
+
+  /**
    * Missing allow channels - permissions
    */
   PERMISSIONS_MISSING_ALLOW_CHANNELS() {
