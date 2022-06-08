@@ -71,7 +71,7 @@ export default function hasPermissions(
   }
 
   // ! Private
-  if (typeof permissions.private === 'boolean' && !permissions.private) message = content.PERMISSIONS_DENY_PRIVATE();
+  if (!interaction.guild && typeof permissions.private === 'boolean' && !permissions.private) message = content.PERMISSIONS_DENY_PRIVATE();
 
   return message;
 }
