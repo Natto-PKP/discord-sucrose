@@ -1,20 +1,13 @@
 {
   "name": "discord-sucrose",
-  "version": "4.1.25",
+  "version": "4.1.32",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "tests",
-    "lib": "dist",
-    "example": "example"
-  },
+  "types": "./typings/index.d.ts",
   "files": [
     "dist",
-    "typings",
-    "docs"
+    "typings"
   ],
-  "types": "./typings/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
@@ -40,10 +33,9 @@
     "@typescript-eslint/parser": "^5.4.0",
     "dotenv": "^14.2.0",
     "eslint": "^8.2.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^16.1.0",
-    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^26.1.1",
-    "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-tsdoc": "^0.2.16",
     "jest": "^27.4.7",
     "prettier": "^2.4.1",

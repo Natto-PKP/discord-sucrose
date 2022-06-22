@@ -1,7 +1,10 @@
 /* eslint-disable max-classes-per-file */
 
 import type Discord from 'discord.js';
-import type Sucrose from '../src/structures/Sucrose';
+
+// # export interface
+export class Sucrose { }
+export class Logger { }
 
 /**
  * automatic messages content regarding interactions
@@ -198,6 +201,7 @@ export interface UserContextMenu extends BaseInteraction {
   exec?: BaseExec<{ interaction: Discord.UserContextMenuInteraction }>;
 }
 
+// # export types
 export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {
   data: ButtonTypes[T];
   exec?: BaseExec<{ interaction: Discord.ButtonInteraction }>;
@@ -206,6 +210,7 @@ export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
   args: Discord.ClientEvents[E]
 }>;
 
+// # internal
 interface ButtonTypes {
   link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
   base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
