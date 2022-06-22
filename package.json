@@ -1,8 +1,14 @@
 {
   "name": "discord-sucrose",
-  "version": "4.1.24",
+  "version": "4.1.25",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests",
+    "lib": "dist",
+    "example": "example"
+  },
   "files": [
     "dist",
     "typings",
@@ -27,6 +33,7 @@
   "author": "Natto-PKP",
   "license": "Apache-2.0 License",
   "devDependencies": {
+    "@microsoft/tsdoc": "^0.14.1",
     "@types/jest": "^27.4.0",
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
@@ -37,6 +44,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^26.1.1",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-tsdoc": "^0.2.16",
     "jest": "^27.4.7",
     "prettier": "^2.4.1",
     "ts-jest": "^27.1.3",

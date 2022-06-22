@@ -2,6 +2,9 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 
+/**
+ * validate or not the structure of a select menu
+ */
 export default (selectMenu: Types.SelectMenuData) => {
   if (!selectMenu || typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);
   if (!selectMenu.data || typeof selectMenu.data !== 'object') throw STypeError('data', 'object', selectMenu.data);

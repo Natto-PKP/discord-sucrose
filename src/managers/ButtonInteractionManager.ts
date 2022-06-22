@@ -10,23 +10,29 @@ import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
-/**
- * Button manager
- */
-export default class ButtonInteractionManager implements Types.ButtonInteractionManager {
+export default class ButtonInteractionManager {
   /**
-   * buttons collection
+   * collection of buttons
+   * @public
    */
   public collection: Discord.Collection<string, Types.ButtonData> = new Collection();
 
-  constructor(private options: Types.InteractionManagerOptions) {}
+  /**
+   * @internal
+   */
+  constructor(private options: { ext: 'js' | 'ts'; path: string; }) {}
 
   /**
-   * Add button(s)
-   * @param files
+   * upload the files to add your buttons to the collection
+   *
+   * @remarks
+   * @public
+   *
+   * @param files - string or string array of files to load
+   *
    * @example
-   * await buttons.add(["useme", "google"]);
-   * await buttons.add("useme");
+   * await buttons.add(["useme.ts", "google.ts"]);
+   * await buttons.add("useme.ts");
    */
   public async add(files: string): Promise<Types.ButtonData>;
   public async add(files: string[]): Promise<Types.ButtonData[]>;
@@ -62,11 +68,16 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
     })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  } // [end] add()
+  }
 
   /**
-   * Remove and add button(s)
-   * @param names
+   * refresh one or more button (remove() and add())
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - name or names array of button to refresh
+   *
    * @example
    * await buttons.refresh(["useme", "google"]);
    * await buttons.refresh("useme");
@@ -83,11 +94,16 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
       this.remove(name);
       return this.add(path.basename(button.path));
     }));
-  } // [end] refresh()
+  }
 
   /**
-   * Remove button(s)
-   * @param names
+   * remove one or more button
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - name or names array of button to remove
+   *
    * @example
    * await buttons.remove(["useme", "google"]);
    * await buttons.remove("useme");
@@ -99,5 +115,5 @@ export default class ButtonInteractionManager implements Types.ButtonInteraction
 
     if (Array.isArray(names)) names.forEach((name) => this.collection.delete(name));
     else this.collection.delete(names);
-  } // [end] remove()
+  }
 }

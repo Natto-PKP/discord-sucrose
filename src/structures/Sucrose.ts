@@ -3,7 +3,7 @@ import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
 /* Types */
-import type Types from '../../typings';
+import type { InteractionContent, SucroseOptions } from '../../typings';
 
 import Logger from '../services/Logger';
 import { SError } from '../errors';
@@ -14,57 +14,79 @@ import InteractionManager from '../managers/InteractionManager';
 
 import * as contents from '../services/Messages';
 
-export default class Sucrose extends Client implements Types.Sucrose {
-  public readonly commands: Types.CommandManager;
+/**
+ * custom discord client for structure
+ *
+ * @remarks
+ *
+ * @example
+ * Sucrose.build(\{ env: \{ source: 'src', ext: 'ts' \} \})
+ */
+export default class Sucrose extends Client {
+  /**
+   * access the commands manager
+   * @public
+   * @readonly
+   */
+  public readonly commands: CommandManager;
 
-  public readonly events: Types.EventManager;
+  /**
+   * access the events manager
+   * @public
+   * @readonly
+   */
+  public readonly events: EventManager;
 
-  public readonly interactions: Types.InteractionManager;
+  /**
+   * access the interactions manager
+   * @public
+   * @readonly
+   */
+  public readonly interactions: InteractionManager;
 
-  private constructor(options: Types.SucroseOptions) {
+  private constructor(options: SucroseOptions) {
     super(options);
 
-    // ! file extension
-    const ext = options.env?.extension || 'js';
+    // file language
+    const ext = options.env?.ext || 'js';
     if (!/(js|ts)$/.test(ext)) throw SError('FATAL', 'extension must be ".js" or ".ts"');
 
-    // ! source directory
+    // source directory
     const source = path.join('./', options.env?.source || './');
     if (!existsSync(source)) SError('FATAL', `source directory "${source}" does not exist`);
     if (!lstatSync(source).isDirectory()) SError('FATAL', `source directory "${source}" is not a folder`);
     const env = { ext, path: source };
 
-    // ! event manager
-    const eventsDir = path.join(source, 'events');
-    this.events = new EventManager(this, { env, path: eventsDir });
-
-    // ! command manager
-    const commandsDir = path.join(source, 'commands/global');
-    this.commands = new CommandManager(this, { env, path: commandsDir });
-
-    // ! interaction manager
-    const interactionsDir = path.join(source, 'interactions');
+    this.events = new EventManager(this, { ...env, path: path.join(source, 'events') });
+    this.commands = new CommandManager(this, { ...env, path: path.join(source, 'commands/global') });
     this.interactions = new InteractionManager(this, {
-      content: {
-        ...(<Required<Types.InteractionContent>>contents.interaction),
+      contents: {
+        ...(<Required<InteractionContent>>contents.interaction),
         ...(options.contents?.interaction || {}),
       },
-      env,
-      path: interactionsDir,
+      ...env,
+      path: path.join(source, 'interactions'),
     });
   }
 
   /**
-   * Build your application
-   * @param options
-   * @returns
+   * build your Sucrose client
+   *
+   * @remarks
+   *
+   * @param options - Sucrose options
+   * @returns Sucrose
+   *
+   * @example
+   * (async () =\> \{
+   *   await Sucrose.build(\{ env: \{ source: 'src', ext: 'ts' \} \})
+   * \})()
    */
-  static async build(options: Types.SucroseOptions): Promise<Types.Sucrose> {
+  static async build(options: SucroseOptions): Promise<Sucrose> {
     const sucrose = new Sucrose(options);
-
     const now = Date.now();
 
-    // ! application log
+    // application log
     const connected = () => Logger.give('SUCCESS', 'Application is connected to discord');
     await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
     if (!sucrose.isReady()) {
@@ -72,7 +94,7 @@ export default class Sucrose extends Client implements Types.Sucrose {
       sucrose.removeAllListeners('ready');
     } else connected();
 
-    // ! managers
+    // managers
     await sucrose.commands.build().then(() => {
       if (!sucrose.commands.collection.size && !sucrose.commands.guilds.size) return;
       Logger.give('SUCCESS', 'Slash commands loaded');

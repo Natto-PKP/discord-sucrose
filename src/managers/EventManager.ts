@@ -4,24 +4,34 @@ import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
-import type Types from '../../typings';
+import type Sucrose from '../structures/Sucrose';
 
 import { SError, STypeError } from '../errors';
 import Event from '../structures/Event';
 
-/**
- * Event manager
- */
-export default class EventManager implements Types.EventManager {
+type EventNames = keyof Discord.ClientEvents;
+
+export default class EventManager {
+  /**
+   * indicates if this manager was build or not
+   * @internal
+   * @defaultValue false
+   */
   private builded = false;
 
-  public collection: Discord.Collection<keyof Discord.ClientEvents, Types.Event> = new Collection();
+  /**
+   * Collection of Event
+   * @public
+   */
+  public collection: Discord.Collection<EventNames, Event<EventNames>> = new Collection();
 
-  public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {}
+  public constructor(private sucrose: Sucrose, private options: { ext: 'js' | 'ts'; path: string; }) {}
 
   /**
-   * Build events
-   * @returns
+   * load and build each events
+   *
+   * @remarks
+   * @public
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'EventManager is already build');
@@ -40,26 +50,31 @@ export default class EventManager implements Types.EventManager {
 
     await this.add(<(keyof Discord.ClientEvents)[]>(<unknown>files));
     this.builded = true;
-  } // [end] build()
+  }
 
   /**
-   * Create new event(s)
-   * @param events
+   * load one or multiple events
+   *
+   * @remarks
+   * @public
+   *
+   * @param events - string or array of string of events names
+   *
    * @example
-   * await events.create(["ready", "messageCreate", "messageDelete"]);
    * await events.create("ready");
+   * await events.create(["ready", "messageCreate", "messageDelete"]);
    */
-  public async add(events: (keyof Discord.ClientEvents)[]): Promise<Types.Event[]>;
-  public async add(events: keyof Discord.ClientEvents): Promise<Types.Event>;
-  public async add(events: unknown): Promise<Types.Event[] | Types.Event> {
+  public async add(events: EventNames[]): Promise<Event<EventNames>[]>;
+  public async add(events: EventNames): Promise<Event<EventNames>>;
+  public async add(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
     if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
 
-    const results = <Types.Event[]>[];
-    const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
+    const results = <Event<EventNames>[]>[];
+    const names: EventNames[] = Array.isArray(events) ? events : [events];
 
     await Promise.all(names.map(async (name) => {
       if (this.collection.has(name)) throw SError('ERROR', `event "${name}" already exists`);
-      const to = path.join(this.options.path, name, `handler.${this.options.env.ext}`);
+      const to = path.join(this.options.path, name, `handler.${this.options.ext}`);
       if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
       if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
 
@@ -71,22 +86,27 @@ export default class EventManager implements Types.EventManager {
     }));
 
     return Array.isArray(events) ? results : results[0];
-  } // [end] create()
+  }
 
   /**
-   * Listen/Active event(s)
-   * @param events
+   * active one or multiple events
+   *
+   * @remarks
+   * @public
+   *
+   * @param events - string or array of string of events names
+   *
    * @example
-   * await events.listen(["ready", "messageCreate", "messageDelete"]);
    * await events.listen("ready");
+   * await events.listen(["ready", "messageCreate", "messageDelete"]);
    */
-  public async listen(events: (keyof Discord.ClientEvents)[]): Promise<Types.Event[]>;
-  public async listen(events: keyof Discord.ClientEvents): Promise<Types.Event>;
-  public async listen(events: unknown): Promise<Types.Event[] | Types.Event> {
+  public async listen(events: EventNames[]): Promise<Event<EventNames>>;
+  public async listen(events: EventNames): Promise<Event<EventNames>>;
+  public async listen(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
     if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
 
-    const results = <Types.Event[]>[];
-    const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
+    const results = <Event<EventNames>[]>[];
+    const names: EventNames[] = Array.isArray(events) ? events : [events];
 
     Promise.all(names.map(async (name) => {
       const event = this.collection.get(name);
@@ -97,22 +117,27 @@ export default class EventManager implements Types.EventManager {
     }));
 
     return Array.isArray(events) ? results : results[0];
-  } // [end] listen()
+  }
 
   /**
-   * Mute/Disable event(s)
-   * @param events
+   * desactive one or multiple events
+   *
+   * @remarks
+   * @public
+   *
+   * @param events - string or array of string of events names
+   *
    * @example
-   * await events.mute(["ready", "messageCreate", "messageDelete"]);
    * await events.mute("ready");
+   * await events.mute(["ready", "messageCreate", "messageDelete"]);
    */
-  public async mute(events: (keyof Discord.ClientEvents)[]): Promise<Types.Event[]>;
-  public async mute(events: keyof Discord.ClientEvents): Promise<Types.Event>;
-  public async mute(events: unknown): Promise<Types.Event[] | Types.Event> {
+  public async mute(events: EventNames[]): Promise<Event<EventNames>[]>;
+  public async mute(events: EventNames): Promise<Event<EventNames>>;
+  public async mute(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
     if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
 
-    const results = <Types.Event[]>[];
-    const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
+    const results = <Event<EventNames>[]>[];
+    const names: EventNames[] = Array.isArray(events) ? events : [events];
 
     await Promise.all(names.map(async (name) => {
       const event = this.collection.get(name);
@@ -122,21 +147,26 @@ export default class EventManager implements Types.EventManager {
     }));
 
     return Array.isArray(events) ? results : results[0];
-  } // [end] mute()
+  }
 
   /**
-   * Refresh event(s)
-   * @param events
+   * refresh one or multiple events (remove() and add())
+   *
+   * @remarks
+   * @public
+   *
+   * @param events - string or array of string of events names
+   *
    * @example
-   * await events.refresh(["ready", "messageCreate", "messageDelete"]);
    * await events.refresh("ready");
+   * await events.refresh(["ready", "messageCreate", "messageDelete"]);
    */
-  public async refresh(events: (keyof Discord.ClientEvents)[]): Promise<Types.Event[]>;
-  public async refresh(events: keyof Discord.ClientEvents): Promise<Types.Event>;
-  public async refresh(events: unknown): Promise<Types.Event[] | Types.Event> {
+  public async refresh(events: EventNames[]): Promise<Event<EventNames>[]>;
+  public async refresh(events: EventNames): Promise<Event<EventNames>>;
+  public async refresh(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
     if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
 
-    const results = <Types.Event[]>[];
+    const results = <Event<EventNames>[]>[];
     const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
 
     await Promise.all(names.map(async (name) => {
@@ -147,20 +177,25 @@ export default class EventManager implements Types.EventManager {
     }));
 
     return Array.isArray(events) ? results : results[0];
-  } // [end] refresh
+  }
 
   /**
-   * Remove event(s)
-   * @param events
+   * remove one or multiple events
+   *
+   * @remarks
+   * @public
+   *
+   * @param events - string or array of string of events names
+   *
    * @example
-   * events.remove(["ready", "messageCreate", "messageDelete"]);
-   * events.remove("ready");
+   * await events.remove("ready");
+   * await events.remove(["ready", "messageCreate", "messageDelete"]);
    */
-  public remove(events: (keyof Discord.ClientEvents)[]): void;
-  public remove(events: keyof Discord.ClientEvents): void;
+  public remove(events: EventNames[]): void;
+  public remove(events: EventNames): void;
   public remove(events: unknown): void {
     if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
-    const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
+    const names: EventNames[] = Array.isArray(events) ? events : [events];
 
     names.forEach((name) => {
       const event = this.collection.get(name);
@@ -168,5 +203,5 @@ export default class EventManager implements Types.EventManager {
 
       event.remove();
     });
-  } // [end] remove()
+  }
 }

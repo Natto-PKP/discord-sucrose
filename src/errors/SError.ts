@@ -1,4 +1,4 @@
-import { ErrorCode, Codes } from '../enums/errors';
+import { ErrorCode, Codes } from './codes';
 
 export class SucroseError extends Error {
   public readonly date = new Date();

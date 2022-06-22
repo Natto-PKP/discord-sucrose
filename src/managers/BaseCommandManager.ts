@@ -5,33 +5,45 @@ import path from 'path';
 /* Typings */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
+import type Sucrose from '../structures/Sucrose';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
-/**
- * Base command manager
- */
-export default class BaseCommandManager implements Types.BaseCommandManager {
+export default class BaseCommandManager {
+  /**
+   * indicates if this manager was build or not
+   * @internal
+   * @defaultValue false
+   */
   protected builded = false;
 
   /**
-   * commands collection
+   * collection of commands
+   * @public
    */
   public collection: Discord.Collection<string, Types.CommandData> = new Collection();
 
+  /**
+   * @internal
+   */
   public constructor(
-    protected sucrose:Types.Sucrose,
-    protected options: Types.CommandManagerOptions,
+    protected sucrose: Sucrose,
+    protected options: { path: string, ext: 'js' | 'ts' },
   ) {}
 
   /**
-   * Add new command(s)
-   * @param files
+   * load one or more commands
+   *
+   * @remarks
+   * @public
+   *
+   * @param files - string or string array of files to load
+   *
    * @example
-   * await commands.add(["hello", "avatar"]);
-   * await commands.add("hello");
+   * await manager.add('file.ts');
+   * await manager.add(['file.ts', 'another-file.ts']);
    */
   public async add(files: string[]): Promise<Types.CommandData[]>;
   public async add(files: string): Promise<Types.CommandData>;
@@ -41,7 +53,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     const names: string[] = Array.isArray(files) ? files : [files];
     const results = <Types.CommandData[]>[];
 
-    // ! loop all files
+    // loop all files
     await Promise.all(names.map(async (name) => {
       const to = path.join(this.options.path, name);
       if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
@@ -54,17 +66,17 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
 
       if (this.collection.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
 
-      // ! chat input
+      // chat input
       if (!command.body.type || command.body.type === 'CHAT_INPUT') {
         const parent = <Types.ChatInputData>command;
         const folder = path.join(this.options.path, parent.body.name);
         if (!command.body.description || typeof command.body.description !== 'string') throw STypeError('command.body.description', 'string', command.body.description);
 
-        // ! sub command groups or sub commands
+        // sub command groups or sub commands
         if (existsSync(folder) && lstatSync(folder).isDirectory()) {
           const options = readdirSync(folder).filter((f) => {
             const p = lstatSync(path.join(folder, f));
-            return p.isFile() && f.endsWith(`.${this.options.env.ext}`);
+            return p.isFile() && f.endsWith(`.${this.options.ext}`);
           });
 
           if (!options.length) throw SError('ERROR', `command "${parent.body.name}" has an empty subcommands folder`);
@@ -82,7 +94,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
             option.path = optionPath;
             option.parent = parent.body.name;
 
-            // ! sub command group
+            // sub command group
             if (option.option.type === 'SUB_COMMAND_GROUP') {
               const group = <Types.SubCommandGroupData>option;
               const groupPath = path.join(folder, group.option.name);
@@ -92,7 +104,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
 
               const groupFiles = readdirSync(groupPath).filter((f) => {
                 const p = lstatSync(path.join(groupPath, f));
-                return p.isFile() && f.endsWith(`.${this.options.env.ext}`);
+                return p.isFile() && f.endsWith(`.${this.options.ext}`);
               });
 
               if (!groupFiles.length) throw SError('ERROR', 'sub command group has no sub command');
@@ -101,7 +113,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
               group.option.options = [];
               group.options = new Collection();
 
-              // ! loop all group sub command files
+              // loop all group sub command files
               await Promise.all(groupFiles.map(async (groupFile) => {
                 const subPath = path.join(groupPath, groupFile);
                 const sub = <Types.SubCommandData> await helpers.imported(path.join(process.cwd(), subPath), 'option');
@@ -120,7 +132,7 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
               parent.options?.set(group.option.name, group);
 
               // [end] sub command group
-            } else if (option.option.type === 'SUB_COMMAND') { // ! sub command
+            } else if (option.option.type === 'SUB_COMMAND') { // sub command
               const sub = <Types.SubCommandData>option;
 
               // # define sub command on parent
@@ -136,14 +148,19 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  } // [end] add()
+  }
 
   /**
-   * Give command to discord api
-   * @param names
+   * register the command in the discord api
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or string array of names to register
+   *
    * @example
-   * await commands.define(["hello", "avatar"]);
-   * await commands.define("hello");
+   * await manager.define('say');
+   * await manager.define(['say', 'user']);
    */
   public async define(names: string): Promise<Discord.ApplicationCommand>;
   public async define(names: string[]): Promise<Discord.ApplicationCommand[]>;
@@ -169,14 +186,19 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  } // [end] define()
+  }
 
   /**
-   * Delete command on discord api
-   * @param names
+   * remove command from discord api
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or string array of names to delete
+   *
    * @example
-   * await commands.delete(["hello", "avatar"]);
-   * await commands.delete("hello");
+   * await manager.delete('say');
+   * await manager.delete(['say', 'user']);
    */
   public async delete(names: string): Promise<Discord.ApplicationCommand>;
   public async delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
@@ -196,14 +218,19 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
     })); // [end] loop all files
 
     return Array.isArray(files) ? results : results[0];
-  } // [end] delete()
+  }
 
   /**
-   * Refresh command(s)
-   * @param names
+   * refresh command in local (remove() and add())
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or string array of names to refresh
+   *
    * @example
-   * await commands.refresh(["hello", "avatar"]);
-   * await commands.refresh("hello");
+   * await manager.refresh('say');
+   * await manager.refresh(['say', 'user']);
    */
   public async refresh(names: string[]): Promise<Types.CommandData[]>;
   public async refresh(names: string): Promise<Types.CommandData>;
@@ -217,14 +244,19 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
       this.remove(name);
       return this.add(path.basename(command.path));
     }));
-  } // [end] refresh()
+  }
 
   /**
-   * Delete and define command(s) on discord api
-   * @param names
+   * restore command(s) from discord api (delete() and define())
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or string array of names to restore
+   *
    * @example
-   * await commands.restore(["hello", "avatar"]);
-   * await commands.restore("hello");
+   * await manager.restore('say');
+   * await manager.restore(['say', 'user']);
    */
   public async restore(names: string): Promise<Discord.ApplicationCommand>;
   public async restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
@@ -239,14 +271,19 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
 
     await this.delete(names);
     return this.define(names);
-  } // [end] restore()
+  }
 
   /**
-   * Remove command(s)
-   * @param names
+   * remove command(s) in local
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or string array of names to remove
+   *
    * @example
-   * commands.remove(["hello", "avatar"]);
-   * commands.remove("hello");
+   * await manager.remove('say');
+   * await manager.remove(['say', 'user']);
    */
   public remove(names: string[]): void;
   public remove(names: string): void;
@@ -255,5 +292,5 @@ export default class BaseCommandManager implements Types.BaseCommandManager {
 
     const array = Array.isArray(names) ? names : [names];
     array.forEach((name) => this.collection.delete(name));
-  } // [end] remove()
+  }
 }

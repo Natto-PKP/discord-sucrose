@@ -1,38 +1,27 @@
 {
   "root": true,
 
-  "ignorePatterns": ["jest.config.ts", "data/*"],
+  "ignorePatterns": ["jest.config.ts", "data", "dist", "lib"],
 
   "overrides": [
     {
       "files": ["src/**/*.ts", "src/**/*.d.ts", "typings/**/*.d.ts"],
       "env": { "node": true },
-      "plugins": ["@typescript-eslint"],
-      "extends": [
-        "airbnb-base",
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "airbnb-typescript/base"
-      ],
+      "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
+      "extends": ["airbnb-base", "airbnb-typescript/base"],
       "parser": "@typescript-eslint/parser",
       "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module",
-        "project": ["tsconfig.json"]
-      }
+        "project": "tsconfig.json"
+      },
+      "rules": { "tsdoc/syntax": "warn" }
     },
     {
       "files": ["tests/*.test.ts"],
       "env": { "jest": true, "node": true },
       "plugins": ["@typescript-eslint", "jest"],
-      "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended",
-        "plugin:jest/all"
-      ],
+      "extends": ["eslint:recommended", "plugin:jest/all"],
       "rules": {
         "jest/no-hooks": ["error", { "allow": ["beforeAll", "afterAll"] }]
       }

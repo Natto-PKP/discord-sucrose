@@ -3,6 +3,10 @@ import type Types from '../../typings';
 import { SError, STypeError } from '../errors';
 
 type Interaction = Types.CommandData | Types.SubCommandGroupData | Types.SubCommandData;
+
+/**
+ * validate or not the structure of a command
+ */
 export default (interaction: Interaction, fullName: string) => {
   if (!interaction || typeof interaction !== 'object') throw STypeError(`(${fullName}) command or option`, 'object', interaction);
 

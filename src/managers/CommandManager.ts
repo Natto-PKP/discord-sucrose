@@ -2,21 +2,22 @@ import { Collection } from 'discord.js';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
-/* Typings */
-import type Types from '../../typings';
-
-import BaseCommandManager from './BaseCommandManager';
 import GuildCommandManager from './GuildCommandManager';
+import BaseCommandManager from './BaseCommandManager';
 import { SError } from '../errors';
 
-/**
- * Command manager
- */
-export default class CommandManager extends BaseCommandManager implements Types.CommandManager {
-  public guilds: Collection<string, Types.GuildCommandManager> = new Collection();
+export default class CommandManager extends BaseCommandManager {
+  /**
+   * guild command managers collection
+   * @public
+   */
+  public guilds: Collection<string, GuildCommandManager> = new Collection();
 
   /**
-   * Build all global command
+   * load all global command and build potential guild command manager
+   *
+   * @remarks
+   * @public
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');
@@ -25,7 +26,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
     if (existsSync(globalPath) && lstatSync(globalPath).isDirectory()) {
       this.collection = new Collection();
 
-      const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
+      const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       if (files.length) await this.add(files);
     }
@@ -41,7 +42,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
         const guildPath = path.join(guildsPath, dir);
         const files = readdirSync(guildPath).filter((file) => {
           const p = lstatSync(path.join(guildPath, file));
-          return p.isFile() && file.endsWith(`.${this.options.env.ext}`);
+          return p.isFile() && file.endsWith(`.${this.options.ext}`);
         });
 
         this.guilds = new Collection();
@@ -58,5 +59,5 @@ export default class CommandManager extends BaseCommandManager implements Types.
     }
 
     this.builded = true;
-  } // [end] build()
+  }
 }

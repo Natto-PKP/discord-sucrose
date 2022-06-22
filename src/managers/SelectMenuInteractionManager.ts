@@ -10,23 +10,29 @@ import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
-/**
- * Select menu manager
- */
-export default class SelectMenuInteractionManager implements Types.SelectMenuInteractionManager {
+export default class SelectMenuInteractionManager {
   /**
    * Select menu collection
+   * @public
    */
   public collection: Discord.Collection<string, Types.SelectMenuData> = new Collection();
 
-  constructor(private options: Types.InteractionManagerOptions) {}
+  /**
+   * @internal
+   */
+  constructor(private options: { ext: 'js' | 'ts'; path: string; }) {}
 
   /**
-   * Add select menu(s)
-   * @param files
+   * load one or multiple file
+   *
+   * @remarks
+   * @public
+   *
+   * @param files - string or array of string
+   *
    * @example
-   * await selectMenus.add(['selectme', 'noselectme'])
-   * await selectMenus.add('selectme')
+   * await manager.add('file.ts');
+   * await manager.add(['file.ts', 'other-file.ts']);
    */
   public async add(files: string): Promise<Types.SelectMenuData>;
   public async add(files: string[]): Promise<Types.SelectMenuData[]>;
@@ -55,14 +61,19 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
     }));
 
     return Array.isArray(files) ? results : results[0];
-  } // [end] add()
+  }
 
   /**
-   * Remove and add select menu(s)
-   * @param names
+   * refresh one or multiple file (remove() and add())
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or array of string
+   *
    * @example
-   * await selectMenus.refresh(['selectme', 'noselectme'])
-   * await selectMenus.refresh('selectme')
+   * await manager.refresh('select-me');
+   * await manager.refresh(['select-me', 'no-select-meee']);
    */
   public async refresh(names: string): Promise<Types.SelectMenuData>;
   public async refresh(names: string[]): Promise<Types.SelectMenuData[]>;
@@ -79,14 +90,19 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
     }));
 
     return Array.isArray(names) ? results : results[0];
-  } // [end] refresh()
+  }
 
   /**
-   * Remove select menu(s)
-   * @param names
+   * remove one or multiple file
+   *
+   * @remarks
+   * @public
+   *
+   * @param names - string or array of string
+   *
    * @example
-   * await selectMenus.remove(['selectme', 'noselectme'])
-   * await selectMenus.remove('selectme')
+   * await manager.remove('select-me');
+   * await manager.remove(['select-me', 'no-select-meee']);
    */
   public remove(names: string): void;
   public remove(names: string[]): void;
@@ -95,5 +111,5 @@ export default class SelectMenuInteractionManager implements Types.SelectMenuInt
 
     if (Array.isArray(names)) names.forEach((name) => this.collection.delete(name));
     else this.collection.delete(names);
-  } // [end] remove()
+  }
 }

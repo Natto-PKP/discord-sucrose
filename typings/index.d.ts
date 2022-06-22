@@ -1,197 +1,117 @@
 /* eslint-disable max-classes-per-file */
 
 import type Discord from 'discord.js';
+import type Sucrose from '../src/structures/Sucrose';
 
-export enum Codes {
-  'FATAL' = '\x1b[1m\x1b[31m🔥 FATAL\x1b[0m',
-  'ERROR' = '\x1b[1m\x1b[31m✖ ERROR\x1b[0m',
-  'WARN' = '\x1b[1m\x1b[33m🔔 WARN\x1b[0m',
-  'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
-  'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
-}
+/**
+ * automatic messages content regarding interactions
+ */
+export interface InteractionContent {
+  /**
+   * when the interaction encounters a global error
+   * @param err - error encountered
+   */
+  ERROR?: (err: Error) => Discord.InteractionReplyOptions;
 
-export type Code = keyof typeof Codes;
-export type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
+  /**
+   * when the command is missing in Discord API
+   * @param name - name of command
+   */
+  MISSING_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
 
-// ? MANAGERS
-// # command manager
+  /**
+   * when the interaction is missing in local
+   * @param name - name of command
+   */
+  MISSING_LOCAL_INTERACTION?: (name: string) => Discord.InteractionReplyOptions;
 
-declare class BaseManager<T extends InteractionData> {
-  public collection: Discord.Collection<string, T>;
-  public add(files: string): Promise<T>;
-  public add(files: string[]): Promise<T[]>;
-  public refresh(names: string): Promise<T>;
-  public refresh(names: string[]): Promise<T[]>;
-  public remove(names: string): void;
-  public remove(names: string[]): void;
-}
+  /**
+   * when the interaction exec is missing in local
+   * @param name - name of command
+   */
+  MISSING_LOCAL_INTERACTION_EXEC?: (name: string) => Discord.InteractionReplyOptions;
 
-declare class BaseCommandManager extends BaseManager<CommandData> {
-  public define(names: string): Promise<Discord.ApplicationCommand>;
-  public define(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public delete(names: string): Promise<Discord.ApplicationCommand>;
-  public delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public restore(names: string): Promise<Discord.ApplicationCommand>;
-  public restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
-}
+  /**
+   * when the subcommand is missing
+   * @param name - name of command
+   */
+  MISSING_SUB_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
 
-declare class ButtonInteractionManager extends BaseManager<ButtonData> {}
-declare class SelectMenuInteractionManager extends BaseManager<SelectMenuData> {}
+  /**
+   * when the subcommandgroup is missing in local
+   * @param name - name of command
+   */
+  MISSING_SUB_COMMAND_GROUP?: (name: string) => Discord.InteractionReplyOptions;
 
-declare class CommandManager extends BaseCommandManager {
-  public guilds: Discord.Collection<string, GuildCommandManager>;
-  public build(): Promise<void>;
-}
+  /**
+   * when the when interaction is not allowed on guilds
+   */
+  PERMISSIONS_DENY_GUILDS?: () => Discord.InteractionReplyOptions;
 
-// # EventManager
-declare class EventManager {
-  public collection: Discord.Collection<keyof Discord.ClientEvents, Event>;
-  public build(): Promise<void>;
-  public add(events: Array<keyof Discord.ClientEvents>): Promise<Event[]>;
-  public add(events: keyof Discord.ClientEvents): Promise<Event>;
-  public listen(events: Array<keyof Discord.ClientEvents>): Promise<Event[]>;
-  public listen(events: keyof Discord.ClientEvents): Promise<Event>;
-  public mute(events: Array<keyof Discord.ClientEvents>): Promise<Event[]>;
-  public mute(events: keyof Discord.ClientEvents): Promise<Event>;
-  public refresh(events: Array<keyof Discord.ClientEvents>): Promise<Event[]>;
-  public refresh(events: keyof Discord.ClientEvents): Promise<Event>;
-  public remove(events: Array<keyof Discord.ClientEvents>): void;
-  public remove(events: keyof Discord.ClientEvents): void;
-}
+  /**
+   * when interaction is not allowed in private messages
+   */
+  PERMISSIONS_DENY_PRIVATE?: () => Discord.InteractionReplyOptions;
 
-declare class GuildCommandManager extends BaseCommandManager {
-  public readonly guildId: string;
-  public build(): Promise<void>;
-}
+  /**
+   * when interaction is prohibited in the channel
+   * @param member - member who initiated the interaction
+   * @param channels - authorized channels
+   */
+  PERMISSIONS_MISSING_ALLOW_CHANNELS?: (
+    member: Discord.GuildMember,
+    channels: Discord.Collection<string, Discord.GuildChannel | Discord.GuildBasedChannel>
+  ) => Discord.InteractionReplyOptions;
 
-// # InteractionManager
-declare class InteractionManager {
-  public buttons: ButtonInteractionManager;
+  /**
+   * when interaction is prohibited in the guild
+   * @param member - member who initiated the interaction
+   * @param guilds - authorized guilds
+   */
+  PERMISSIONS_MISSING_ALLOW_GUILDS?: (
+    member: Discord.GuildMember,
+    guilds: Discord.Collection<string, Discord.Guild>
+  ) => Discord.InteractionReplyOptions;
 
-  public selectMenus: SelectMenuInteractionManager;
-  public build(): Promise<void>;
-}
+  /**
+   * when the user is not authorized
+   * @param user - user who initiated the interaction
+   * @param users - authorized users
+   */
+  PERMISSIONS_MISSING_ALLOW_USERS?: (
+    user: Discord.User,
+    users: Discord.Collection<string, Discord.User>
+  ) => Discord.InteractionReplyOptions;
 
-// ? SERVICES
+  /**
+   * when user roles do not allow it
+   * @param member - member who initiated the interaction
+   * @param roles - authorized roles
+   */
+  PERMISSIONS_MISSING_ALLOW_ROLES?: (
+    member: Discord.GuildMember,
+    roles: Discord.Collection<string, Discord.Role>
+  ) => Discord.InteractionReplyOptions;
 
-declare class Logger {
-  static console: Console;
-  static date(format: boolean) : string | Date;
-  static error(err: Error): void;
-  static handle(...errors: Error[]): void;
-  static give(code: Code, content: string): void;
-  static table(content: object | unknown[]): void;
-  static write(message: string): void;
-}
+  /**
+   * when the client does not have the requested permissions
+   * @param client - discord client
+   * @param permissions - missing permissions
+   */
+  PERMISSIONS_MISSING_CLIENT?: (
+    client: Discord.Client,
+    permissions: Discord.PermissionString[]
+  ) => Discord.InteractionReplyOptions;
 
-// ? STRUCTURES
-
-// # Sucrose
-declare class Sucrose extends Discord.Client {
-  public readonly commands: CommandManager;
-
-  public readonly interactions: InteractionManager;
-
-  public readonly events: EventManager;
-  static build(options: SucroseOptions): Promise<Sucrose>;
-}
-
-export interface SucroseOptions extends Discord.ClientOptions {
-  contents?: { interaction?: InteractionContent };
-  env?: BaseEnvironmentOptions;
-  token?: string;
-}
-
-// # Event
-declare class Event<E extends keyof Discord.ClientEvents = keyof Discord.ClientEvents> {
-  public readonly manager: EventManager;
-
-  public readonly name: E;
-  public constructor(name: keyof Discord.ClientEvents, options: EventOptions);
-  public listen(): Promise<this>;
-  public mute(): Promise<this>;
-  public refresh(): Promise<this>;
-  public remove(): Promise<void>;
-}
-
-// ? INTERFACES
-
-interface BaseEventManagerOptions {
-  foo: 'bar';
-}
-
-interface BaseEnvironmentOptions {
-  source?: string;
-  extension?: 'js' | 'ts';
-}
-
-interface ButtonTypes {
-  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
-  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
-}
-
-interface CommandManagerOptions {
-  env: EnvironmentOptions;
-  path: string;
-}
-
-interface CommandType {
-  CHAT_INPUT: ChatInputData;
-  USER: UserContextMenuData;
-  MESSAGE: MessageContextMenuData;
-}
-interface BaseInteraction {
-  permissions?: Permissions;
-}
-
-interface ChatInputData extends ChatInput {
-  options: Discord.Collection<string, CommandOptionData | SubCommandData> | null;
-  path: string;
-}
-
-interface EnvironmentOptions {
-  path: string;
-  ext: string;
-}
-
-interface EventOptions {
-  sucrose: Sucrose;
-  path: string;
-}
-
-interface EventManagerOptions {
-  env: EnvironmentOptions;
-  path: string;
-}
-
-interface InteractionManagerOptions {
-  content: Required<InteractionContent>;
-  env: EnvironmentOptions;
-  path: string;
-}
-
-interface SubCommandGroupData extends SubCommandGroup {
-  options: Discord.Collection<string, SubCommandData>;
-  path: string;
-  parent: string;
-}
-
-interface SubCommandData extends SubCommand {
-  group?: string;
-  path: string;
-  parent: string;
-}
-
-interface MessageContextMenuData extends MessageContextMenu {
-  path: string;
-}
-
-interface UserContextMenuData extends UserContextMenu {
-  path: string;
-}
-
-interface SelectMenuData extends SelectMenu {
-  path: string;
+  /**
+   * when the member does not have the requested permissions
+   * @param client - member who initiated the interaction
+   * @param permissions - missing permissions
+   */
+  PERMISSIONS_MISSING_MEMBER?: (
+    member: Discord.GuildMember,
+    permissions: Discord.PermissionString[]
+  ) => Discord.InteractionReplyOptions;
 }
 
 export interface ChatInput extends BaseInteraction {
@@ -219,6 +139,50 @@ export interface SelectMenu extends BaseInteraction {
   exec?: BaseExec<{ interaction: Discord.SelectMenuInteraction }>;
 }
 
+export interface SucroseOptions extends Discord.ClientOptions {
+  /**
+   * allows you to change the structure's automatic messages, such as error messages
+   */
+  contents?: {
+    /**
+     * allows you to change automatic messages concerning your interactions, such as error messages
+     */
+    interaction?: InteractionContent;
+  };
+
+  /**
+   * allows you to configure a specific environment for the structure to locate
+   * @example
+   * const env = \{
+   *  source: 'src',
+   *  ext: 'ts',
+   * \}
+   */
+  env?: {
+    /**
+     * indicate the source folder of your project,
+     * the folder that contains your index.js or index.ts as well as the command folders, etc...
+     *
+     * @remarks
+     * @defaultValue ''
+     */
+    source?: string;
+
+    /**
+     * indicate the extension of your files so that the structure can be identified
+     *
+     * @remarks
+     * @defaultValue 'js'
+     */
+    ext?: 'js' | 'ts';
+  };
+
+  /**
+   * indicate the token of your discord bot here or in an .env file
+   */
+  token?: string;
+}
+
 export interface SubCommandGroup extends BaseInteraction {
   option: Discord.ApplicationCommandSubGroupData;
   exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
@@ -234,19 +198,6 @@ export interface UserContextMenu extends BaseInteraction {
   exec?: BaseExec<{ interaction: Discord.UserContextMenuInteraction }>;
 }
 
-// ? TYPES
-
-type BaseExec<I> = (params: BaseParams & I) => Discord.Awaitable<void>;
-type BaseParams = { sucrose: Sucrose };
-type ButtonData<T extends keyof ButtonTypes = keyof ButtonTypes> = Button<T> & { path: string };
-type CommandOption = SubCommandGroup | SubCommand;
-type CommandOptionData = SubCommandGroupData | SubCommandData;
-type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[T];
-type DiscordCommand = Discord.UserContextMenuInteraction &
-Discord.MessageContextMenuInteraction &
-Discord.CommandInteraction;
-type InteractionData = CommandData | ButtonData | SelectMenuData;
-
 export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {
   data: ButtonTypes[T];
   exec?: BaseExec<{ interaction: Discord.ButtonInteraction }>;
@@ -255,39 +206,40 @@ export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
   args: Discord.ClientEvents[E]
 }>;
 
-// ? CONTENTS
-
-interface InteractionContent {
-  ERROR?: (err: Error) => Discord.InteractionReplyOptions;
-  MISSING_SUB_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
-  MISSING_SUB_COMMAND_GROUP?: (name: string) => Discord.InteractionReplyOptions;
-  MISSING_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
-  MISSING_LOCAL_INTERACTION?: (name: string) => Discord.InteractionReplyOptions;
-  MISSING_LOCAL_INTERACTION_EXEC?: (name: string) => Discord.InteractionReplyOptions;
-  PERMISSIONS_DENY_GUILDS?: () => Discord.InteractionReplyOptions;
-  PERMISSIONS_DENY_PRIVATE?: () => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_ALLOW_CHANNELS?: (
-    member: Discord.GuildMember,
-    channels: Discord.Collection<string, Discord.GuildChannel | Discord.GuildBasedChannel>
-  ) => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_ALLOW_GUILDS?: (
-    member: Discord.GuildMember,
-    guilds: Discord.Collection<string, Discord.Guild>
-  ) => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_ALLOW_USERS?: (
-    user: Discord.User,
-    users: Discord.Collection<string, Discord.User>
-  ) => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_ALLOW_ROLES?: (
-    member: Discord.GuildMember,
-    roles: Discord.Collection<string, Discord.Role>
-  ) => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_CLIENT?: (
-    client: Discord.Client,
-    permissions: Discord.PermissionString[]
-  ) => Discord.InteractionReplyOptions;
-  PERMISSIONS_MISSING_MEMBER?: (
-    member: Discord.GuildMember,
-    permissions: Discord.PermissionString[]
-  ) => Discord.InteractionReplyOptions;
+interface ButtonTypes {
+  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
+  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
 }
+
+interface CommandType {
+  CHAT_INPUT: ChatInputData;
+  USER: UserContextMenuData;
+  MESSAGE: MessageContextMenuData;
+}
+
+type BaseExec<I> = (params: BaseParams & I) => Discord.Awaitable<void>;
+type BaseInteraction = { permissions?: Permissions; };
+type BaseParams = { sucrose: Sucrose };
+type ButtonData<T extends keyof ButtonTypes = keyof ButtonTypes> = Button<T> & { path: string };
+type ChatInputData = ChatInput & {
+  options: Discord.Collection<string, CommandOptionData | SubCommandData> | null;
+  path: string;
+};
+type CommandOption = SubCommandGroup | SubCommand;
+type CommandOptionData = SubCommandGroupData | SubCommandData;
+type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[T];
+type DiscordCommand = Discord.UserContextMenuInteraction &
+Discord.MessageContextMenuInteraction &
+Discord.CommandInteraction;
+type InteractionData = CommandData | ButtonData | SelectMenuData;
+type MessageContextMenuData = MessageContextMenu & { path: string; };
+type SelectMenuData = SelectMenu & { path: string; };
+type SubCommandData = SubCommand & { group?: string; path: string; parent: string; };
+type SubCommandGroupData = SubCommandGroup & {
+  options: Discord.Collection<string, SubCommandData>;
+  path: string;
+  parent: string;
+};
+type UserContextMenuData = UserContextMenu & { path: string; };
+
+//! !!! A DECALER DANS LES ERREURS DIRECTEMENT

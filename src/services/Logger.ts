@@ -22,9 +22,12 @@ export default class Logger {
   });
 
   /**
-   * Get current date
-   * @param format
-   * @returns
+   * get current date formatted
+   *
+   * @remarks
+   * @public
+   *
+   * @param format - allow to format date (default true)
    */
   static date(format = true): string | Date {
     const now = new Date();
@@ -37,9 +40,12 @@ export default class Logger {
   }
 
   /**
-   * Send an error or warn
-   * @param code
-   * @param err
+   * send an error or warn
+   *
+   * @remarks
+   * @public
+   *
+   * @param err - error to log
    */
   static error(err: Error) {
     console.log(`${Logger.date()} ${err.message}`);
@@ -47,25 +53,37 @@ export default class Logger {
   }
 
   /**
-   * Handle errors array
-   * @param errors
+   * handle errors array
+   *
+   * @remarks
+   * @public
+   *
+   * @param errors - array or errors to log
    */
   static handle(...errors: Error[]): void {
     errors.forEach((err) => err instanceof Error && Logger.error(err));
   }
 
   /**
-   * Give a code with content message to write
-   * @param code
-   * @param content
+   * give a code with content message to write
+   *
+   * @remarks
+   * @public
+   *
+   * @param code - code of log level
+   * @param content - content to log
    */
   static give(code: Code, content: string): void {
     Logger.write(`${Logger.date()} ${Codes[code]} :: ${content}`);
   }
 
   /**
-   * Write a table in consoles
-   * @param content
+   * write a table in consoles
+   *
+   * @remarks
+   * @public
+   *
+   * @param content - content to log
    */
   static table(content: object | unknown[]): void {
     Logger.console.table(content);
@@ -73,8 +91,12 @@ export default class Logger {
   }
 
   /**
-   * Write a message in consoles
-   * @param message
+   * write a message in consoles
+   *
+   * @remarks
+   * @public
+   *
+   * @param message - message to write
    */
   static write(message: string): void {
     Logger.console.log(message);

@@ -4,35 +4,71 @@ import path from 'path';
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
+import type Sucrose from './Sucrose';
+import type EventManager from '../managers/EventManager';
 
 import { SError, STypeError } from '../errors';
 import Logger from '../services/Logger';
 import * as helpers from '../helpers';
 
-export default class Event<E extends keyof Discord.ClientEvents> implements Types.Event {
+/**
+ * makes it easier to interact with your vents
+ * @public
+ */
+export default class Event<E extends keyof Discord.ClientEvents> {
+  /**
+   * determines whether the event is running or not
+   *
+   * @remarks
+   * @defaultValue false
+   * @internal
+   */
   private disabled = false;
 
+  /**
+   * event listener
+   *
+   * @remarks
+   * @defaultValue null
+   * @internal
+   */
   private listener: ((...args: Discord.ClientEvents[E]) => Promise<void>) | null = null;
 
-  private sucrose: Types.Sucrose;
-
-  public readonly manager: Types.EventManager;
+  /**
+   * redirects to the event manager
+   *
+   * @remarks
+   * @readonly
+   * @public
+   * @see {@link EventManager}
+   */
+  public readonly manager: EventManager;
 
   /**
-   * Create new event
-   * @param name
-   * @param options
+   * create a new event
+   *
+   * @remarks
+   * @public
+   *
+   * @param name - event name {@link https://discord.js.org/#/docs/discord.js/main/typedef/Events}
+   * @param options - event options {@link Types.EventOptions}
    */
-  public constructor(public readonly name: E, private options: Types.EventOptions) {
+  public constructor(public readonly name: E, private options: { sucrose: Sucrose, path: string }) {
     const { sucrose } = options;
 
-    this.sucrose = sucrose;
     this.manager = sucrose.events;
   }
 
   /**
-   * Listen/Active this event
-   * @returns
+   * active this event - search et load event handler in your files and run event listener
+   *
+   * @remarks
+   * @public
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.listen();
    */
   public async listen(): Promise<this> {
     if (this.disabled) throw SError('ERROR', `event "${this.name}" is disabled`);
@@ -47,7 +83,7 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
 
     const listener = async (...args: Discord.ClientEvents[E]) => {
       try {
-        await handler({ sucrose: this.sucrose, args });
+        await handler({ sucrose: this.options.sucrose, args });
       } catch (err) {
         if (err instanceof Error) Logger.error(err);
         else if (Array.isArray(err)) Logger.handle(...err);
@@ -55,46 +91,71 @@ export default class Event<E extends keyof Discord.ClientEvents> implements Type
       }
     };
 
-    if (this.sucrose.listeners(this.name).includes(listener)) { throw SError('ERROR', `event "${this.name}" listener already active`); }
+    if (this.options.sucrose.listeners(this.name).includes(listener)) { throw SError('ERROR', `event "${this.name}" listener already active`); }
 
-    this.sucrose.on(this.name, listener);
-    if (this.name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
+    this.options.sucrose.on(this.name, listener);
+    if (this.name === 'ready') this.options.sucrose.emit('ready', <Discord.Client> this.options.sucrose);
 
     this.listener = listener;
     return this;
-  } // [end] listen()
+  }
 
   /**
-   * Mute/Disable this event
-   * @returns
+   * disable this event
+   *
+   * @remarks
+   * @public
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.mute();
    */
   public async mute(): Promise<this> {
     if (this.disabled) throw SError('ERROR', 'event already disabled');
     if (!this.listener) throw SError('ERROR', 'event does not have a listener');
 
-    this.sucrose.removeListener(this.name, <(...args: unknown[]) => void>(<unknown> this.listener));
+    this.options.sucrose.removeListener(
+      this.name,
+       <(...args: unknown[]) => void>(<unknown> this.listener),
+    );
     this.listener = null;
 
     return this;
-  } // [end] mute()
+  }
 
   /**
-   * Refresh this event
-   * @returns
+   * refresh this event - mute and listen event
+   *
+   * @remarks
+   * @public
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.refresh();
    */
   public async refresh(): Promise<this> {
     await this.mute();
     await this.listen();
 
     return this;
-  } // [end] refresh()
+  }
 
   /**
-   * Remove this event
+   * remove/delete this event - destroy this event
+   *
+   * @remarks
+   * @public
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.refresh();
    */
   public async remove(): Promise<void> {
     await this.mute().catch(() => null);
     this.manager.collection.delete(this.name);
     this.disabled = true;
-  } // [end] remove()
+  }
 }

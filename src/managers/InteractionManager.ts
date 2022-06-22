@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+/* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable consistent-return */
 
 import { Collection } from 'discord.js';
@@ -6,129 +6,57 @@ import path from 'path';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 
 /* Types */
+import type Discord from 'discord.js';
 import type Types from '../../typings';
+import type Sucrose from '../structures/Sucrose';
 
 import { SError } from '../errors';
 import ButtonInteractionManager from './ButtonInteractionManager';
 import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 import Logger from '../services/Logger';
-import * as helpers from '../helpers';
 
-/**
- * Interaction manager
- */
-export default class InteractionManager implements Types.InteractionManager {
+export default class InteractionManager {
   private builded = false;
 
   /**
-   * Button manager
+   * manager of buttons
+   * @public
    */
-  public buttons: Types.ButtonInteractionManager;
+  public buttons: ButtonInteractionManager;
 
   /**
-   * Select menu manager
+   * manager of select menu
+   * @public
    */
-  public selectMenus: Types.SelectMenuInteractionManager;
+  public selectMenus: SelectMenuInteractionManager;
 
-  public constructor(sucrose: Types.Sucrose, private options: Types.InteractionManagerOptions) {
-    this.buttons = new ButtonInteractionManager({ ...options, path: path.join(options.path, 'buttons') });
-    this.selectMenus = new SelectMenuInteractionManager({ ...options, path: path.join(options.path, 'select-menus') });
-    const { content } = options;
+  /**
+   * @internal
+   */
+  public constructor(private sucrose: Sucrose, private options: {
+    contents: Required<Types.InteractionContent>;
+    ext: 'js' | 'ts';
+    path: string;
+  }) {
+    this.buttons = new ButtonInteractionManager({ ext: options.ext, path: path.join(options.path, 'buttons') });
+    this.selectMenus = new SelectMenuInteractionManager({ ext: options.ext, path: path.join(options.path, 'select-menus') });
 
     sucrose.on('interactionCreate', async (interaction) => {
-      try {
-        if (interaction.isMessageComponent()) return;
-
-        const params = { sucrose };
-        const { guild } = interaction;
-
-        // ! command or context menu
-        if (interaction.isCommand() || interaction.isContextMenu()) {
-          const name = interaction.commandName;
-          const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands;
-          const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
-          if (!command) return;
-
-          const commandPermission = helpers.hasPermissions(interaction, command.permissions || {}, content);
-          if (commandPermission) return await interaction.reply(commandPermission);
-
-          // ! command
-          if (interaction.isCommand()) {
-            const chatInput = <Types.ChatInputData>command;
-            const groupName = interaction.options.getSubcommandGroup(false);
-            const optionName = interaction.options.getSubcommand(false);
-
-            // ! sub command group or sub command
-            if (groupName || optionName) {
-              const option = chatInput.options && ((groupName && chatInput.options.get(groupName)) || (optionName && chatInput.options.get(optionName)));
-              if (!option) return await interaction.reply(content.MISSING_SUB_COMMAND_GROUP(name));
-
-              const optionPermission = helpers.hasPermissions(interaction, option.permissions || {}, content);
-              if (optionPermission) return await interaction.reply(optionPermission);
-
-              // ! sub command
-              if (option.option.type === 'SUB_COMMAND_GROUP') {
-                const opts = (<Types.SubCommandGroupData>option).options;
-                const subOption = optionName && opts.get(optionName);
-                if (!subOption) return await interaction.reply(content.MISSING_SUB_COMMAND(name));
-
-                const subCommandPermission = helpers.hasPermissions(interaction, subOption.permissions || {}, content);
-                if (subCommandPermission) return await interaction.reply(subCommandPermission);
-
-                if (!subOption.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-                return await subOption.exec({ ...params, interaction });
-              } // [end] sub command
-
-              if (!option.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-              return await option.exec({ ...params, interaction });
-            } // [end] sub command group or sub command
-
-            if (!chatInput.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-            return await chatInput.exec({ ...params, interaction });
-          } // [end] command
-
-          if (!command.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(name));
-          return await command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
-        } // [end] command or context menu
-
-        // ! select menu
-        if (interaction.isSelectMenu()) {
-          const { customId } = interaction;
-          const selectMenu = this.selectMenus.collection.get(customId);
-          if (!selectMenu) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
-
-          const permission = helpers.hasPermissions(interaction, selectMenu.permissions || {}, content);
-          if (permission) return await interaction.reply(permission);
-
-          if (!selectMenu.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
-          return await selectMenu.exec({ ...params, interaction });
-        } // [end] select menu
-
-        // ! button
-        if (interaction.isButton()) {
-          const { customId } = interaction;
-          const button = this.buttons.collection.get(customId);
-          if (!button) return await interaction.reply(content.MISSING_LOCAL_INTERACTION(customId));
-
-          const permission = helpers.hasPermissions(interaction, button.permissions || {}, content);
-          if (permission) return await interaction.reply(permission);
-
-          if (!button.exec) return await interaction.reply(content.MISSING_LOCAL_INTERACTION_EXEC(customId));
-          return await button.exec({ ...params, interaction });
-        } // [end] button
-      } catch (err) {
+      try { await this.listener(interaction); } catch (err) {
         if (!(err instanceof Error)) return;
         Logger.error(err);
 
-        const { channel } = <Types.DiscordCommand>interaction;
-        if (channel) await channel.send(content.ERROR(err));
+        const { channel } = interaction;
+        if (channel) await channel.send(options.contents.ERROR(err));
       }
     });
   }
 
   /**
-   * Build all interactions
-   * @returns
+   * load and build all interactions
+   *
+   * @remarks
+   * @internal
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
@@ -136,7 +64,7 @@ export default class InteractionManager implements Types.InteractionManager {
     // ! buttons manager
     const buttonPath = path.join(this.options.path, 'buttons');
     if (existsSync(buttonPath) && lstatSync(buttonPath).isDirectory()) {
-      const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
+      const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.buttons.collection = new Collection();
       if (!files.length) return;
@@ -147,7 +75,7 @@ export default class InteractionManager implements Types.InteractionManager {
     // ! select menus manager
     const selectMenuPath = path.join(this.options.path, 'select-menus');
     if (existsSync(selectMenuPath) && lstatSync(selectMenuPath).isDirectory()) {
-      const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.env.ext}`));
+      const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.selectMenus.collection = new Collection();
       if (!files.length) return;
@@ -156,5 +84,190 @@ export default class InteractionManager implements Types.InteractionManager {
     }
 
     this.builded = true;
-  } // [end] build()
+  }
+
+  /**
+   * handle interaction
+   *
+   * @remarks
+   * @internal
+   *
+   * @param interaction - current interaction
+   */
+  private async listener(interaction: Discord.Interaction): Promise<void> {
+    if (interaction.isMessageComponent()) return;
+    const { sucrose, options: { contents } } = this;
+    const params = { sucrose };
+    const { guild } = interaction;
+
+    // command or context menu
+    if (interaction.isCommand() || interaction.isContextMenu()) {
+      const name = interaction.commandName;
+      const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands;
+      const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
+      if (!command || await this.permissions(interaction, command.permissions)) return;
+
+      // command
+      if (interaction.isCommand()) {
+        const chatInput = <Types.ChatInputData>command;
+        const groupName = interaction.options.getSubcommandGroup(false);
+        const optionName = interaction.options.getSubcommand(false);
+
+        // sub command groupe or sub command
+        if (groupName || optionName) {
+          const option = (groupName || optionName)
+            && chatInput.options?.get(groupName || optionName as string);
+          if (!option) return interaction.reply(contents.MISSING_SUB_COMMAND_GROUP(name));
+          if (await this.permissions(interaction, option.permissions)) return;
+
+          // sub command
+          if (option.option.type === 'SUB_COMMAND_GROUP') {
+            const opts = (<Types.SubCommandGroupData>option).options;
+            const subOption = optionName && opts.get(optionName);
+            if (!subOption) return interaction.reply(contents.MISSING_SUB_COMMAND(name));
+            if (await this.permissions(interaction, subOption.permissions)) return;
+
+            if (!subOption.exec) {
+              return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+            } return subOption.exec({ ...params, interaction });
+          } // [end] sub command
+
+          if (!option.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+          return option.exec({ ...params, interaction });
+        } // [end] sub command groupe or sub command
+
+        if (!chatInput.exec) {
+          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+        } return chatInput.exec({ ...params, interaction });
+      } // [end] command
+
+      if (!command.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+      return command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
+    } // [end] command or context menu
+
+    // select menu
+    if (interaction.isSelectMenu()) {
+      const { customId } = interaction;
+      const selectMenu = this.selectMenus.collection.get(customId);
+      if (!selectMenu) return interaction.reply(contents.MISSING_LOCAL_INTERACTION(customId));
+      if (await this.permissions(interaction, selectMenu.permissions)) return;
+
+      if (!selectMenu.exec) {
+        return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+      } return selectMenu.exec({ ...params, interaction });
+    } // [end] select menu
+
+    // button
+    if (interaction.isButton()) {
+      const { customId } = interaction;
+      const button = this.buttons.collection.get(customId);
+      if (!button) return interaction.reply(contents.MISSING_LOCAL_INTERACTION(customId));
+      if (await this.permissions(interaction, button.permissions)) return;
+
+      if (!button.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+      return await button.exec({ ...params, interaction });
+    } // [end] button
+  }
+
+  /**
+   * handle interaction permissions
+   *
+   * @remarks
+   * @internal
+   *
+   * @param interaction - current interaction
+   * @param permissions - current interaction permissions
+   */
+  private async permissions(
+    interaction: Discord.CommandInteraction
+    | Discord.ButtonInteraction
+    | Discord.SelectMenuInteraction
+    | Discord.ContextMenuInteraction,
+    permissions?: Types.Permissions,
+  ): Promise<Discord.Message | void> {
+    if (!permissions) return;
+
+    const { contents } = this.options;
+    const { client, user, channel } = interaction;
+
+    // ! Guild check
+    if (interaction.guild && interaction.guild.me) {
+      const guild = <Discord.Guild>interaction.guild;
+      const member = <Discord.GuildMember>interaction.member;
+
+      // ! Client
+      if (permissions.client) {
+        const missing = interaction.guild.me.permissions.missing(permissions.client);
+        if (missing.length) {
+          const content = contents.PERMISSIONS_MISSING_CLIENT(client, missing);
+          return interaction.reply(content);
+        }
+      }
+
+      // ! Member
+      if (permissions.member) {
+        const missing = (<Discord.Permissions>member?.permissions).missing(permissions.member);
+        if (missing.length) {
+          const content = contents.PERMISSIONS_MISSING_MEMBER(member, missing);
+          return interaction.reply(content);
+        }
+      }
+
+      // ! Roles
+      if (permissions.roles) {
+        const arr = <string[]>permissions.roles;
+        const has = member.roles.cache.some((r) => arr.includes(r.id));
+        if (!has) {
+          const roles = guild.roles.cache.filter((r) => arr.includes(r.id));
+          const content = contents.PERMISSIONS_MISSING_ALLOW_ROLES(member, roles);
+          return interaction.reply(content);
+        }
+      }
+
+      // ! Guilds
+      if (permissions.guilds) {
+        const arr = <string[]>permissions.guilds;
+        const has = arr.includes((<Discord.Guild>guild).id);
+        if (!has) {
+          const guilds = client.guilds.cache.filter((g) => arr.includes(g.id));
+          const content = contents.PERMISSIONS_MISSING_ALLOW_GUILDS(member, guilds);
+          return interaction.reply(content);
+        }
+      }
+
+      // ! Channels
+      if (permissions.channels) {
+        const arr = <string[]>permissions.channels;
+        const has = arr.includes((<Discord.GuildChannel>channel).id);
+        if (!has) {
+          const channels = guild.channels.cache.filter((c) => arr.includes(c.id));
+          const content = contents.PERMISSIONS_MISSING_ALLOW_CHANNELS(member, channels);
+          return interaction.reply(content);
+        }
+      }
+
+      // ! Private
+      if (typeof permissions.private === 'boolean' && permissions.private) {
+        const content = contents.PERMISSIONS_DENY_GUILDS();
+        return interaction.reply(content);
+      }
+    } // [end] Guild check
+
+    // ! Users
+    if (permissions.users) {
+      const arr = <string[]>permissions.users;
+      const has = arr.includes(user.id);
+      if (!has) {
+        const users = client.users.cache.filter((u) => arr.includes(u.id));
+        const content = contents.PERMISSIONS_MISSING_ALLOW_USERS(user, users);
+        return interaction.reply(content);
+      }
+    }
+
+    // ! Private
+    if (!interaction.guild && typeof permissions.private === 'boolean' && !permissions.private) {
+      const content = contents.PERMISSIONS_DENY_PRIVATE();
+      return interaction.reply(content);
+    }
+  }
 }

@@ -2,6 +2,9 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 
+/**
+ * validate or not the structure of a button
+ */
 export default (button: Types.ButtonData) => {
   if (!button || typeof button !== 'object') throw STypeError('button', 'object', button);
   if (!button.data || typeof button.data !== 'object') throw STypeError('data', 'object', button.data);
