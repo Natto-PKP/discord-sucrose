@@ -1,11 +1,11 @@
-import { ErrorCode, Codes } from './codes';
+import type { ErrorCode } from './codes';
 
 export class SucroseError extends Error {
   public readonly date = new Date();
 
-  public constructor(public readonly code: ErrorCode, public readonly content: string) {
-    super(`${Codes[code]} :: ${content}`);
+  public constructor(public readonly code: ErrorCode, message: string) {
+    super(message);
   }
 }
 
-export const SError = (code: ErrorCode, content: string) => new SucroseError(code, content);
+export const SError = (code: ErrorCode, message: string) => new SucroseError(code, message);

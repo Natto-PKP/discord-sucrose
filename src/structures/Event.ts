@@ -85,7 +85,7 @@ export default class Event<E extends keyof Discord.ClientEvents> {
       try {
         await handler({ sucrose: this.options.sucrose, args });
       } catch (err) {
-        if (err instanceof Error) Logger.error(err);
+        if (err instanceof Error) Logger.handle(err);
         else if (Array.isArray(err)) Logger.handle(...err);
         else Logger.give('ERROR', <string>err);
       }

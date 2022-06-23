@@ -10,6 +10,7 @@ import {
 import path from 'path';
 
 import { Code, Codes } from '../enums/errors';
+import { SucroseError } from '../errors';
 
 const date = new Date();
 const directory = path.join(process.cwd(), 'logs');
@@ -40,19 +41,6 @@ export default class Logger {
   }
 
   /**
-   * send an error or warn
-   *
-   * @remarks
-   * @public
-   *
-   * @param err - error to log
-   */
-  static error(err: Error) {
-    console.log(`${Logger.date()} ${err.message}`);
-    Logger.console.error(err);
-  }
-
-  /**
    * handle errors array
    *
    * @remarks
@@ -61,7 +49,10 @@ export default class Logger {
    * @param errors - array or errors to log
    */
   static handle(...errors: Error[]): void {
-    errors.forEach((err) => err instanceof Error && Logger.error(err));
+    errors.forEach((err) => {
+      if (err instanceof SucroseError) Logger.give(err.code, err);
+      else Logger.give('ERROR', err);
+    });
   }
 
   /**
@@ -73,8 +64,20 @@ export default class Logger {
    * @param code - code of log level
    * @param content - content to log
    */
-  static give(code: Code, content: string): void {
-    Logger.write(`${Logger.date()} ${Codes[code]} :: ${content}`);
+  static give(code: Code, content: Error | string): void {
+    const pre = `${Logger.date()} ${Codes[code]} `;
+
+    Logger.write('\n');
+    if ((code === 'FATAL' || code === 'ERROR' || code === 'WARN') && content instanceof Error) {
+      const error = content;
+      error.message = pre + error.message;
+      Logger.console.error(error);
+      console.error(error);
+    } else if ((code === 'INFO' || code === 'SUCCESS' || code === 'WARN') && typeof content === 'string') {
+      const message = pre + content;
+      Logger.console.error(message);
+      console.error(message);
+    }
   }
 
   /**
