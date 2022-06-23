@@ -112,6 +112,27 @@ declare class SelectMenuInteractionManager {
   public remove(names: unknown): void;
 }
 
+// # export services
+export enum Codes {
+  'FATAL' = '\x1b[1m\x1b[31m🔥 FATAL\x1b[0m',
+  'ERROR' = '\x1b[1m\x1b[31m✖ ERROR\x1b[0m',
+  'WARN' = '\x1b[1m\x1b[33m🔔 WARN\x1b[0m',
+  'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
+  'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
+}
+
+export type Code = keyof typeof Codes;
+export type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
+
+declare class Logger {
+  static console: Console;
+  static date(format?: boolean): string | Date;
+  static handle(...errors: Error[]): void;
+  static give(code: Code, content: Error | string): void;
+  static table(content: object | unknown[]): void;
+  static write(message: string): void;
+}
+
 // # export structures
 declare class Event {
   public readonly manager: EventManager;

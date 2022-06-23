@@ -9,7 +9,7 @@ import {
 } from 'fs';
 import path from 'path';
 
-import { Code, Codes } from '../errors/codes';
+import { Code, Codes } from '../../typings';
 import { SucroseError } from '../errors';
 
 const date = new Date();

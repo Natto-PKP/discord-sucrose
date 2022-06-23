@@ -1,4 +1,4 @@
-import type { ErrorCode } from './codes';
+import type { ErrorCode } from '../../typings';
 
 export class SucroseError extends Error {
   public readonly date = new Date();
