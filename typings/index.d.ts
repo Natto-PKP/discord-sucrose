@@ -1,10 +1,9 @@
 /* eslint-disable max-classes-per-file */
 
 import type Discord from 'discord.js';
+import type { Sucrose } from '../src';
 
 // # export interface
-export class Sucrose { }
-export class Logger { }
 
 /**
  * automatic messages content regarding interactions
