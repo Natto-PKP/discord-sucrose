@@ -9,7 +9,7 @@ import {
 } from 'fs';
 import path from 'path';
 
-import { Code, Codes } from '../enums/errors';
+import { Code, Codes } from '../errors/codes';
 import { SucroseError } from '../errors';
 
 const date = new Date();

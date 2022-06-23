@@ -1,10 +1,138 @@
 /* eslint-disable max-classes-per-file */
 
 import type Discord from 'discord.js';
-import type { Sucrose } from '../src';
+
+// # export manager
+declare class BaseCommandManager {
+  public collection: Discord.Collection<string, CommandData>;
+
+  public constructor(sucrose: Sucrose, options: { path: string, ext: 'js' | 'ts' });
+
+  public add(files: string[]): Promise<CommandData[]>;
+  public add(files: string): Promise<CommandData>;
+  public add(files: unknown): Promise<CommandData[] | CommandData>;
+  public define(names: string): Promise<Discord.ApplicationCommand>;
+  public define(names: string[]): Promise<Discord.ApplicationCommand[]>;
+  public define(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
+  public delete(names: string): Promise<Discord.ApplicationCommand>;
+  public delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
+  public delete(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
+  public refresh(names: string[]): Promise<CommandData[]>;
+  public refresh(names: string): Promise<CommandData>;
+  public refresh(names: unknown): Promise<CommandData[] | CommandData>;
+  public restore(names: string): Promise<Discord.ApplicationCommand>;
+  public restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
+  public restore(names: unknown): Promise< Discord.ApplicationCommand
+  | Discord.ApplicationCommand[] >;
+  public remove(names: string[]): void;
+  public remove(names: string): void;
+  public remove(names: unknown): void;
+}
+
+declare class ButtonInteractionManager {
+  public collection: Discord.Collection<string, ButtonData>;
+
+  constructor(options: { ext: 'js' | 'ts'; path: string; });
+
+  public add(files: string): Promise<ButtonData>;
+  public add(files: string[]): Promise<ButtonData[]>;
+  public add(files: unknown): Promise<ButtonData | ButtonData[]>;
+  public refresh(names: string): Promise<ButtonData>;
+  public refresh(names: string[]): Promise<ButtonData[]>;
+  public refresh(names: unknown): Promise<ButtonData | ButtonData[]>;
+  public remove(names: string): void;
+  public remove(names: string[]): void;
+  public remove(names: unknown): void;
+}
+
+declare class CommandManager extends BaseCommandManager {
+  public guilds: Discord.Collection<string, GuildCommandManager>;
+
+  public build(): Promise<void>;
+}
+
+declare class EventManager {
+  public collection: Discord.Collection<EventNames, Event>;
+
+  public constructor(sucrose: Sucrose, options: { ext: 'js' | 'ts'; path: string; });
+
+  public build(): Promise<void>;
+  public add(events: EventNames[]): Promise<Event[]>;
+  public add(events: EventNames): Promise<Event>;
+  public add(events: unknown): Promise<Event[] | Event>;
+  public listen(events: EventNames[]): Promise<Event>;
+  public listen(events: EventNames): Promise<Event>;
+  public listen(events: unknown): Promise<Event[] | Event>;
+  public mute(events: EventNames[]): Promise<Event[]>;
+  public mute(events: EventNames): Promise<Event>;
+  public mute(events: unknown): Promise<Event[] | Event>;
+  public refresh(events: EventNames[]): Promise<Event[]>;
+  public refresh(events: EventNames): Promise<Event>;
+  public refresh(events: unknown): Promise<Event[] | Event>;
+  public remove(events: EventNames[]): void;
+  public remove(events: EventNames): void;
+  public remove(events: unknown): void;
+}
+
+declare class GuildCommandManager extends BaseCommandManager {
+  public readonly guildId: string;
+
+  public constructor(guildId: string, sucrose: Sucrose, options: { ext: 'js' | 'ts', path: string });
+
+  public build(): Promise<void>;
+}
+
+declare class InteractionManager {
+  public buttons: ButtonInteractionManager;
+
+  public selectMenus: SelectMenuInteractionManager;
+
+  public constructor(sucrose: Sucrose, options: {
+    contents: Required<InteractionContent>;
+    ext: 'js' | 'ts';
+    path: string;
+  });
+
+  public build(): Promise<void>;
+}
+
+declare class SelectMenuInteractionManager {
+  public collection: Discord.Collection<string, SelectMenuData>;
+
+  constructor(options: { ext: 'js' | 'ts'; path: string; });
+
+  public add(files: string): Promise<SelectMenuData>;
+  public add(files: string[]): Promise<SelectMenuData[]>;
+  public add(files: unknown): Promise<SelectMenuData | SelectMenuData[]>;
+  public refresh(names: string): Promise<SelectMenuData>;
+  public refresh(names: string[]): Promise<SelectMenuData[]>;
+  public refresh(names: unknown): Promise<SelectMenuData | SelectMenuData[]>;
+  public remove(names: string): void;
+  public remove(names: string[]): void;
+  public remove(names: unknown): void;
+}
+
+// # export structures
+declare class Event {
+  public readonly manager: EventManager;
+
+  public listen(): Promise<this>;
+  public mute(): Promise<this>;
+  public refresh(): Promise<this>;
+  public remove(): Promise<void>;
+}
+
+declare class Sucrose extends Discord.Client {
+  public readonly commands: CommandManager;
+
+  public readonly events: EventManager;
+
+  public readonly interactions: InteractionManager;
+
+  static build(options: SucroseOptions): Promise<Sucrose>;
+}
 
 // # export interface
-
 /**
  * automatic messages content regarding interactions
  */
@@ -235,6 +363,7 @@ type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[
 type DiscordCommand = Discord.UserContextMenuInteraction &
 Discord.MessageContextMenuInteraction &
 Discord.CommandInteraction;
+type EventNames = keyof Discord.ClientEvents;
 type InteractionData = CommandData | ButtonData | SelectMenuData;
 type MessageContextMenuData = MessageContextMenu & { path: string; };
 type SelectMenuData = SelectMenu & { path: string; };
