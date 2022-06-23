@@ -8,77 +8,231 @@ import type Discord from 'discord.js';
 
 // # export manager
 declare class BaseCommandManager {
+  /**
+   * collection of commands
+   */
   public collection: Discord.Collection<string, CommandData>;
 
   public constructor(sucrose: Sucrose, options: { path: string, ext: 'js' | 'ts' });
 
+  /**
+   * load one or more commands
+   *
+   * @param files - string or string array of files to load
+   *
+   * @example
+   * await manager.add('file.ts');
+   * await manager.add(['file.ts', 'another-file.ts']);
+   */
   public add(files: string[]): Promise<CommandData[]>;
   public add(files: string): Promise<CommandData>;
   public add(files: unknown): Promise<CommandData[] | CommandData>;
+
+  /**
+   * create one or more commands in discord api
+   *
+   * @param names - string or string array of names
+   *
+   * @example
+   * await manager.define('say');
+   * await manager.define(['say', 'user']);
+   */
   public define(names: string): Promise<Discord.ApplicationCommand>;
   public define(names: string[]): Promise<Discord.ApplicationCommand[]>;
   public define(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
+
+  /**
+   * remove command from discord api
+   *
+   * @param names - string or string array of names to delete
+   *
+   * @example
+   * await manager.delete('say');
+   * await manager.delete(['say', 'user']);
+   */
   public delete(names: string): Promise<Discord.ApplicationCommand>;
   public delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
   public delete(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
+
+  /**
+   * refresh command in local (remove() and add())
+   *
+   * @param names - string or string array of names to refresh
+   *
+   * @example
+   * await manager.refresh('say');
+   * await manager.refresh(['say', 'user']);
+   */
   public refresh(names: string[]): Promise<CommandData[]>;
   public refresh(names: string): Promise<CommandData>;
   public refresh(names: unknown): Promise<CommandData[] | CommandData>;
+
+  /**
+   * restore command(s) from discord api (delete() and define())
+   *
+   * @param names - string or string array of names to restore
+   *
+   * @example
+   * await manager.restore('say');
+   * await manager.restore(['say', 'user']);
+   */
   public restore(names: string): Promise<Discord.ApplicationCommand>;
   public restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
   public restore(names: unknown): Promise< Discord.ApplicationCommand
   | Discord.ApplicationCommand[] >;
+
+  /**
+   * remove command(s) in local
+   *
+   * @param names - string or string array of names to remove
+   *
+   * @example
+   * await manager.remove('say');
+   * await manager.remove(['say', 'user']);
+   */
   public remove(names: string[]): void;
   public remove(names: string): void;
   public remove(names: unknown): void;
 }
 
 declare class ButtonInteractionManager {
+  /**
+   * collection of buttons
+   */
   public collection: Discord.Collection<string, ButtonData>;
 
   constructor(options: { ext: 'js' | 'ts'; path: string; });
 
+  /**
+   * upload the files to add your buttons to the collection
+   *
+   * @param files - string or string array of files to load
+   *
+   * @example
+   * await buttons.add(["useme.ts", "google.ts"]);
+   * await buttons.add("useme.ts");
+   */
   public add(files: string): Promise<ButtonData>;
   public add(files: string[]): Promise<ButtonData[]>;
   public add(files: unknown): Promise<ButtonData | ButtonData[]>;
+
+  /**
+   * refresh one or more button (remove() and add())
+   *
+   * @param names - name or names array of button to refresh
+   *
+   * @example
+   * await buttons.refresh(["useme", "google"]);
+   * await buttons.refresh("useme");
+   */
   public refresh(names: string): Promise<ButtonData>;
   public refresh(names: string[]): Promise<ButtonData[]>;
   public refresh(names: unknown): Promise<ButtonData | ButtonData[]>;
+
+  /**
+   * remove one or more button
+   *
+   * @param names - name or names array of button to remove
+   *
+   * @example
+   * await buttons.remove(["useme", "google"]);
+   * await buttons.remove("useme");
+   */
   public remove(names: string): void;
   public remove(names: string[]): void;
   public remove(names: unknown): void;
 }
 
 declare class CommandManager extends BaseCommandManager {
+  /**
+   * guild command managers collection
+   */
   public guilds: Discord.Collection<string, GuildCommandManager>;
 
   public build(): Promise<void>;
 }
 
 declare class EventManager {
+  /**
+   * Collection of Event
+   */
   public collection: Discord.Collection<EventNames, Event>;
 
   public constructor(sucrose: Sucrose, options: { ext: 'js' | 'ts'; path: string; });
 
   public build(): Promise<void>;
+
+  /**
+   * load one or multiple events
+   *
+   * @param events - string or array of string of events names
+   *
+   * @example
+   * await events.create("ready");
+   * await events.create(["ready", "messageCreate", "messageDelete"]);
+   */
   public add(events: EventNames[]): Promise<Event[]>;
   public add(events: EventNames): Promise<Event>;
   public add(events: unknown): Promise<Event[] | Event>;
+
+  /**
+   * active one or multiple events
+   *
+   * @param events - string or array of string of events names
+   *
+   * @example
+   * await events.listen("ready");
+   * await events.listen(["ready", "messageCreate", "messageDelete"]);
+   */
   public listen(events: EventNames[]): Promise<Event>;
   public listen(events: EventNames): Promise<Event>;
   public listen(events: unknown): Promise<Event[] | Event>;
+
+  /**
+   * desactive one or multiple events
+   *
+   * @param events - string or array of string of events names
+   *
+   * @example
+   * await events.mute("ready");
+   * await events.mute(["ready", "messageCreate", "messageDelete"]);
+   */
   public mute(events: EventNames[]): Promise<Event[]>;
   public mute(events: EventNames): Promise<Event>;
   public mute(events: unknown): Promise<Event[] | Event>;
+
+  /**
+   * refresh one or multiple events (remove() and add())
+   *
+   * @param events - string or array of string of events names
+   *
+   * @example
+   * await events.refresh("ready");
+   * await events.refresh(["ready", "messageCreate", "messageDelete"]);
+   */
   public refresh(events: EventNames[]): Promise<Event[]>;
   public refresh(events: EventNames): Promise<Event>;
   public refresh(events: unknown): Promise<Event[] | Event>;
+
+  /**
+   * remove one or multiple events
+   *
+   * @param events - string or array of string of events names
+   *
+   * @example
+   * await events.remove("ready");
+   * await events.remove(["ready", "messageCreate", "messageDelete"]);
+   */
   public remove(events: EventNames[]): void;
   public remove(events: EventNames): void;
   public remove(events: unknown): void;
 }
 
 declare class GuildCommandManager extends BaseCommandManager {
+  /**
+   * id of the guild the manager is based on
+   * @readonly
+   */
   public readonly guildId: string;
 
   public constructor(guildId: string, sucrose: Sucrose, options: { ext: 'js' | 'ts', path: string });
@@ -87,8 +241,14 @@ declare class GuildCommandManager extends BaseCommandManager {
 }
 
 declare class InteractionManager {
+  /**
+   * manager of buttons
+   */
   public buttons: ButtonInteractionManager;
 
+  /**
+   * manager of select menu
+   */
   public selectMenus: SelectMenuInteractionManager;
 
   public constructor(sucrose: Sucrose, options: {
@@ -105,12 +265,41 @@ declare class SelectMenuInteractionManager {
 
   constructor(options: { ext: 'js' | 'ts'; path: string; });
 
+  /**
+   * load one or multiple file
+   *
+   * @param files - string or array of string
+   *
+   * @example
+   * await manager.add('file.ts');
+   * await manager.add(['file.ts', 'other-file.ts']);
+   */
   public add(files: string): Promise<SelectMenuData>;
   public add(files: string[]): Promise<SelectMenuData[]>;
   public add(files: unknown): Promise<SelectMenuData | SelectMenuData[]>;
+
+  /**
+   * refresh one or multiple file (remove() and add())
+   *
+   * @param names - string or array of string
+   *
+   * @example
+   * await manager.refresh('select-me');
+   * await manager.refresh(['select-me', 'no-select-meee']);
+   */
   public refresh(names: string): Promise<SelectMenuData>;
   public refresh(names: string[]): Promise<SelectMenuData[]>;
   public refresh(names: unknown): Promise<SelectMenuData | SelectMenuData[]>;
+
+  /**
+   * remove one or multiple file
+   *
+   * @param names - string or array of string
+   *
+   * @example
+   * await manager.remove('select-me');
+   * await manager.remove(['select-me', 'no-select-meee']);
+   */
   public remove(names: string): void;
   public remove(names: string[]): void;
   public remove(names: unknown): void;
@@ -132,32 +321,128 @@ type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
 declare class Logger {
   static console: Console;
 
+  /**
+   * get current date formatted
+   *
+   * @param format - allow to format date (default true)
+   */
   static date(format?: boolean): string | Date;
+
+  /**
+   * handle errors array
+   *
+   * @param errors - array or errors to log
+   */
   static handle(...errors: Error[]): void;
+
+  /**
+   * give a code with content message to write
+   *
+   * @param code - code of log level
+   * @param content - content to log
+   */
   static give(code: Code, content: Error | string): void;
+
+  /**
+   * write a table in consoles
+   *
+   * @param content - content to log
+   */
   static table(content: object | unknown[]): void;
+
+  /**
+   * write a message in consoles
+   *
+   * @param message - message to write
+   */
   static write(message: string): void;
 }
 
 // # export structures
 declare class Event {
+  /**
+   * redirects to the event manager
+   * @readonly
+   * @see {@link EventManager}
+   */
   public readonly manager: EventManager;
 
+  /**
+   * event name
+   */
   public readonly name: EventNames;
 
+  /**
+   * active this event - search et load event handler in your files and run event listener
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.listen();
+   */
   public listen(): Promise<this>;
+
+  /**
+   * disable this event
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.mute();
+   */
   public mute(): Promise<this>;
+
+  /**
+   * refresh this event - mute and listen event
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.refresh();
+   */
   public refresh(): Promise<this>;
+
+  /**
+   * remove/delete this event - destroy this event
+   *
+   * @returns current event
+   *
+   * @example
+   * await event.refresh();
+   */
   public remove(): Promise<void>;
 }
 
 declare class Sucrose extends Discord.Client {
+  /**
+   * access the commands manager
+   * @readonly
+   */
   public readonly commands: CommandManager;
 
+  /**
+   * access the events manager
+   * @readonly
+   */
   public readonly events: EventManager;
 
+  /**
+   * access the interactions manager
+   * @readonly
+   */
   public readonly interactions: InteractionManager;
 
+  /**
+   * build your Sucrose client
+   *
+   * @param options - Sucrose options
+   * @returns Sucrose
+   *
+   * @example
+   * (async () =\> \{
+   *   await Sucrose.build(\{ env: \{ source: 'src', ext: 'ts' \} \})
+   * \})()
+   */
   static build(options: SucroseOptions): Promise<Sucrose>;
 }
 

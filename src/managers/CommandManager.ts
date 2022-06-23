@@ -14,7 +14,6 @@ import { SError } from '../errors';
 export default class CommandManager extends BaseCommandManager {
   /**
    * guild command managers collection
-   * @public
    */
   public guilds: Collection<string, GuildCommandManager> = new Collection();
 
