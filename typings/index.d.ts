@@ -489,11 +489,6 @@ export interface InteractionContent {
   MISSING_SUB_COMMAND_GROUP?: (name: string) => Discord.InteractionReplyOptions;
 
   /**
-   * when the when interaction is not allowed on guilds
-   */
-  PERMISSIONS_DENY_GUILDS?: () => Discord.InteractionReplyOptions;
-
-  /**
    * when interaction is not allowed in private messages
    */
   PERMISSIONS_DENY_PRIVATE?: () => Discord.InteractionReplyOptions;
@@ -627,8 +622,7 @@ export interface Permissions {
   roles?: Discord.Snowflake[];
 
   /**
-   * defined if the command is user in private or not
-   * @beta
+   * defined if the command is usable in private or not
    */
   private?: boolean;
 }

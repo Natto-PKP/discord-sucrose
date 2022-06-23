@@ -242,12 +242,6 @@ export default class InteractionManager {
           return interaction.reply(content);
         }
       }
-
-      // ! Private
-      if (typeof permissions.private === 'boolean' && permissions.private) {
-        const content = contents.PERMISSIONS_DENY_GUILDS();
-        return interaction.reply(content);
-      }
     } // [end] Guild check
 
     // ! Users
