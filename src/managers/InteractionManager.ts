@@ -44,7 +44,7 @@ export default class InteractionManager {
     sucrose.on('interactionCreate', async (interaction) => {
       try { await this.listener(interaction); } catch (err) {
         if (!(err instanceof Error)) return;
-        Logger.error(err);
+        Logger.handle(err);
 
         const { channel } = interaction;
         if (channel) await channel.send(options.contents.ERROR(err));
