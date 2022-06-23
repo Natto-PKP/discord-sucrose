@@ -67,7 +67,6 @@ export default class Logger {
   static give(code: Code, content: Error | string): void {
     const pre = `${Logger.date()} ${Codes[code]} `;
 
-    Logger.write('\n');
     if ((code === 'FATAL' || code === 'ERROR' || code === 'WARN') && content instanceof Error) {
       const error = content;
       error.message = pre + error.message;
