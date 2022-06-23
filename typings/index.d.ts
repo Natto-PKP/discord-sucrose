@@ -1,5 +1,9 @@
 /* eslint-disable max-classes-per-file */
 
+/**
+ * @module types
+ */
+
 import type Discord from 'discord.js';
 
 // # export manager
@@ -122,10 +126,12 @@ export enum Codes {
 }
 
 export type Code = keyof typeof Codes;
-export type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
+
+type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
 
 declare class Logger {
   static console: Console;
+
   static date(format?: boolean): string | Date;
   static handle(...errors: Error[]): void;
   static give(code: Code, content: Error | string): void;
@@ -136,6 +142,8 @@ declare class Logger {
 // # export structures
 declare class Event {
   public readonly manager: EventManager;
+
+  public readonly name: EventNames;
 
   public listen(): Promise<this>;
   public mute(): Promise<this>;
@@ -156,6 +164,7 @@ declare class Sucrose extends Discord.Client {
 // # export interface
 /**
  * automatic messages content regarding interactions
+ * @public
  */
 export interface InteractionContent {
   /**
@@ -265,31 +274,100 @@ export interface InteractionContent {
   ) => Discord.InteractionReplyOptions;
 }
 
+/**
+ * chat input interaction
+ * @public
+ */
 export interface ChatInput extends BaseInteraction {
+  /**
+   * the command body that will be sent to the API
+   */
   body: Discord.ChatInputApplicationCommandData;
+
+  /**
+   * the function that will be executed when the command is called
+   */
   exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
 }
 
+/**
+ * message context menu interaction
+ * @public
+ */
 export interface MessageContextMenu extends BaseInteraction {
+  /**
+   * the message context menu body that will be sent to the API
+   */
   body: Discord.MessageApplicationCommandData;
+
+  /**
+   * the function that will be executed when the message context menu is called
+   */
   exec?: BaseExec<{ interaction: Discord.MessageContextMenuInteraction }>;
 }
 
+/**
+ * permissions object
+ * @public
+ */
 export interface Permissions {
+  /**
+   * allows only authorized channels
+   */
   channels?: Discord.Snowflake[];
+
+  /**
+   * request specific permissions from the client
+   */
   client?: Discord.PermissionResolvable;
+
+  /**
+   * allows only authorized guilds
+   */
   guilds?: Discord.Snowflake[];
+
+  /**
+   * allows only authorized users
+   */
   users?: Discord.Snowflake[];
+
+  /**
+   * request member permissions
+   */
   member?: Discord.PermissionResolvable;
+
+  /**
+   * allows only authorized roles
+   */
   roles?: Discord.Snowflake[];
+
+  /**
+   * defined if the command is user in private or not
+   * @beta
+   */
   private?: boolean;
 }
 
+/**
+ * select menu interaction
+ * @public
+ */
 export interface SelectMenu extends BaseInteraction {
+  /**
+   * select menu body
+   */
   data: Required<Discord.BaseMessageComponentOptions> & Discord.MessageSelectMenuOptions;
+
+  /**
+   * function executed when the select menu is activated
+   */
   exec?: BaseExec<{ interaction: Discord.SelectMenuInteraction }>;
 }
 
+/**
+ * sucrose client options
+ * @public
+ */
 export interface SucroseOptions extends Discord.ClientOptions {
   /**
    * allows you to change the structure's automatic messages, such as error messages
@@ -314,7 +392,6 @@ export interface SucroseOptions extends Discord.ClientOptions {
      * indicate the source folder of your project,
      * the folder that contains your index.js or index.ts as well as the command folders, etc...
      *
-     * @remarks
      * @defaultValue ''
      */
     source?: string;
@@ -322,7 +399,6 @@ export interface SucroseOptions extends Discord.ClientOptions {
     /**
      * indicate the extension of your files so that the structure can be identified
      *
-     * @remarks
      * @defaultValue 'js'
      */
     ext?: 'js' | 'ts';
@@ -334,66 +410,182 @@ export interface SucroseOptions extends Discord.ClientOptions {
   token?: string;
 }
 
+/**
+ * sub command group
+ * @public
+ */
 export interface SubCommandGroup extends BaseInteraction {
+  /**
+   * sub command group body
+   */
   option: Discord.ApplicationCommandSubGroupData;
+
+  /**
+   * function executed when the sub command group is activated
+   */
   exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
 }
 
+/**
+ * sub command
+ * @public
+ */
 export interface SubCommand extends BaseInteraction {
+  /**
+   * sub command body
+   */
   option: Discord.ApplicationCommandSubCommandData;
+
+  /**
+   * function executed when the sub command is activated
+   */
   exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
 }
 
+/**
+ * user context menu interaction
+ * @public
+ */
 export interface UserContextMenu extends BaseInteraction {
+  /**
+   * user context menu body
+   */
   body: Discord.UserApplicationCommandData;
+
+  /**
+   * function executed when the user context menu is activated
+   */
   exec?: BaseExec<{ interaction: Discord.UserContextMenuInteraction }>;
 }
 
 // # export types
+/**
+ * button
+ * @public
+ */
 export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {
+  /**
+   * button body
+   */
   data: ButtonTypes[T];
+
+  /**
+   * function executed when the button is activated
+   */
   exec?: BaseExec<{ interaction: Discord.ButtonInteraction }>;
 };
+
+/**
+ * event handler
+ * @public
+ */
 export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
   args: Discord.ClientEvents[E]
 }>;
 
 // # internal
+/**
+ * @public
+ */
 interface ButtonTypes {
   link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
   base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
 }
 
+/**
+ * @public
+ */
 interface CommandType {
   CHAT_INPUT: ChatInputData;
   USER: UserContextMenuData;
   MESSAGE: MessageContextMenuData;
 }
 
+/**
+ * @public
+ */
 type BaseExec<I> = (params: BaseParams & I) => Discord.Awaitable<void>;
+
+/**
+ * @public
+ */
 type BaseInteraction = { permissions?: Permissions; };
+
+/**
+ * @public
+ */
 type BaseParams = { sucrose: Sucrose };
+
+/**
+ * @public
+ */
 type ButtonData<T extends keyof ButtonTypes = keyof ButtonTypes> = Button<T> & { path: string };
+
+/**
+ * @public
+ */
 type ChatInputData = ChatInput & {
   options: Discord.Collection<string, CommandOptionData | SubCommandData> | null;
   path: string;
 };
+
+/**
+ * @public
+ */
 type CommandOption = SubCommandGroup | SubCommand;
+
+/**
+ * @public
+ */
 type CommandOptionData = SubCommandGroupData | SubCommandData;
+
+/**
+ * @public
+ */
 type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[T];
+
+/**
+ * @public
+ */
 type DiscordCommand = Discord.UserContextMenuInteraction &
 Discord.MessageContextMenuInteraction &
 Discord.CommandInteraction;
+
+/**
+ * @public
+ */
 type EventNames = keyof Discord.ClientEvents;
+
+/**
+ * @public
+ */
 type InteractionData = CommandData | ButtonData | SelectMenuData;
+
+/**
+ * @public
+ */
 type MessageContextMenuData = MessageContextMenu & { path: string; };
+
+/**
+ * @public
+ */
 type SelectMenuData = SelectMenu & { path: string; };
+
+/**
+ * @public
+ */
 type SubCommandData = SubCommand & { group?: string; path: string; parent: string; };
+
+/**
+ * @public
+ */
 type SubCommandGroupData = SubCommandGroup & {
   options: Discord.Collection<string, SubCommandData>;
   path: string;
   parent: string;
 };
-type UserContextMenuData = UserContextMenu & { path: string; };
 
-//! !!! A DECALER DANS LES ERREURS DIRECTEMENT
+/**
+ * @public
+ */
+type UserContextMenuData = UserContextMenu & { path: string; };

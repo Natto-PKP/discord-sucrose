@@ -16,30 +16,24 @@ import * as contents from '../services/Messages';
 
 /**
  * custom discord client for structure
- *
- * @remarks
- *
- * @example
- * Sucrose.build(\{ env: \{ source: 'src', ext: 'ts' \} \})
+ * @public
+ * @category Structures
  */
 export default class Sucrose extends Client {
   /**
    * access the commands manager
-   * @public
    * @readonly
    */
   public readonly commands: CommandManager;
 
   /**
    * access the events manager
-   * @public
    * @readonly
    */
   public readonly events: EventManager;
 
   /**
    * access the interactions manager
-   * @public
    * @readonly
    */
   public readonly interactions: InteractionManager;
@@ -71,8 +65,6 @@ export default class Sucrose extends Client {
 
   /**
    * build your Sucrose client
-   *
-   * @remarks
    *
    * @param options - Sucrose options
    * @returns Sucrose

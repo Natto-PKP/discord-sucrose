@@ -1,0 +1,131 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>discord-sucrose</title><meta name="description" content="Documentation for discord-sucrose"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">discord-sucrose</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1> discord-sucrose </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#discord-bot-structure-using-discordjs" id="discord-bot-structure-using-discordjs" style="color: inherit; text-decoration: none;">
+  <h1>Discord bot structure using discord.js</h1>
+</a>
+
+<a href="#examples-here" id="examples-here" style="color: inherit; text-decoration: none;">
+  <h3><a href="./example/">Examples here</a></h3>
+</a>
+
+<a href="#documentation-here-new-coming-soon" id="documentation-here-new-coming-soon" style="color: inherit; text-decoration: none;">
+  <h3><a href="./docs/">Documentation here</a> (new coming soon)</h3>
+</a>
+
+<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+  <h2><strong>Getting started</strong></h2>
+</a>
+<details>
+
+<summary>With template</summary>
+
+<ul>
+<li><a href="https://github.com/Natto-PKP/discord-sucrose-javascript-template">Javascript</a></li>
+<li><a href="https://github.com/Natto-PKP/discord-sucrose-typescript-template">Typescript</a></li>
+</ul>
+
+<a href="#-create-your-repository" id="-create-your-repository" style="color: inherit; text-decoration: none;">
+  <h4># Create your repository</h4>
+</a>
+<p>On this example, we will start with the javascript template.</p>
+<ul>
+<li>Go to <a href="https://github.com/Natto-PKP/discord-sucrose-javascript-template">https://github.com/Natto-PKP/discord-sucrose-javascript-template</a></li>
+<li>Click &#39;Use template&#39; button and create your repository</li>
+</ul>
+
+<a href="#-clone-your-repository" id="-clone-your-repository" style="color: inherit; text-decoration: none;">
+  <h4># Clone your repository</h4>
+</a>
+<pre><code class="language-sh"><span class="hl-0">$ git clone app git@github.com:{userName}/{repositoryName}.git example-bot</span><br/><span class="hl-0">$ </span><span class="hl-1">cd</span><span class="hl-0"> example-bot &amp;&amp; code </span><span class="hl-1">.</span>
+</code></pre>
+<br>
+
+
+<a href="#-create-env-file" id="-create-env-file" style="color: inherit; text-decoration: none;">
+  <h4># Create .env file</h4>
+</a>
+<pre><code><span class="hl-2">TOKEN</span><span class="hl-0">=</span><span class="hl-3">&#39;discord bot token&#39;</span>
+</code></pre>
+<blockquote>
+<p>Start bot with <code>npm start</code></p>
+</blockquote>
+</details>
+
+<br>
+
+
+<a href="#-install-dependencies" id="-install-dependencies" style="color: inherit; text-decoration: none;">
+  <h3># <strong>Install dependencies</strong></h3>
+</a>
+<pre><code class="language-sh"><span class="hl-0">npm install discord-sucrose discord.js dotenv</span>
+</code></pre>
+
+<a href="#-create-env-file-1" id="-create-env-file-1" style="color: inherit; text-decoration: none;">
+  <h3># <strong>Create .env file</strong></h3>
+</a>
+<pre><code><span class="hl-2">TOKEN</span><span class="hl-0">=</span><span class="hl-3">&#39;discord bot token&#39;</span>
+</code></pre>
+
+<a href="#-setup-sucrose-structure" id="-setup-sucrose-structure" style="color: inherit; text-decoration: none;">
+  <h3># <strong>Setup Sucrose structure</strong></h3>
+</a>
+<p><em>Create index.js</em></p>
+<pre><code class="language-js"><span class="hl-4">const</span><span class="hl-0"> { </span><span class="hl-2">Sucrose</span><span class="hl-0"> } = </span><span class="hl-1">require</span><span class="hl-0">(</span><span class="hl-3">&#39;discord-sucrose&#39;</span><span class="hl-0">);</span><br/><span class="hl-4">const</span><span class="hl-0"> { </span><span class="hl-2">Intents</span><span class="hl-0"> } = </span><span class="hl-1">require</span><span class="hl-0">(</span><span class="hl-3">&#39;discord.js&#39;</span><span class="hl-0">);</span><br/><span class="hl-1">require</span><span class="hl-0">(</span><span class="hl-3">&#39;dotenv&#39;</span><span class="hl-0">).</span><span class="hl-1">config</span><span class="hl-0">();</span><br/><br/><span class="hl-5">Sucrose</span><span class="hl-0">.</span><span class="hl-1">build</span><span class="hl-0">({ </span><span class="hl-5">intents:</span><span class="hl-0"> [</span><span class="hl-5">Intents</span><span class="hl-0">.</span><span class="hl-2">FLAGS</span><span class="hl-0">.</span><span class="hl-2">GUILDS</span><span class="hl-0">] });</span>
+</code></pre>
+<blockquote>
+<p>Start bot with node index.js</p>
+</blockquote>
+
+<a href="#create-a-event" id="create-a-event" style="color: inherit; text-decoration: none;">
+  <h2><strong>Create a event</strong></h2>
+</a>
+<ul>
+<li><strong>Create a folder named &quot;events&quot;</strong>, this one will contain all your events</li>
+<li><strong>Create a folder named &quot;ready&quot; in the &quot;events&quot; folder</strong>, on this example we will base ourselves on the event ready</li>
+</ul>
+<p><em>/events/ready/handler.js</em></p>
+<pre><code class="language-js"><span class="hl-6">module</span><span class="hl-0">.</span><span class="hl-6">exports</span><span class="hl-0"> = ({ </span><span class="hl-5">sucrose</span><span class="hl-0"> }) </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-5">console</span><span class="hl-0">.</span><span class="hl-1">log</span><span class="hl-0">(</span><span class="hl-5">sucrose</span><span class="hl-0">.</span><span class="hl-5">user</span><span class="hl-0">.</span><span class="hl-5">username</span><span class="hl-0"> + </span><span class="hl-3">&#39; is online !&#39;</span><span class="hl-0">);</span><br/><span class="hl-0">};</span>
+</code></pre>
+
+<a href="#create-a-command" id="create-a-command" style="color: inherit; text-decoration: none;">
+  <h2><strong>Create a command</strong></h2>
+</a>
+<ul>
+<li><strong>Create a folder named &quot;commands&quot;</strong>, this one will contain all your global and guilds commands</li>
+<li><strong>Create a folder named &quot;global&quot; in the &quot;commands&quot; folder</strong>, on this example we will create a global command<ul>
+<li>For a guild command, you must create a folder named &quot;guilds&quot; as well as a folder named with the id of the guild in question. For example: <code>/commands/guilds/713172382042423352</code></li>
+</ul>
+</li>
+</ul>
+<p><em>/commands/global/handler.js</em></p>
+<pre><code class="language-js"><span class="hl-6">module</span><span class="hl-0">.</span><span class="hl-6">exports</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-5">body:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">name:</span><span class="hl-0"> </span><span class="hl-3">&#39;command&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">type:</span><span class="hl-0"> </span><span class="hl-3">&#39;CHAT_INPUT&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">description:</span><span class="hl-0"> </span><span class="hl-3">&#39;a command&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  },</span><br/><br/><span class="hl-0">  </span><span class="hl-1">exec</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-4">async</span><span class="hl-0"> ({ </span><span class="hl-5">interaction</span><span class="hl-0"> }) </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-7">await</span><span class="hl-0"> </span><span class="hl-5">interaction</span><span class="hl-0">.</span><span class="hl-1">reply</span><span class="hl-0">(</span><span class="hl-3">&#39;I love ferret&#39;</span><span class="hl-0">);</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">};</span>
+</code></pre>
+<blockquote>
+<p>Easily place your command online in discord API with <code>sucrose.commands.define(&#39;command&#39;);</code><br><em>For guilds command <code>sucrose.commands.guilds.get(&#39;guildId&#39;).define(&#39;command&#39;);</code></em></p>
+</blockquote>
+
+<a href="#create-a-button" id="create-a-button" style="color: inherit; text-decoration: none;">
+  <h2><strong>Create a button</strong></h2>
+</a>
+<ul>
+<li><strong>Create a folder named &quot;interactions&quot; and in it, create a folder named &quot;buttons&quot;</strong>. This last folder will contain your buttons</li>
+</ul>
+<p><em>/interactions/buttons/use-me.js</em></p>
+<pre><code class="language-js"><span class="hl-6">module</span><span class="hl-0">.</span><span class="hl-6">exports</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-5">data:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">type:</span><span class="hl-0"> </span><span class="hl-3">&#39;BUTTON&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">customId:</span><span class="hl-0"> </span><span class="hl-3">&#39;use-me&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">style:</span><span class="hl-0"> </span><span class="hl-3">&#39;DANGER&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  },</span><br/><br/><span class="hl-0">  </span><span class="hl-1">exec</span><span class="hl-5">:</span><span class="hl-0"> ({ </span><span class="hl-5">interaction</span><span class="hl-0"> }) </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">interaction</span><span class="hl-0">.</span><span class="hl-1">reply</span><span class="hl-0">(</span><span class="hl-3">&#39;Yeeaaaaah !&#39;</span><span class="hl-0">);</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">};</span>
+</code></pre>
+<blockquote>
+<p>Get your button with <code>sucrose.interactions.buttons.collection.get(&#39;use-me&#39;);</code></p>
+</blockquote>
+
+<a href="#create-a-select-menu" id="create-a-select-menu" style="color: inherit; text-decoration: none;">
+  <h2><strong>Create a select-menu</strong></h2>
+</a>
+<ul>
+<li><strong>Create a folder named &quot;interactions&quot; and in it, create a folder named &quot;select-menus&quot;</strong>. This last folder will contain your select-menus</li>
+</ul>
+<p><em>/interactions/select-menus/select-me.js</em></p>
+<pre><code class="language-js"><span class="hl-6">module</span><span class="hl-0">.</span><span class="hl-6">exports</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-5">data:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">type:</span><span class="hl-0"> </span><span class="hl-3">&#39;SELECT_MENU&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">customId:</span><span class="hl-0"> </span><span class="hl-3">&#39;select-me&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">placeholder:</span><span class="hl-0"> </span><span class="hl-3">&#39;Select me !&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">options:</span><span class="hl-0"> [</span><br/><span class="hl-0">      { </span><span class="hl-5">label:</span><span class="hl-0"> </span><span class="hl-3">&#39;I love ferret !&#39;</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-3">&#39;ferret&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">      { </span><span class="hl-5">label:</span><span class="hl-0"> </span><span class="hl-3">&#39;I love ferret !&#39;</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-3">&#39;ferret&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">      { </span><span class="hl-5">label:</span><span class="hl-0"> </span><span class="hl-3">&#39;I love ferret !&#39;</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-3">&#39;ferret&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">      { </span><span class="hl-5">label:</span><span class="hl-0"> </span><span class="hl-3">&#39;I love ferret !&#39;</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-3">&#39;ferret&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">      { </span><span class="hl-5">label:</span><span class="hl-0"> </span><span class="hl-3">&#39;I love ferret !&#39;</span><span class="hl-0">, </span><span class="hl-5">value:</span><span class="hl-0"> </span><span class="hl-3">&#39;ferret&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">    ],</span><br/><span class="hl-0">  },</span><br/><br/><span class="hl-0">  </span><span class="hl-1">exec</span><span class="hl-5">:</span><span class="hl-0"> ({ </span><span class="hl-5">interaction</span><span class="hl-0"> }) </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">interaction</span><span class="hl-0">.</span><span class="hl-1">reply</span><span class="hl-0">(</span><span class="hl-3">&#39;I LOVE FERRET !!!&#39;</span><span class="hl-0">);</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">};</span>
+</code></pre>
+<blockquote>
+<p>Get your select-menu with <code>sucrose.interactions.selectMenus.collection.get(&#39;select-me&#39;);</code></p>
+</blockquote>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Modules</a></li><li class=" tsd-kind-module"><a href="modules/discord_sucrose.html">discord-<wbr/>sucrose</a></li><li class=" tsd-kind-module"><a href="modules/types.html">types</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li><li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

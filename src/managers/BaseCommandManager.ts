@@ -11,6 +11,10 @@ import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
+/**
+ * @public
+ * @category Managers
+ */
 export default class BaseCommandManager {
   /**
    * indicates if this manager was build or not
@@ -21,7 +25,6 @@ export default class BaseCommandManager {
 
   /**
    * collection of commands
-   * @public
    */
   public collection: Discord.Collection<string, Types.CommandData> = new Collection();
 
@@ -35,9 +38,6 @@ export default class BaseCommandManager {
 
   /**
    * load one or more commands
-   *
-   * @remarks
-   * @public
    *
    * @param files - string or string array of files to load
    *
@@ -151,12 +151,9 @@ export default class BaseCommandManager {
   }
 
   /**
-   * register the command in the discord api
+   * create one or more commands in discord api
    *
-   * @remarks
-   * @public
-   *
-   * @param names - string or string array of names to register
+   * @param names - string or string array of names
    *
    * @example
    * await manager.define('say');
@@ -191,9 +188,6 @@ export default class BaseCommandManager {
   /**
    * remove command from discord api
    *
-   * @remarks
-   * @public
-   *
    * @param names - string or string array of names to delete
    *
    * @example
@@ -223,9 +217,6 @@ export default class BaseCommandManager {
   /**
    * refresh command in local (remove() and add())
    *
-   * @remarks
-   * @public
-   *
    * @param names - string or string array of names to refresh
    *
    * @example
@@ -248,9 +239,6 @@ export default class BaseCommandManager {
 
   /**
    * restore command(s) from discord api (delete() and define())
-   *
-   * @remarks
-   * @public
    *
    * @param names - string or string array of names to restore
    *
@@ -275,9 +263,6 @@ export default class BaseCommandManager {
 
   /**
    * remove command(s) in local
-   *
-   * @remarks
-   * @public
    *
    * @param names - string or string array of names to remove
    *

@@ -6,6 +6,7 @@ type Interaction = Types.CommandData | Types.SubCommandGroupData | Types.SubComm
 
 /**
  * validate or not the structure of a command
+ * @internal
  */
 export default (interaction: Interaction, fullName: string) => {
   if (!interaction || typeof interaction !== 'object') throw STypeError(`(${fullName}) command or option`, 'object', interaction);

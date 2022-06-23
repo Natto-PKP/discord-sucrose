@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "docs": "typedoc src/api.doc.ts typings/index.d.ts --out docs",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -26,8 +27,6 @@
   "author": "Natto-PKP",
   "license": "Apache-2.0 License",
   "devDependencies": {
-    "@microsoft/tsdoc": "^0.14.1",
-    "@types/jest": "^27.4.0",
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
@@ -35,13 +34,11 @@
     "eslint": "^8.2.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^16.1.0",
-    "eslint-plugin-jest": "^26.1.1",
-    "eslint-plugin-tsdoc": "^0.2.16",
-    "jest": "^27.4.7",
     "prettier": "^2.4.1",
-    "ts-jest": "^27.1.3",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
+    "typedoc": "^0.22.17",
+    "typedoc-plugin-discord-types": "^1.0.2",
     "typescript": "^4.5.2"
   },
   "dependencies": {

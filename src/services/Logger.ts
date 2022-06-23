@@ -16,6 +16,10 @@ const date = new Date();
 const directory = path.join(process.cwd(), 'logs');
 if (!existsSync(directory) || !lstatSync(directory).isDirectory()) mkdirSync(directory);
 
+/**
+ * @public
+ * @category Services
+ */
 export default class Logger {
   static console = new Console({
     stdout: createWriteStream(path.join(directory, `${date.getTime()}-output.log`)),
@@ -24,9 +28,6 @@ export default class Logger {
 
   /**
    * get current date formatted
-   *
-   * @remarks
-   * @public
    *
    * @param format - allow to format date (default true)
    */
@@ -43,9 +44,6 @@ export default class Logger {
   /**
    * handle errors array
    *
-   * @remarks
-   * @public
-   *
    * @param errors - array or errors to log
    */
   static handle(...errors: Error[]): void {
@@ -57,9 +55,6 @@ export default class Logger {
 
   /**
    * give a code with content message to write
-   *
-   * @remarks
-   * @public
    *
    * @param code - code of log level
    * @param content - content to log
@@ -82,9 +77,6 @@ export default class Logger {
   /**
    * write a table in consoles
    *
-   * @remarks
-   * @public
-   *
    * @param content - content to log
    */
   static table(content: object | unknown[]): void {
@@ -94,9 +86,6 @@ export default class Logger {
 
   /**
    * write a message in consoles
-   *
-   * @remarks
-   * @public
    *
    * @param message - message to write
    */

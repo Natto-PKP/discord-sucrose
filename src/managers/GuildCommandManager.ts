@@ -8,13 +8,21 @@ import type Sucrose from '../structures/Sucrose';
 import { SError } from '../errors';
 import BaseCommandManager from './BaseCommandManager';
 
+/**
+ * guild command manager
+ * @public
+ * @category Managers
+ */
 export default class GuildCommandManager extends BaseCommandManager {
   /**
    * id of the guild the manager is based on
-   * @public
+   * @readonly
    */
   public readonly guildId: string;
 
+  /**
+   * @internal
+   */
   public constructor(guildId: string, sucrose: Sucrose, options: { ext: 'js' | 'ts', path: string }) {
     super(sucrose, options);
     this.guildId = guildId;
@@ -22,9 +30,7 @@ export default class GuildCommandManager extends BaseCommandManager {
 
   /**
    * load all commands
-   *
-   * @remarks
-   * @public
+   * @internal
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);

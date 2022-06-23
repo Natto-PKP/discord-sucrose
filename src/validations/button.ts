@@ -4,6 +4,7 @@ import { SError, STypeError } from '../errors';
 
 /**
  * validate or not the structure of a button
+ * @internal
  */
 export default (button: Types.ButtonData) => {
   if (!button || typeof button !== 'object') throw STypeError('button', 'object', button);

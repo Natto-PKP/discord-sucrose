@@ -15,18 +15,21 @@ import ButtonInteractionManager from './ButtonInteractionManager';
 import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 import Logger from '../services/Logger';
 
+/**
+ * interaction manager
+ * @public
+ * @category Managers
+ */
 export default class InteractionManager {
   private builded = false;
 
   /**
    * manager of buttons
-   * @public
    */
   public buttons: ButtonInteractionManager;
 
   /**
    * manager of select menu
-   * @public
    */
   public selectMenus: SelectMenuInteractionManager;
 
@@ -54,8 +57,6 @@ export default class InteractionManager {
 
   /**
    * load and build all interactions
-   *
-   * @remarks
    * @internal
    */
   public async build(): Promise<void> {
@@ -88,8 +89,6 @@ export default class InteractionManager {
 
   /**
    * handle interaction
-   *
-   * @remarks
    * @internal
    *
    * @param interaction - current interaction
@@ -171,8 +170,6 @@ export default class InteractionManager {
 
   /**
    * handle interaction permissions
-   *
-   * @remarks
    * @internal
    *
    * @param interaction - current interaction

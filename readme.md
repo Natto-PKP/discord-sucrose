@@ -27,9 +27,11 @@ $ git clone app git@github.com:{userName}/{repositoryName}.git example-bot
 $ cd example-bot && code .
 ```
 
+<br>
+
 #### # Create .env file
 
-```env
+```
 TOKEN='discord bot token'
 ```
 
@@ -47,7 +49,7 @@ npm install discord-sucrose discord.js dotenv
 
 ### # **Create .env file**
 
-```env
+```
 TOKEN='discord bot token'
 ```
 

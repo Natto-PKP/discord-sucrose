@@ -10,10 +10,14 @@ import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
+/**
+ * button interaction manager
+ * @public
+ * @category Managers
+ */
 export default class ButtonInteractionManager {
   /**
    * collection of buttons
-   * @public
    */
   public collection: Discord.Collection<string, Types.ButtonData> = new Collection();
 
@@ -24,9 +28,6 @@ export default class ButtonInteractionManager {
 
   /**
    * upload the files to add your buttons to the collection
-   *
-   * @remarks
-   * @public
    *
    * @param files - string or string array of files to load
    *
@@ -73,9 +74,6 @@ export default class ButtonInteractionManager {
   /**
    * refresh one or more button (remove() and add())
    *
-   * @remarks
-   * @public
-   *
    * @param names - name or names array of button to refresh
    *
    * @example
@@ -98,9 +96,6 @@ export default class ButtonInteractionManager {
 
   /**
    * remove one or more button
-   *
-   * @remarks
-   * @public
    *
    * @param names - name or names array of button to remove
    *

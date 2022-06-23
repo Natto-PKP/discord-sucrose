@@ -14,12 +14,11 @@ import * as helpers from '../helpers';
 /**
  * makes it easier to interact with your vents
  * @public
+ * @category Structures
  */
 export default class Event<E extends keyof Discord.ClientEvents> {
   /**
    * determines whether the event is running or not
-   *
-   * @remarks
    * @defaultValue false
    * @internal
    */
@@ -27,8 +26,6 @@ export default class Event<E extends keyof Discord.ClientEvents> {
 
   /**
    * event listener
-   *
-   * @remarks
    * @defaultValue null
    * @internal
    */
@@ -36,19 +33,13 @@ export default class Event<E extends keyof Discord.ClientEvents> {
 
   /**
    * redirects to the event manager
-   *
-   * @remarks
    * @readonly
-   * @public
    * @see {@link EventManager}
    */
   public readonly manager: EventManager;
 
   /**
    * create a new event
-   *
-   * @remarks
-   * @public
    *
    * @param name - event name {@link https://discord.js.org/#/docs/discord.js/main/typedef/Events}
    * @param options - event options {@link Types.EventOptions}
@@ -61,9 +52,6 @@ export default class Event<E extends keyof Discord.ClientEvents> {
 
   /**
    * active this event - search et load event handler in your files and run event listener
-   *
-   * @remarks
-   * @public
    *
    * @returns current event
    *
@@ -103,9 +91,6 @@ export default class Event<E extends keyof Discord.ClientEvents> {
   /**
    * disable this event
    *
-   * @remarks
-   * @public
-   *
    * @returns current event
    *
    * @example
@@ -127,9 +112,6 @@ export default class Event<E extends keyof Discord.ClientEvents> {
   /**
    * refresh this event - mute and listen event
    *
-   * @remarks
-   * @public
-   *
    * @returns current event
    *
    * @example
@@ -144,9 +126,6 @@ export default class Event<E extends keyof Discord.ClientEvents> {
 
   /**
    * remove/delete this event - destroy this event
-   *
-   * @remarks
-   * @public
    *
    * @returns current event
    *

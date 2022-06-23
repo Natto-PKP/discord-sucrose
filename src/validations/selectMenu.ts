@@ -4,6 +4,7 @@ import { SError, STypeError } from '../errors';
 
 /**
  * validate or not the structure of a select menu
+ * @internal
  */
 export default (selectMenu: Types.SelectMenuData) => {
   if (!selectMenu || typeof selectMenu !== 'object') throw STypeError('selectMenu', 'object', selectMenu);

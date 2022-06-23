@@ -10,11 +10,12 @@ import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
 import * as validations from '../validations';
 
+/**
+ * select menu interaction manager
+ * @public
+ * @category Managers
+ */
 export default class SelectMenuInteractionManager {
-  /**
-   * Select menu collection
-   * @public
-   */
   public collection: Discord.Collection<string, Types.SelectMenuData> = new Collection();
 
   /**
@@ -24,9 +25,6 @@ export default class SelectMenuInteractionManager {
 
   /**
    * load one or multiple file
-   *
-   * @remarks
-   * @public
    *
    * @param files - string or array of string
    *
@@ -66,9 +64,6 @@ export default class SelectMenuInteractionManager {
   /**
    * refresh one or multiple file (remove() and add())
    *
-   * @remarks
-   * @public
-   *
    * @param names - string or array of string
    *
    * @example
@@ -94,9 +89,6 @@ export default class SelectMenuInteractionManager {
 
   /**
    * remove one or multiple file
-   *
-   * @remarks
-   * @public
    *
    * @param names - string or array of string
    *

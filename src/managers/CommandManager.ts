@@ -6,6 +6,11 @@ import GuildCommandManager from './GuildCommandManager';
 import BaseCommandManager from './BaseCommandManager';
 import { SError } from '../errors';
 
+/**
+ * command manager
+ * @public
+ * @category Managers
+ */
 export default class CommandManager extends BaseCommandManager {
   /**
    * guild command managers collection
@@ -15,9 +20,7 @@ export default class CommandManager extends BaseCommandManager {
 
   /**
    * load all global command and build potential guild command manager
-   *
-   * @remarks
-   * @public
+   * @internal
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');

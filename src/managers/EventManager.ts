@@ -11,6 +11,11 @@ import Event from '../structures/Event';
 
 type EventNames = keyof Discord.ClientEvents;
 
+/**
+ * event manager
+ * @public
+ * @category Managers
+ */
 export default class EventManager {
   /**
    * indicates if this manager was build or not
@@ -21,17 +26,17 @@ export default class EventManager {
 
   /**
    * Collection of Event
-   * @public
    */
   public collection: Discord.Collection<EventNames, Event<EventNames>> = new Collection();
 
+  /**
+   * @internal
+   */
   public constructor(private sucrose: Sucrose, private options: { ext: 'js' | 'ts'; path: string; }) {}
 
   /**
    * load and build each events
-   *
-   * @remarks
-   * @public
+   * @internal
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'EventManager is already build');
@@ -54,9 +59,6 @@ export default class EventManager {
 
   /**
    * load one or multiple events
-   *
-   * @remarks
-   * @public
    *
    * @param events - string or array of string of events names
    *
@@ -91,9 +93,6 @@ export default class EventManager {
   /**
    * active one or multiple events
    *
-   * @remarks
-   * @public
-   *
    * @param events - string or array of string of events names
    *
    * @example
@@ -122,9 +121,6 @@ export default class EventManager {
   /**
    * desactive one or multiple events
    *
-   * @remarks
-   * @public
-   *
    * @param events - string or array of string of events names
    *
    * @example
@@ -152,9 +148,6 @@ export default class EventManager {
   /**
    * refresh one or multiple events (remove() and add())
    *
-   * @remarks
-   * @public
-   *
    * @param events - string or array of string of events names
    *
    * @example
@@ -181,9 +174,6 @@ export default class EventManager {
 
   /**
    * remove one or multiple events
-   *
-   * @remarks
-   * @public
    *
    * @param events - string or array of string of events names
    *
