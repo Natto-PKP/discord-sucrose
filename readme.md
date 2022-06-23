@@ -2,7 +2,7 @@
 
 ### [Examples here](./example/)
 
-### [Documentation here](./docs/) (new coming soon)
+### [Documentation here](https://docs.discord.sucrose.xyz/)
 
 ## **Getting started**
 
