@@ -66,9 +66,9 @@ export default class Logger {
       const error = content;
       error.message = pre + error.message;
       Logger.console.error(error);
-      console.error(error);
-    } else if ((code === 'INFO' || code === 'SUCCESS' || code === 'WARN') && typeof content === 'string') {
-      const message = pre + content;
+      console.error(error.message);
+    } else {
+      const message = pre + (content instanceof Error ? content.message : content);
       Logger.console.error(message);
       console.error(message);
     }
