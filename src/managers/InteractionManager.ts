@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable consistent-return */
 
 import { Collection } from 'discord.js';
@@ -13,6 +12,7 @@ import type Sucrose from '../structures/Sucrose';
 import { SError } from '../errors';
 import ButtonInteractionManager from './ButtonInteractionManager';
 import SelectMenuInteractionManager from './SelectMenuInteractionManager';
+import FormModalInteractionManager from './FormModalInteractionManager';
 import Logger from '../services/Logger';
 
 /**
@@ -29,6 +29,11 @@ export default class InteractionManager {
   public buttons: ButtonInteractionManager;
 
   /**
+   * manager of form modals
+   */
+  public forms: FormModalInteractionManager;
+
+  /**
    * manager of select menu
    */
   public selectMenus: SelectMenuInteractionManager;
@@ -42,6 +47,7 @@ export default class InteractionManager {
     path: string;
   }) {
     this.buttons = new ButtonInteractionManager({ ext: options.ext, path: path.join(options.path, 'buttons') });
+    this.forms = new FormModalInteractionManager({ ext: options.ext, path: path.join(options.path, 'forms') });
     this.selectMenus = new SelectMenuInteractionManager({ ext: options.ext, path: path.join(options.path, 'select-menus') });
 
     sucrose.on('interactionCreate', async (interaction) => {
@@ -50,7 +56,7 @@ export default class InteractionManager {
         Logger.handle(err);
 
         const { channel } = interaction;
-        if (channel) await channel.send(options.contents.ERROR(err));
+        if (channel) await channel.send(options.contents.ERROR(err) as Discord.MessageOptions);
       }
     });
   }
@@ -61,6 +67,7 @@ export default class InteractionManager {
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
+    this.builded = true;
 
     // ! buttons manager
     const buttonPath = path.join(this.options.path, 'buttons');
@@ -68,9 +75,7 @@ export default class InteractionManager {
       const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.buttons.collection = new Collection();
-      if (!files.length) return;
-
-      await this.buttons.add(files);
+      if (files.length) await this.buttons.add(files);
     }
 
     // ! select menus manager
@@ -79,12 +84,17 @@ export default class InteractionManager {
       const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.selectMenus.collection = new Collection();
-      if (!files.length) return;
-
-      await this.selectMenus.add(files);
+      if (files.length) await this.selectMenus.add(files);
     }
 
-    this.builded = true;
+    // ! form modals manager
+    const formPath = path.join(this.options.path, 'forms');
+    if (existsSync(formPath) && lstatSync(formPath).isDirectory()) {
+      const files = readdirSync(formPath).filter((file) => lstatSync(path.join(formPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
+
+      this.forms.collection = new Collection();
+      if (files.length) await this.forms.add(files);
+    }
   }
 
   /**
@@ -159,7 +169,7 @@ export default class InteractionManager {
       const button = this.buttons.collection.get(customId);
       if (!button || await this.permissions(interaction, button.permissions)) return;
       if (!button.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
-      return await button.exec({ ...params, interaction });
+      return button.exec({ ...params, interaction });
     } // [end] button
   }
 

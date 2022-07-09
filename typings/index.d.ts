@@ -1,10 +1,9 @@
 /* eslint-disable max-classes-per-file */
+import type Discord from 'discord.js';
 
 /**
  * @module types
  */
-
-import type Discord from 'discord.js';
 
 // # export manager
 declare class BaseCommandManager {
@@ -247,6 +246,11 @@ declare class InteractionManager {
   public buttons: ButtonInteractionManager;
 
   /**
+   * manager of form modals
+   */
+  public forms: FormModalInteractionManager;
+
+  /**
    * manager of select menu
    */
   public selectMenus: SelectMenuInteractionManager;
@@ -258,6 +262,51 @@ declare class InteractionManager {
   });
 
   public build(): Promise<void>;
+}
+
+declare class FormModalInteractionManager {
+  public collection: Discord.Collection<string, FormData>;
+
+  constructor(options: { ext: 'js' | 'ts'; path: string; });
+
+  /**
+   * load one or multiple file
+   *
+   * @param files - string or array of string
+   *
+   * @example
+   * await manager.add('file.ts');
+   * await manager.add(['file.ts', 'other-file.ts']);
+   */
+  public add(files: string): Promise<FormData>;
+  public add(files: string[]): Promise<FormData[]>;
+  public add(files: unknown): Promise<FormData | FormData[]>;
+
+  /**
+   * refresh one or multiple file (remove() and add())
+   *
+   * @param names - string or array of string
+   *
+   * @example
+   * await manager.refresh('ticket');
+   * await manager.refresh(['ticket', 'report']);
+   */
+  public refresh(names: string): Promise<FormData>;
+  public refresh(names: string[]): Promise<FormData[]>;
+  public refresh(names: unknown): Promise<FormData | FormData[]>;
+
+  /**
+   * remove one or multiple file
+   *
+   * @param names - string or array of string
+   *
+   * @example
+   * await manager.remove('ticket');
+   * await manager.remove(['ticket', 'report']);
+   */
+  public remove(names: string): void;
+  public remove(names: string[]): void;
+  public remove(names: unknown): void;
 }
 
 declare class SelectMenuInteractionManager {
@@ -762,6 +811,22 @@ export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
   args: Discord.ClientEvents[E]
 }>;
 
+/**
+ * form
+ * @public
+ */
+export type Form = BaseInteraction & {
+  /**
+   * form body
+   */
+  data: Discord.ModalOptions;
+
+  /**
+   * function executed when the form modal is activated
+   */
+  exec?: BaseExec<{ interaction: Discord.ModalSubmitInteraction }>
+};
+
 // # internal
 /**
  * @public
@@ -844,6 +909,11 @@ type InteractionData = CommandData | ButtonData | SelectMenuData;
  * @public
  */
 type MessageContextMenuData = MessageContextMenu & { path: string; };
+
+/**
+ * @public
+ */
+type FormData = Form & { path: string };
 
 /**
  * @public
