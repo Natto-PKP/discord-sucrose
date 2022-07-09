@@ -21,7 +21,7 @@ export default (form: Types.FormData) => {
         if (component.type !== 'TEXT_INPUT') throw STypeError('component.type', '"TEXT_INPUT"', component.type);
         if (typeof component.label !== 'string') throw STypeError('component.label', 'string', component.label);
         if (typeof component.style !== 'string') throw STypeError('component.style', 'string', component.style);
-        if (['SHORT', 'PARAGRAPH'].includes(component.style)) throw STypeError('component.style', '"SHORT" | "PARAGRAPH"', component.style);
+        if (!['SHORT', 'PARAGRAPH'].includes(component.style)) throw STypeError('component.style', '"SHORT" | "PARAGRAPH"', component.style);
         if (component.minLength && typeof component.minLength !== 'number') throw STypeError('component.minLength', 'number', component.minLength);
         if (component.maxLength && typeof component.maxLength !== 'number') throw STypeError('component.maxLength', 'number', component.maxLength);
         if (component.minLength && component.maxLength && component.minLength <= component.maxLength) throw SError('ERROR', 'component.minLength must be inferior of component.maxLength');
