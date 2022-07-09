@@ -94,7 +94,6 @@ export default class InteractionManager {
    * @param interaction - current interaction
    */
   private async listener(interaction: Discord.Interaction): Promise<void> {
-    if (interaction.isMessageComponent()) return;
     const { sucrose, options: { contents } } = this;
     const params = { sucrose };
     const { guild } = interaction;
@@ -148,9 +147,7 @@ export default class InteractionManager {
     if (interaction.isSelectMenu()) {
       const { customId } = interaction;
       const selectMenu = this.selectMenus.collection.get(customId);
-      if (!selectMenu) return interaction.reply(contents.MISSING_LOCAL_INTERACTION(customId));
-      if (await this.permissions(interaction, selectMenu.permissions)) return;
-
+      if (!selectMenu || await this.permissions(interaction, selectMenu.permissions)) return;
       if (!selectMenu.exec) {
         return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
       } return selectMenu.exec({ ...params, interaction });
@@ -160,9 +157,7 @@ export default class InteractionManager {
     if (interaction.isButton()) {
       const { customId } = interaction;
       const button = this.buttons.collection.get(customId);
-      if (!button) return interaction.reply(contents.MISSING_LOCAL_INTERACTION(customId));
-      if (await this.permissions(interaction, button.permissions)) return;
-
+      if (!button || await this.permissions(interaction, button.permissions)) return;
       if (!button.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
       return await button.exec({ ...params, interaction });
     } // [end] button
