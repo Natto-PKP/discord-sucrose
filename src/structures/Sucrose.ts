@@ -88,24 +88,27 @@ export default class Sucrose extends Client {
 
     // managers
     await sucrose.commands.build().then(() => {
-      if (!sucrose.commands.collection.size && !sucrose.commands.guilds.size) return;
-      Logger.give('SUCCESS', 'Slash commands loaded');
-    }, Logger.handle);
+      const { collection, guilds } = sucrose.commands;
+      if (!collection.size && !guilds.size) return;
 
-    await sucrose.interactions.build().then(() => {
-      if (!sucrose.interactions.buttons.collection.size
-        && !sucrose.interactions.selectMenus.collection.size) return;
-      Logger.give('SUCCESS', 'Interactions loaded');
-    }, Logger.handle);
+      if (collection.size) Logger.give('SUCCESS', `${collection.size} global commands loaded`);
+      if (guilds.size) {
+        const guildsCommandsTotal = guilds.reduce((total, cmds) => total + cmds.collection.size, 0);
+        if (guildsCommandsTotal) Logger.give('SUCCESS', `${guildsCommandsTotal} guilds commands loaded (${guilds.size} guilds)`);
+      }
+    }).catch(Logger.handle);
+
+    await sucrose.interactions.build().catch(Logger.handle);
 
     await sucrose.events.build().then(() => {
-      if (!sucrose.events.collection.size) return;
-      Logger.give('SUCCESS', 'Discord.js events loaded');
-    }, Logger.handle);
+      const { collection } = sucrose.events;
+      if (!collection.size) return;
+      Logger.give('SUCCESS', `${collection.size} discord events loaded`);
+    }).catch(Logger.handle);
 
     Logger.write('');
     Logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
-    Logger.give('INFO', `Sucrose structure was launched in ${Date.now() - now}ms`);
+    Logger.give('INFO', `Launched in ${Date.now() - now}ms`);
     Logger.write('\n');
 
     return sucrose;

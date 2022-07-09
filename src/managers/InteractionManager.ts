@@ -75,7 +75,10 @@ export default class InteractionManager {
       const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.buttons.collection = new Collection();
-      if (files.length) await this.buttons.add(files);
+      if (files.length) {
+        await this.buttons.add(files);
+        Logger.give('SUCCESS', `${files.length} buttons loaded`);
+      }
     }
 
     // ! select menus manager
@@ -84,7 +87,10 @@ export default class InteractionManager {
       const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.selectMenus.collection = new Collection();
-      if (files.length) await this.selectMenus.add(files);
+      if (files.length) {
+        await this.selectMenus.add(files);
+        Logger.give('SUCCESS', `${files.length} select menus loaded`);
+      }
     }
 
     // ! form modals manager
@@ -93,7 +99,10 @@ export default class InteractionManager {
       const files = readdirSync(formPath).filter((file) => lstatSync(path.join(formPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
       this.forms.collection = new Collection();
-      if (files.length) await this.forms.add(files);
+      if (files.length) {
+        await this.forms.add(files);
+        Logger.give('SUCCESS', `${files.length} form modals loaded`);
+      }
     }
   }
 
