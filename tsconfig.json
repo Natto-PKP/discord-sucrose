@@ -50,6 +50,9 @@
     "useDefineForClassFields": true,
 
     "pretty": false,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+
+    //! tmp
+    "skipLibCheck": true
   }
 }

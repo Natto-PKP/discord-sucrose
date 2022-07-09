@@ -9,6 +9,7 @@ export { default as EventManager } from './managers/EventManager';
 export { default as GuildCommandManager } from './managers/GuildCommandManager';
 export { default as InteractionManager } from './managers/InteractionManager';
 export { default as SelectMenuInteractionManager } from './managers/SelectMenuInteractionManager';
+export { default as FormModalInteractionManager } from './managers/FormModalInteractionManager';
 
 export { default as Logger } from './services/Logger';
 
