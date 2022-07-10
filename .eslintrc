@@ -16,6 +16,7 @@
         "project": "tsconfig.json"
       },
       "rules": {
+        "import/no-cycle": 0,
         "no-restricted-syntax": "off"
       }
     }
