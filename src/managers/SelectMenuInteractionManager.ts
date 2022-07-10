@@ -42,8 +42,8 @@ export default class SelectMenuInteractionManager {
 
     await Promise.all(names.map(async (file) => {
       const to = path.join(this.options.path, file);
-      if (!existsSync(to)) throw SError('ERROR', `button file "${to}" does not exist`);
-      if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
+      if (!existsSync(to)) throw SError('ERROR', `select menu file "${to}" does not exist`);
+      if (!lstatSync(to).isFile()) throw SError('ERROR', `select menu file "${to}" is not a file`);
 
       const selectMenu = <Types.SelectMenuData> await helpers.imported(path.join(process.cwd(), to), 'interaction');
       validations.selectMenu(selectMenu);

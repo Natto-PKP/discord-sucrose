@@ -26,6 +26,11 @@ export default class Logger {
     stderr: createWriteStream(path.join(directory, `${date.getTime()}-errors.log`)),
   });
 
+  static clear() {
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+  }
+
   /**
    * get current date formatted
    *
@@ -42,24 +47,13 @@ export default class Logger {
   }
 
   /**
-   * handle errors array
-   *
-   * @param errors - array or errors to log
-   */
-  static handle(...errors: Error[]): void {
-    errors.forEach((err) => {
-      if (err instanceof SucroseError) Logger.give(err.code, err);
-      else Logger.give('ERROR', err);
-    });
-  }
-
-  /**
    * give a code with content message to write
    *
    * @param code - code of log level
    * @param content - content to log
    */
   static give(code: Code, content: Error | string): void {
+    Logger.clear();
     const pre = `${Logger.date()} ${Codes[code]} `;
 
     if ((code === 'FATAL' || code === 'ERROR' || code === 'WARN') && content instanceof Error) {
@@ -75,11 +69,38 @@ export default class Logger {
   }
 
   /**
+   * handle errors array
+   *
+   * @param errors - array or errors to log
+   */
+  static handle(...errors: Error[]): void {
+    errors.forEach((err) => {
+      if (err instanceof SucroseError) Logger.give(err.code, err);
+      else Logger.give('ERROR', err);
+    });
+  }
+
+  /**
+   * Generate loading bar
+   *
+   * @param total
+   */
+  static* loading(total: number): Generator<void, void, { index: number; message: string; }> {
+    while (true) {
+      const { index, message } = yield;
+      const percent = Math.ceil((index / total) * 100 * 0.20);
+      Logger.clear();
+      process.stdout.write(`[${'.'.repeat(percent).padEnd(20)}] ${message}`);
+    }
+  }
+
+  /**
    * write a table in consoles
    *
    * @param content - content to log
    */
   static table(content: object | unknown[]): void {
+    Logger.clear();
     Logger.console.table(content);
     console.table(content);
   }
@@ -90,6 +111,7 @@ export default class Logger {
    * @param message - message to write
    */
   static write(message: string): void {
+    Logger.clear();
     Logger.console.log(message);
     console.log(message);
   }

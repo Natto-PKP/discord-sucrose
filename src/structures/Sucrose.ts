@@ -87,24 +87,10 @@ export default class Sucrose extends Client {
     } else connected();
 
     // managers
-    await sucrose.commands.build().then(() => {
-      const { collection, guilds } = sucrose.commands;
-      if (!collection.size && !guilds.size) return;
-
-      if (collection.size) Logger.give('SUCCESS', `${collection.size} global commands loaded`);
-      if (guilds.size) {
-        const guildsCommandsTotal = guilds.reduce((total, cmds) => total + cmds.collection.size, 0);
-        if (guildsCommandsTotal) Logger.give('SUCCESS', `${guildsCommandsTotal} guilds commands loaded (${guilds.size} guilds)`);
-      }
-    }).catch(Logger.handle);
-
+    await sucrose.commands.build().catch(Logger.handle);
     await sucrose.interactions.build().catch(Logger.handle);
 
-    await sucrose.events.build().then(() => {
-      const { collection } = sucrose.events;
-      if (!collection.size) return;
-      Logger.give('SUCCESS', `${collection.size} discord events loaded`);
-    }).catch(Logger.handle);
+    await sucrose.events.build().catch(Logger.handle);
 
     Logger.write('');
     Logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');

@@ -5,6 +5,7 @@ import path from 'path';
 import GuildCommandManager from './GuildCommandManager';
 import BaseCommandManager from './BaseCommandManager';
 import { SError } from '../errors';
+import { Logger } from '../api.doc';
 
 /**
  * command manager
@@ -23,6 +24,7 @@ export default class CommandManager extends BaseCommandManager {
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');
+    this.builded = true;
 
     const globalPath = this.options.path;
     if (existsSync(globalPath) && lstatSync(globalPath).isDirectory()) {
@@ -30,7 +32,19 @@ export default class CommandManager extends BaseCommandManager {
 
       const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
 
-      if (files.length) await this.add(files);
+      if (files.length) {
+        const loading = Logger.loading(files.length);
+        loading.next();
+
+        for await (const file of files) {
+          const index = files.indexOf(file) + 1;
+          loading.next({ index, message: `load /commands/global/${file}` });
+          await this.add(file);
+        }
+
+        Logger.clear();
+        Logger.give('SUCCESS', `${files.length} global commands loaded`);
+      }
     }
 
     const guildsPath = path.join(this.options.path, '../guilds');
@@ -40,26 +54,32 @@ export default class CommandManager extends BaseCommandManager {
         return p.isDirectory();
       });
 
-      await Promise.all(dirs.map(async (dir) => {
-        const guildPath = path.join(guildsPath, dir);
-        const files = readdirSync(guildPath).filter((file) => {
-          const p = lstatSync(path.join(guildPath, file));
-          return p.isFile() && file.endsWith(`.${this.options.ext}`);
-        });
-
+      if (dirs.length) {
         this.guilds = new Collection();
-        if (!files.length) return;
 
-        const { options } = this;
-        options.path = guildPath;
+        for await (const dir of dirs) {
+          const guildPath = path.join(guildsPath, dir);
+          const files = readdirSync(guildPath).filter((file) => {
+            const p = lstatSync(path.join(guildPath, file));
+            return p.isFile() && file.endsWith(`.${this.options.ext}`);
+          });
 
-        const manager = new GuildCommandManager(dir, this.sucrose, options);
-        await manager.build();
+          if (files.length) {
+            const { options } = this;
+            options.path = guildPath;
 
-        this.guilds.set(dir, manager);
-      }));
+            const manager = new GuildCommandManager(dir, this.sucrose, options);
+            await manager.build();
+
+            this.guilds.set(dir, manager);
+          }
+        }
+
+        if (this.guilds.size) {
+          const total = this.guilds.reduce((acc, cmds) => acc + cmds.collection.size, 0);
+          if (total) Logger.give('SUCCESS', `${total} guilds commands loaded (${this.guilds.size} guilds)`);
+        }
+      }
     }
-
-    this.builded = true;
   }
 }

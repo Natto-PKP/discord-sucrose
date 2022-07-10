@@ -73,10 +73,19 @@ export default class InteractionManager {
     const buttonPath = path.join(this.options.path, 'buttons');
     if (existsSync(buttonPath) && lstatSync(buttonPath).isDirectory()) {
       const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-
       this.buttons.collection = new Collection();
+
       if (files.length) {
-        await this.buttons.add(files);
+        const loading = Logger.loading(files.length);
+        loading.next();
+
+        for await (const file of files) {
+          const index = files.indexOf(file) + 1;
+          loading.next({ index, message: `load /interactions/buttons/${file}` });
+          await this.buttons.add(file);
+        }
+
+        Logger.clear();
         Logger.give('SUCCESS', `${files.length} buttons loaded`);
       }
     }
@@ -85,10 +94,19 @@ export default class InteractionManager {
     const selectMenuPath = path.join(this.options.path, 'select-menus');
     if (existsSync(selectMenuPath) && lstatSync(selectMenuPath).isDirectory()) {
       const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-
       this.selectMenus.collection = new Collection();
+
       if (files.length) {
-        await this.selectMenus.add(files);
+        const loading = Logger.loading(files.length);
+        loading.next();
+
+        for await (const file of files) {
+          const index = files.indexOf(file) + 1;
+          loading.next({ index, message: `load /interactions/select-menus/${file}` });
+          await this.selectMenus.add(file);
+        }
+
+        Logger.clear();
         Logger.give('SUCCESS', `${files.length} select menus loaded`);
       }
     }
@@ -97,10 +115,19 @@ export default class InteractionManager {
     const formPath = path.join(this.options.path, 'forms');
     if (existsSync(formPath) && lstatSync(formPath).isDirectory()) {
       const files = readdirSync(formPath).filter((file) => lstatSync(path.join(formPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-
       this.forms.collection = new Collection();
+
       if (files.length) {
-        await this.forms.add(files);
+        const loading = Logger.loading(files.length);
+        loading.next();
+
+        for await (const file of files) {
+          const index = files.indexOf(file) + 1;
+          loading.next({ index, message: `load /interactions/forms/${file}` });
+          await this.forms.add(file);
+        }
+
+        Logger.clear();
         Logger.give('SUCCESS', `${files.length} form modals loaded`);
       }
     }

@@ -8,6 +8,7 @@ import type Sucrose from '../structures/Sucrose';
 
 import { SError, STypeError } from '../errors';
 import Event from '../structures/Event';
+import { Logger } from '../api.doc';
 
 type EventNames = keyof Discord.ClientEvents;
 
@@ -40,21 +41,28 @@ export default class EventManager {
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'EventManager is already build');
+    this.builded = true;
 
-    const to = this.options.path;
-    if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
-
-    const files = readdirSync(to).filter((file) => {
-      const name = <keyof Discord.ClientEvents>file;
-      return lstatSync(path.join(to, name)).isDirectory();
-    });
-
-    if (!files.length) throw SError('WARN', 'event folder is empty');
     if (this.collection.size) await Promise.all(this.collection.map((event) => event.remove()));
     this.collection = new Collection();
 
-    await this.add(<(keyof Discord.ClientEvents)[]>(<unknown>files));
-    this.builded = true;
+    const to = this.options.path;
+    if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
+    const events = readdirSync(to).filter((file) => lstatSync(path.join(to, file)).isDirectory());
+
+    if (events.length) {
+      const loading = Logger.loading(events.length);
+      loading.next();
+
+      for await (const event of events) {
+        const index = events.indexOf(event) + 1;
+        loading.next({ index, message: `load /events/${event}/handler.${this.options.ext}` });
+        await this.add(event as keyof Discord.ClientEvents);
+      }
+
+      Logger.clear();
+      Logger.give('SUCCESS', `${events.length} events loaded`);
+    }
   }
 
   /**
