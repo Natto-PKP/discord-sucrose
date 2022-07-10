@@ -60,10 +60,14 @@ export default class InteractionManager {
     sucrose.on('interactionCreate', async (interaction) => {
       try { await this.listener(interaction); } catch (err) {
         if (!(err instanceof Error)) return;
-        Logger.handle(err);
 
-        const { channel } = interaction;
-        if (channel) await channel.send(options.contents.ERROR(err) as Discord.MessageOptions);
+        if (interaction.channel) {
+          interaction.channel.send(
+            options.contents.ERROR(err) as Discord.MessageOptions,
+          ).catch(() => null);
+        }
+
+        Logger.handle(err);
       }
     });
   }
