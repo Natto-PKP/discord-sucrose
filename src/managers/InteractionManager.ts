@@ -14,6 +14,7 @@ import ButtonInteractionManager from './ButtonInteractionManager';
 import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 import FormModalInteractionManager from './FormModalInteractionManager';
 import Logger from '../services/Logger';
+import AutocompleteInteractionManager from './AutocompleteInteractionManager';
 
 /**
  * interaction manager
@@ -22,6 +23,11 @@ import Logger from '../services/Logger';
  */
 export default class InteractionManager {
   private builded = false;
+
+  /**
+   * manager of autocompletes
+   */
+  public autocompletes: AutocompleteInteractionManager;
 
   /**
    * manager of buttons
@@ -46,6 +52,7 @@ export default class InteractionManager {
     ext: 'js' | 'ts';
     path: string;
   }) {
+    this.autocompletes = new AutocompleteInteractionManager({ ext: options.ext, path: path.join(options.path, 'autocompletes') });
     this.buttons = new ButtonInteractionManager({ ext: options.ext, path: path.join(options.path, 'buttons') });
     this.forms = new FormModalInteractionManager({ ext: options.ext, path: path.join(options.path, 'forms') });
     this.selectMenus = new SelectMenuInteractionManager({ ext: options.ext, path: path.join(options.path, 'select-menus') });
@@ -131,6 +138,27 @@ export default class InteractionManager {
         Logger.give('SUCCESS', `${files.length} form modals loaded`);
       }
     }
+
+    // ! autocompletes manager
+    const autocompletePath = path.join(this.options.path, 'autocompletes');
+    if (existsSync(autocompletePath) && lstatSync(autocompletePath).isDirectory()) {
+      const files = readdirSync(autocompletePath).filter((file) => lstatSync(path.join(autocompletePath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
+      this.autocompletes.collection = new Collection();
+
+      if (files.length) {
+        const loading = Logger.loading(files.length);
+        loading.next();
+
+        for await (const file of files) {
+          const index = files.indexOf(file) + 1;
+          loading.next({ index, message: `load /interactions/autocompletes/${file}` });
+          await this.autocompletes.add(file);
+        }
+
+        Logger.clear();
+        Logger.give('SUCCESS', `${files.length} autocompletes loaded`);
+      }
+    }
   }
 
   /**
@@ -143,6 +171,24 @@ export default class InteractionManager {
     const { sucrose, options: { contents } } = this;
     const params = { sucrose };
     const { guild } = interaction;
+
+    // modal form
+    if (interaction.isModalSubmit()) {
+      const { customId } = interaction;
+      const form = this.forms.collection.get(customId);
+      if (!form || await this.permissions(interaction, form.permissions)) return;
+      if (!form.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+      return form.exec({ ...params, interaction });
+    } // [end] modal form
+
+    // autocomplete
+    if (interaction.isAutocomplete()) {
+      const { commandName } = interaction;
+      const optionName = interaction.options.getFocused();
+      const autocomplete = this.autocompletes.collection.get(`${commandName}-${optionName}`) || this.autocompletes.collection.get(commandName);
+      if (!autocomplete || !autocomplete.exec) return;
+      return autocomplete.exec({ ...params, interaction });
+    } // [end] autocomplete
 
     // command or context menu
     if (interaction.isCommand() || interaction.isContextMenu()) {
@@ -220,7 +266,8 @@ export default class InteractionManager {
     interaction: Discord.CommandInteraction
     | Discord.ButtonInteraction
     | Discord.SelectMenuInteraction
-    | Discord.ContextMenuInteraction,
+    | Discord.ContextMenuInteraction
+    | Discord.ModalSubmitInteraction,
     permissions?: Types.Permissions,
   ): Promise<Discord.Message | void> {
     if (!permissions) return;

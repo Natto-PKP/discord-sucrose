@@ -6,6 +6,54 @@ import type Discord from 'discord.js';
  */
 
 // # export manager
+declare class AutocompleteInteractionManager {
+  /**
+   * collection of autocomplete
+   */
+  public collection: Discord.Collection<string, AutocompleteData>;
+
+  constructor(options: { ext: 'js' | 'ts'; path: string; });
+
+  /**
+   * upload the files to add your autocomplete to the collection
+   *
+   * @param files - string or string array of files to load
+   *
+   * @example
+   * await manager.add(["command.ts", "command-option.ts"]);
+   * await manager.add("command.ts");
+   */
+  public add(files: string): Promise<AutocompleteData>;
+  public add(files: string[]): Promise<AutocompleteData[]>;
+  public add(files: unknown): Promise<AutocompleteData | AutocompleteData[]>;
+
+  /**
+   * refresh one or more autocomplete (remove() and add())
+   *
+   * @param names - name or names array of autocomplete to refresh
+   *
+   * @example
+   * await manager.refresh(["command", "command-option"]);
+   * await manager.refresh("command");
+   */
+  public refresh(names: string): Promise<AutocompleteData>;
+  public refresh(names: string[]): Promise<AutocompleteData[]>;
+  public refresh(names: unknown): Promise<AutocompleteData | AutocompleteData[]>;
+
+  /**
+   * remove one or more autocomplete
+   *
+   * @param names - name or names array of autocomplete to remove
+   *
+   * @example
+   * await manager.remove(["command", "command-option"]);
+   * await manager.remove("command");
+   */
+  public remove(names: string): void;
+  public remove(names: string[]): void;
+  public remove(names: unknown): void;
+}
+
 declare class BaseCommandManager {
   /**
    * collection of commands
@@ -240,6 +288,11 @@ declare class GuildCommandManager extends BaseCommandManager {
 }
 
 declare class InteractionManager {
+  /**
+   * manager or autocompletes
+   */
+  public autocompletes: AutocompleteInteractionManager;
+
   /**
    * manager of buttons
    */
@@ -604,6 +657,22 @@ export interface InteractionContent {
 }
 
 /**
+ * autocomplete interaction
+ * @public
+ */
+export interface Autocomplete {
+  /**
+   * the autocomplete body
+   */
+  body: { command: string; option?: string; };
+
+  /**
+   * function that will be executed when the command or command + option is called
+   */
+  exec?: BaseExec<{ interaction: Discord.AutocompleteInteraction }>;
+}
+
+/**
  * chat input interaction
  * @public
  */
@@ -844,6 +913,11 @@ interface CommandType {
   USER: UserContextMenuData;
   MESSAGE: MessageContextMenuData;
 }
+
+/**
+ * @public
+ */
+type AutocompleteData = Autocomplete & { path: string; };
 
 /**
  * @public

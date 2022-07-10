@@ -89,7 +89,6 @@ export default class Sucrose extends Client {
     // managers
     await sucrose.commands.build().catch(Logger.handle);
     await sucrose.interactions.build().catch(Logger.handle);
-
     await sucrose.events.build().catch(Logger.handle);
 
     Logger.write('');
