@@ -10,6 +10,8 @@
 
 <summary>With template</summary>
 
+Click in "Use this template" and create your own repo
+
 - [Javascript](https://github.com/Natto-PKP/discord-sucrose-javascript-template)
 - [Typescript](https://github.com/Natto-PKP/discord-sucrose-typescript-template)
 
@@ -75,6 +77,9 @@ Sucrose.build({ intents: [Intents.FLAGS.GUILDS] });
 _/events/ready/handler.js_
 
 ```js
+/**
+ * @type { import('discord-sucrose').EventHandler<'ready'> }
+ */
 module.exports = ({ sucrose }) => {
   console.log(sucrose.user.username + ' is online !');
 };
@@ -89,6 +94,9 @@ module.exports = ({ sucrose }) => {
 _/commands/global/handler.js_
 
 ```js
+/**
+ * @type { import('discord-sucrose').ChatInput }
+ */
 module.exports = {
   body: {
     name: 'command',
@@ -112,6 +120,9 @@ module.exports = {
 _/interactions/buttons/use-me.js_
 
 ```js
+/**
+ * @type { import('discord-sucrose').Button }
+ */
 module.exports = {
   data: {
     type: 'BUTTON',
@@ -134,6 +145,9 @@ module.exports = {
 _/interactions/select-menus/select-me.js_
 
 ```js
+/**
+ * @type { import('discord-sucrose').SelectMenu }
+ */
 module.exports = {
   data: {
     type: 'SELECT_MENU',
@@ -155,3 +169,96 @@ module.exports = {
 ```
 
 > Get your select-menu with `sucrose.interactions.selectMenus.collection.get('select-me');`
+
+## **Create a form modal**
+
+- **Create a folder named "interactions" and in it, create a folder named "forms"**. This last folder will contain your form modals
+
+_/interactions/forms/report.ts_
+
+```js
+/**
+ * @type { import('discord-sucrose').Form }
+ */
+module.exports = {
+  data: {
+    customId: 'create-report',
+    title: 'Report ticket',
+    components: [
+      {
+        type: 'ACTION_ROW',
+        components: [
+          {
+            customId: 'report-reason',
+            type: 'TEXT_INPUT',
+            style: 'SHORT',
+            label: 'Indicate the reason for the report',
+            required: true,
+          },
+        ],
+      },
+      {
+        type: 'ACTION_ROW',
+        components: [
+          {
+            customId: 'report-args',
+            type: 'TEXT_INPUT',
+            style: 'PARAGRAPH',
+            label: 'Indicate your problem',
+            required: true,
+          },
+        ],
+      },
+    ],
+  },
+
+  exec: ({ interaction }) => {
+    const reason = interaction.fields.getTextInputValue('report-reason');
+    const args = interaction.fields.getTextInputValue('report-args');
+
+    console.log(reason, args);
+  },
+};
+```
+
+> Get your form modal with `sucrose.interactions.forms.collection.get('report');`
+
+## **Create a autocompletion**
+
+- **Create a folder named "interactions" and in it, create a folder named "autocompletions"**. This last folder will contain your autocompletion
+
+_/interactions/autocompletions/_
+
+```js
+/**
+ * @type { import('discord-sucrose').Autocompletion }
+ */
+module.exports = {
+  body: { command: 'image' },
+
+  exec: ({ interaction }) => {
+    const focus = interaction.options.getFocused();
+
+    if (focus === 'animals') {
+      /* ... */
+    } else if (focus === 'games') {
+      /* ... */
+    }
+  },
+};
+```
+
+```js
+/**
+ * @type { import('discord-sucrose').Autocompletion }
+ */
+module.exports = {
+  body: { command: 'image', option: 'animals' },
+
+  exec: ({ interaction }) => {
+    const focus = interaction.options.getFocused();
+
+    /* ... */
+  },
+};
+```
