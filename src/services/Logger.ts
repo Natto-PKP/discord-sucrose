@@ -27,8 +27,11 @@ export default class Logger {
   });
 
   static clear() {
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
+    try {
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+      return undefined;
+    } catch { return undefined; }
   }
 
   /**
