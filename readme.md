@@ -1,5 +1,9 @@
 # Discord bot structure using discord.js
 
+> ⚠️ Discord.js Error for typescript fix :  
+> `cd node_modules/discord.js`  
+> `npm i @discordjs/builders@dev`
+
 ### [Examples here](./example/)
 
 ### [Documentation here](https://docs.discord.sucrose.xyz/)
