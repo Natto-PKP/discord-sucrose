@@ -79,12 +79,11 @@ export default class Sucrose extends Client {
     const now = Date.now();
 
     // application log
-    const connected = () => Logger.give('SUCCESS', 'Application is connected to discord');
     await sucrose.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
     if (!sucrose.isReady()) {
-      await new Promise<void>((res) => { sucrose.on('ready', () => res(connected())); });
+      await new Promise<void>((res) => { sucrose.on('ready', () => res()); });
       sucrose.removeAllListeners('ready');
-    } else connected();
+    }
 
     // managers
     await sucrose.commands.build().catch(Logger.handle);
