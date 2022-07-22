@@ -235,7 +235,7 @@ _/interactions/autocompletions/_
 
 ```js
 /**
- * @type { import('discord-sucrose').Autocompletion }
+ * @type { import('discord-sucrose').Autocomplete }
  */
 module.exports = {
   body: { command: 'image' },
@@ -252,9 +252,11 @@ module.exports = {
 };
 ```
 
+Autocompletion
+
 ```js
 /**
- * @type { import('discord-sucrose').Autocompletion }
+ * @type { import('discord-sucrose').Autocomplete }
  */
 module.exports = {
   body: { command: 'image', option: 'animals' },
