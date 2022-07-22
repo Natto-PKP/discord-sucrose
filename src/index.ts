@@ -5,6 +5,8 @@
 import Logger from './services/Logger';
 import Sucrose from './structures/Sucrose';
 
+export * from 'discord.js';
+
 export {
   Logger,
   Sucrose,
