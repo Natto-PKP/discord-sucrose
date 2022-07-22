@@ -685,7 +685,7 @@ export interface ChatInput extends BaseInteraction {
   /**
    * the function that will be executed when the command is called
    */
-  exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
+  exec?: BaseExec<{ interaction: Discord.ChatInputCommandInteraction }>;
 }
 
 /**
