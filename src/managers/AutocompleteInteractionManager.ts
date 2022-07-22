@@ -8,7 +8,6 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
-import * as validations from '../validations';
 
 /**
  * autocomplete interaction manager
@@ -51,9 +50,8 @@ export default class AutocompleteInteractionManager {
       if (!lstatSync(to).isFile()) throw SError('ERROR', `autocomplete file "${to}" is not a file`);
 
       const autocomplete = <Types.AutocompleteData> await helpers.imported(path.join(process.cwd(), to), 'autocomplete');
-      validations.autocomplete(autocomplete);
-
       autocomplete.path = to;
+
       const { command, option } = autocomplete.body;
 
       if (option) {

@@ -8,7 +8,6 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
-import * as validations from '../validations';
 
 /**
  * button interaction manager
@@ -51,8 +50,6 @@ export default class FormModalInteractionManager {
       if (!lstatSync(to).isFile()) throw SError('ERROR', `form modal file "${to}" is not a file`);
 
       const form = <Types.FormData> await helpers.imported(path.join(process.cwd(), to), 'form');
-      validations.form(form);
-
       form.path = to;
 
       if (this.collection.has(form.data.customId)) throw SError('ERROR', `form modal "${form.data.customId}" already exists in collection`);

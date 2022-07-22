@@ -1,6 +1,8 @@
 /* eslint-disable consistent-return */
 
-import { Collection } from 'discord.js';
+import {
+  ApplicationCommandOptionType, ApplicationCommandType, Collection, ComponentType, InteractionType,
+} from 'discord.js';
 import path from 'path';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 
@@ -62,9 +64,8 @@ export default class InteractionManager {
         if (!(err instanceof Error)) return;
 
         if (interaction.channel) {
-          interaction.channel.send(
-            options.contents.ERROR(err) as Discord.MessageOptions,
-          ).catch(() => null);
+          const content = options.contents.ERROR(err) as Discord.MessageOptions;
+          interaction.channel.send(content).catch(() => null);
         }
 
         Logger.handle(err);
@@ -171,13 +172,15 @@ export default class InteractionManager {
    *
    * @param interaction - current interaction
    */
-  private async listener(interaction: Discord.Interaction): Promise<void> {
+  private async listener(
+    interaction: Discord.Interaction,
+  ): Promise<void | Discord.InteractionResponse> {
     const { sucrose, options: { contents } } = this;
     const params = { sucrose };
     const { guild } = interaction;
 
-    // modal form
-    if (interaction.isModalSubmit()) {
+    // ? modal form
+    if (interaction.type === InteractionType.ModalSubmit) {
       const { customId } = interaction;
       const form = this.forms.collection.get(customId);
       if (!form || await this.permissions(interaction, form.permissions)) return;
@@ -185,8 +188,8 @@ export default class InteractionManager {
       return form.exec({ ...params, interaction });
     } // [end] modal form
 
-    // autocomplete
-    if (interaction.isAutocomplete()) {
+    // ? autocomplete
+    if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
       const { commandName } = interaction;
       const optionName = interaction.options.getFocused();
       const autocomplete = this.autocompletes.collection.get(`${commandName}-${optionName}`) || this.autocompletes.collection.get(commandName);
@@ -194,28 +197,28 @@ export default class InteractionManager {
       return autocomplete.exec({ ...params, interaction });
     } // [end] autocomplete
 
-    // command or context menu
-    if (interaction.isCommand() || interaction.isContextMenu()) {
+    // ? command or context menu
+    if (interaction.type === InteractionType.ApplicationCommand) {
       const name = interaction.commandName;
       const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands;
       const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
       if (!command || await this.permissions(interaction, command.permissions)) return;
 
-      // command
-      if (interaction.isCommand()) {
+      // ? command
+      if (interaction.commandType === ApplicationCommandType.ChatInput) {
         const chatInput = <Types.ChatInputData>command;
         const groupName = interaction.options.getSubcommandGroup(false);
         const optionName = interaction.options.getSubcommand(false);
 
-        // sub command groupe or sub command
+        // ? sub command groupe or sub command
         if (groupName || optionName) {
           const option = (groupName || optionName)
             && chatInput.options?.get(groupName || optionName as string);
           if (!option) return interaction.reply(contents.MISSING_SUB_COMMAND_GROUP(name));
           if (await this.permissions(interaction, option.permissions)) return;
 
-          // sub command
-          if (option.option.type === 'SUB_COMMAND_GROUP') {
+          // ? sub command
+          if (option.option.type === ApplicationCommandOptionType.SubcommandGroup) {
             const opts = (<Types.SubCommandGroupData>option).options;
             const subOption = optionName && opts.get(optionName);
             if (!subOption) return interaction.reply(contents.MISSING_SUB_COMMAND(name));
@@ -235,28 +238,43 @@ export default class InteractionManager {
         } return chatInput.exec({ ...params, interaction });
       } // [end] command
 
-      if (!command.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-      return command.exec({ ...params, interaction: <Types.DiscordCommand>interaction });
+      // ? message context menu
+      if (interaction.commandType === ApplicationCommandType.Message) {
+        const context = command as Types.MessageContextMenu;
+        if (!context.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+        return context.exec({ ...params, interaction });
+      } // [end] message context menu
+
+      // ? user context menu
+      if (interaction.commandType === ApplicationCommandType.User) {
+        const context = command as Types.UserContextMenu;
+        if (!context.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+        return context.exec({ ...params, interaction });
+      } // [end] user context menu
     } // [end] command or context menu
 
-    // select menu
-    if (interaction.isSelectMenu()) {
-      const { customId } = interaction;
-      const selectMenu = this.selectMenus.collection.get(customId);
-      if (!selectMenu || await this.permissions(interaction, selectMenu.permissions)) return;
-      if (!selectMenu.exec) {
-        return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
-      } return selectMenu.exec({ ...params, interaction });
-    } // [end] select menu
+    // ? message component
+    if (interaction.type === InteractionType.MessageComponent) {
+      // ? select menu
+      if (interaction.componentType === ComponentType.SelectMenu) {
+        const { customId } = interaction;
+        const selectMenu = this.selectMenus.collection.get(customId);
+        if (!selectMenu || await this.permissions(interaction, selectMenu.permissions)) return;
+        if (!selectMenu.exec) {
+          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+        } return selectMenu.exec({ ...params, interaction });
+      } // [end] select menu
 
-    // button
-    if (interaction.isButton()) {
-      const { customId } = interaction;
-      const button = this.buttons.collection.get(customId);
-      if (!button || await this.permissions(interaction, button.permissions)) return;
-      if (!button.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
-      return button.exec({ ...params, interaction });
-    } // [end] button
+      // ? button
+      if (interaction.componentType === ComponentType.Button) {
+        const { customId } = interaction;
+        const button = this.buttons.collection.get(customId);
+        if (!button || await this.permissions(interaction, button.permissions)) return;
+        if (!button.exec) {
+          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+        } return button.exec({ ...params, interaction });
+      } // [end] button
+    }
   }
 
   /**
@@ -270,23 +288,24 @@ export default class InteractionManager {
     interaction: Discord.CommandInteraction
     | Discord.ButtonInteraction
     | Discord.SelectMenuInteraction
-    | Discord.ContextMenuInteraction
+    | Discord.MessageComponentInteraction
     | Discord.ModalSubmitInteraction,
     permissions?: Types.Permissions,
-  ): Promise<Discord.Message | void> {
+  ): Promise<Discord.InteractionResponse | void> {
     if (!permissions) return;
 
     const { contents } = this.options;
     const { client, user, channel } = interaction;
 
     // ! Guild check
-    if (interaction.guild && interaction.guild.me) {
+    if (interaction.guild && interaction.guild.members.me) {
       const guild = <Discord.Guild>interaction.guild;
       const member = <Discord.GuildMember>interaction.member;
+      const me = <Discord.GuildMember>guild.members.me;
 
       // ! Client
       if (permissions.client) {
-        const missing = interaction.guild.me.permissions.missing(permissions.client);
+        const missing = me.permissions.missing(permissions.client);
         if (missing.length) {
           const content = contents.PERMISSIONS_MISSING_CLIENT(client, missing);
           return interaction.reply(content);
@@ -295,7 +314,7 @@ export default class InteractionManager {
 
       // ! Member
       if (permissions.member) {
-        const missing = (<Discord.Permissions>member?.permissions).missing(permissions.member);
+        const missing = member.permissions.missing(permissions.member);
         if (missing.length) {
           const content = contents.PERMISSIONS_MISSING_MEMBER(member, missing);
           return interaction.reply(content);

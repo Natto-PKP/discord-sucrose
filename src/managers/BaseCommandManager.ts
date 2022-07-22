@@ -1,4 +1,4 @@
-import { Collection } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, Collection } from 'discord.js';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
@@ -9,7 +9,6 @@ import type Sucrose from '../structures/Sucrose';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
-import * as validations from '../validations';
 
 /**
  * @public
@@ -60,14 +59,12 @@ export default class BaseCommandManager {
       if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
 
       const command = <Types.CommandData> await helpers.imported(path.join(process.cwd(), to), 'command');
-      validations.command(command, command?.body?.name || 'unknown');
-
       command.path = to;
 
       if (this.collection.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
 
       // chat input
-      if (!command.body.type || command.body.type === 'CHAT_INPUT') {
+      if (!command.body.type || command.body.type === ApplicationCommandType.ChatInput) {
         const parent = <Types.ChatInputData>command;
         const folder = path.join(this.options.path, parent.body.name);
         if (!command.body.description || typeof command.body.description !== 'string') throw STypeError('command.body.description', 'string', command.body.description);
@@ -89,13 +86,11 @@ export default class BaseCommandManager {
           await Promise.all(options.map(async (file) => {
             const optionPath = path.join(folder, file);
             const option = <Types.CommandOptionData> await helpers.imported(path.join(process.cwd(), optionPath), 'option');
-            validations.command(option, `${command.body.name} ${option?.option?.name || 'unknown'}`);
-
             option.path = optionPath;
             option.parent = parent.body.name;
 
             // sub command group
-            if (option.option.type === 'SUB_COMMAND_GROUP') {
+            if (option.option.type === ApplicationCommandOptionType.SubcommandGroup) {
               const group = <Types.SubCommandGroupData>option;
               const groupPath = path.join(folder, group.option.name);
 
@@ -117,8 +112,6 @@ export default class BaseCommandManager {
               await Promise.all(groupFiles.map(async (groupFile) => {
                 const subPath = path.join(groupPath, groupFile);
                 const sub = <Types.SubCommandData> await helpers.imported(path.join(process.cwd(), subPath), 'option');
-                validations.command(option, `${command.body.name} ${option.option.name} ${sub?.option?.name || 'unknown'}`);
-
                 sub.path = subPath;
                 sub.parent = group.option.name;
 
@@ -132,7 +125,8 @@ export default class BaseCommandManager {
               parent.options?.set(group.option.name, group);
 
               // [end] sub command group
-            } else if (option.option.type === 'SUB_COMMAND') { // sub command
+            } else if (option.option.type === ApplicationCommandOptionType.Subcommand) {
+              // sub command
               const sub = <Types.SubCommandData>option;
 
               // # define sub command on parent

@@ -8,7 +8,6 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
-import * as validations from '../validations';
 
 /**
  * select menu interaction manager
@@ -46,8 +45,6 @@ export default class SelectMenuInteractionManager {
       if (!lstatSync(to).isFile()) throw SError('ERROR', `select menu file "${to}" is not a file`);
 
       const selectMenu = <Types.SelectMenuData> await helpers.imported(path.join(process.cwd(), to), 'interaction');
-      validations.selectMenu(selectMenu);
-
       selectMenu.path = to;
 
       const { customId } = selectMenu.data;

@@ -8,7 +8,6 @@ import type Types from '../../typings';
 
 import { SError, STypeError } from '../errors';
 import * as helpers from '../helpers';
-import * as validations from '../validations';
 
 /**
  * button interaction manager
@@ -51,8 +50,6 @@ export default class ButtonInteractionManager {
       if (!lstatSync(to).isFile()) throw SError('ERROR', `button file "${to}" is not a file`);
 
       const button = <Types.ButtonData> await helpers.imported(path.join(process.cwd(), to), 'button');
-      validations.button(button);
-
       button.path = to;
 
       if ('url' in button.data) {

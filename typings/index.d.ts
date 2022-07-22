@@ -701,7 +701,7 @@ export interface MessageContextMenu extends BaseInteraction {
   /**
    * the function that will be executed when the message context menu is called
    */
-  exec?: BaseExec<{ interaction: Discord.MessageContextMenuInteraction }>;
+  exec?: BaseExec<{ interaction: Discord.MessageContextMenuCommandInteraction }>;
 }
 
 /**
@@ -753,7 +753,7 @@ export interface SelectMenu extends BaseInteraction {
   /**
    * select menu body
    */
-  data: Required<Discord.BaseMessageComponentOptions> & Discord.MessageSelectMenuOptions;
+  data: Discord.SelectMenuComponentData;
 
   /**
    * function executed when the select menu is activated
@@ -852,7 +852,7 @@ export interface UserContextMenu extends BaseInteraction {
   /**
    * function executed when the user context menu is activated
    */
-  exec?: BaseExec<{ interaction: Discord.UserContextMenuInteraction }>;
+  exec?: BaseExec<{ interaction: Discord.UserContextMenuCommandInteraction }>;
 }
 
 // # export types
@@ -860,11 +860,11 @@ export interface UserContextMenu extends BaseInteraction {
  * button
  * @public
  */
-export type Button<T extends keyof ButtonTypes = keyof ButtonTypes> = BaseInteraction & {
+export type Button = BaseInteraction & {
   /**
    * button body
    */
-  data: ButtonTypes[T];
+  data: Discord.ButtonComponentData;
 
   /**
    * function executed when the button is activated
@@ -888,7 +888,7 @@ export type Form = BaseInteraction & {
   /**
    * form body
    */
-  data: Discord.ModalOptions;
+  data: Discord.ModalComponentData;
 
   /**
    * function executed when the form modal is activated
@@ -897,14 +897,6 @@ export type Form = BaseInteraction & {
 };
 
 // # internal
-/**
- * @public
- */
-interface ButtonTypes {
-  link: Required<Discord.BaseMessageComponentOptions> & Discord.LinkButtonOptions;
-  base: Required<Discord.BaseMessageComponentOptions> & Discord.InteractionButtonOptions;
-}
-
 /**
  * @public
  */
@@ -937,7 +929,7 @@ type BaseParams = { sucrose: Sucrose };
 /**
  * @public
  */
-type ButtonData<T extends keyof ButtonTypes = keyof ButtonTypes> = Button<T> & { path: string };
+type ButtonData = Button & { path: string };
 
 /**
  * @public
