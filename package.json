@@ -1,6 +1,6 @@
 {
   "name": "discord-sucrose",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "types": "typings/index.d.ts",
@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc src/api.doc.ts typings/index.d.ts --out docs",
+    "docs": "typedoc typings/index.d.ts --out docs",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -18,7 +18,8 @@
   "keywords": [
     "discord",
     "bot",
-    "discord.js"
+    "discord.js",
+    "typescript"
   ],
   "repository": {
     "type": "git",
@@ -37,8 +38,7 @@
     "prettier": "^2.4.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
-    "typedoc": "^0.22.17",
-    "typedoc-plugin-discord-types": "^1.0.2",
+    "typedoc": "^0.23.8",
     "typescript": "^4.5.2"
   },
   "dependencies": {

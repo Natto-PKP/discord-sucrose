@@ -3,11 +3,7 @@
  */
 
 import Logger from './services/Logger';
-import Sucrose from './structures/Sucrose';
+import Sucrose from './Sucrose';
 
-export {
-  Logger,
-  Sucrose,
-};
-
+export { Logger, Sucrose };
 export default Sucrose;

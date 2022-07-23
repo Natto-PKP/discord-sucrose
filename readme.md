@@ -1,11 +1,5 @@
 # Discord bot structure using discord.js
 
-> ⚠️ Discord.js Error for typescript fix :  
-> `cd node_modules/discord.js`  
-> `npm i @discordjs/builders@dev`
-
-### [Examples here](./example/)
-
 ### [Documentation here](https://docs.discord.sucrose.xyz/)
 
 ## **Getting started**
@@ -65,10 +59,10 @@ _Create index.js_
 
 ```js
 const { Sucrose } = require('discord-sucrose');
-const { Intents } = require('discord.js');
+const { GatewayIntentBits, Partials } = require('discord.js');
 require('dotenv').config();
 
-Sucrose.build({ intents: [Intents.FLAGS.GUILDS] });
+Sucrose.build({ intents: [GatewayIntentBits.Guilds], partials: [Partials.Channel] });
 ```
 
 > Start bot with node index.js
@@ -98,13 +92,15 @@ module.exports = ({ sucrose }) => {
 _/commands/global/handler.js_
 
 ```js
+const { ApplicationCommandType } = require('discord.js');
+
 /**
  * @type { import('discord-sucrose').ChatInput }
  */
 module.exports = {
   body: {
     name: 'command',
-    type: 'CHAT_INPUT',
+    type: ApplicationCommandType.ChatInput,
     description: 'a command',
   },
 
@@ -124,14 +120,16 @@ module.exports = {
 _/interactions/buttons/use-me.js_
 
 ```js
+const { ComponentType, ButtonStyle } = require('discord.js');
+
 /**
  * @type { import('discord-sucrose').Button }
  */
 module.exports = {
   data: {
-    type: 'BUTTON',
+    type: ComponentType.Button,
     customId: 'use-me',
-    style: 'DANGER',
+    style: ButtonStyle.Danger,
   },
 
   exec: ({ interaction }) => {
@@ -149,12 +147,14 @@ module.exports = {
 _/interactions/select-menus/select-me.js_
 
 ```js
+const { ComponentType } = require('discord.js');
+
 /**
  * @type { import('discord-sucrose').SelectMenu }
  */
 module.exports = {
   data: {
-    type: 'SELECT_MENU',
+    type: ComponentType.SelectMenu,
     customId: 'select-me',
     placeholder: 'Select me !',
     options: [

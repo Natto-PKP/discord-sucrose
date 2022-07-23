@@ -18,7 +18,7 @@ if (!existsSync(directory) || !lstatSync(directory).isDirectory()) mkdirSync(dir
 
 /**
  * @public
- * @category Services
+ * @category services
  */
 export default class Logger {
   static console = new Console({

@@ -1,169 +1,104 @@
 /* eslint-disable consistent-return */
 
 import {
-  ApplicationCommandOptionType, ApplicationCommandType, Collection, ComponentType, InteractionType,
+  ApplicationCommandOptionType, ApplicationCommandType, ComponentType, Interaction, InteractionType,
 } from 'discord.js';
 import path from 'path';
-import { existsSync, lstatSync, readdirSync } from 'fs';
 
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
-import type Sucrose from '../structures/Sucrose';
+import type Sucrose from '../Sucrose';
 
-import { SError } from '../errors';
-import ButtonInteractionManager from './ButtonInteractionManager';
-import SelectMenuInteractionManager from './SelectMenuInteractionManager';
-import FormModalInteractionManager from './FormModalInteractionManager';
+import { SError, SInteractionError, SucroseInteractionError } from '../errors';
+import BaseInteractionManager from './BaseInteractionManager';
 import Logger from '../services/Logger';
-import AutocompleteInteractionManager from './AutocompleteInteractionManager';
 
 /**
- * interaction manager
+ * Structure for manage all classic interaction
+ * @category managers
+ *
  * @public
- * @category Managers
+ * @example Initialize new InteractionManager
+ * ```js
+ * new InteractionManager(sucrose, options);
+ * ```
  */
-export default class InteractionManager {
+export default class InteractionManager implements Types.InteractionManager {
+  /**
+   * Define if this manager is builded or not
+   */
   private builded = false;
 
   /**
-   * manager of autocompletes
+   * Define interactions parent directory
    */
-  public autocompletes: AutocompleteInteractionManager;
+  public path: string;
 
   /**
-   * manager of buttons
+   * autocomplete interaction manager
    */
-  public buttons: ButtonInteractionManager;
+  public autocompletes: BaseInteractionManager<Types.AutocompleteData>;
 
   /**
-   * manager of form modals
+   * buttons interaction manager
    */
-  public forms: FormModalInteractionManager;
+  public buttons: BaseInteractionManager<Types.ButtonData>;
 
   /**
-   * manager of select menu
+   * form modals interaction manager
    */
-  public selectMenus: SelectMenuInteractionManager;
+  public forms: BaseInteractionManager<Types.FormData>;
 
   /**
-   * @internal
+   * select menus interaction manager
    */
-  public constructor(private sucrose: Sucrose, private options: {
-    contents: Required<Types.InteractionContent>;
-    ext: 'js' | 'ts';
-    path: string;
-  }) {
-    this.autocompletes = new AutocompleteInteractionManager({ ext: options.ext, path: path.join(options.path, 'autocompletes') });
-    this.buttons = new ButtonInteractionManager({ ext: options.ext, path: path.join(options.path, 'buttons') });
-    this.forms = new FormModalInteractionManager({ ext: options.ext, path: path.join(options.path, 'forms') });
-    this.selectMenus = new SelectMenuInteractionManager({ ext: options.ext, path: path.join(options.path, 'select-menus') });
+  public selectMenus: BaseInteractionManager<Types.SelectMenuData>;
 
-    sucrose.on('interactionCreate', async (interaction) => {
-      try { await this.listener(interaction); } catch (err) {
-        if (!(err instanceof Error)) return;
+  public constructor(private sucrose: Sucrose, private options: Types.InteractionManagerOptions) {
+    this.path = options.path;
 
-        if (interaction.channel) {
-          const content = options.contents.ERROR(err) as Discord.MessageOptions;
-          interaction.channel.send(content).catch(() => null);
-        }
+    const autocompletePath = path.join(options.path, 'autocompletes');
+    const buttonPath = path.join(options.path, 'buttons');
+    const formPath = path.join(options.path, 'forms');
+    const selectMenuPath = path.join(options.path, 'select-menu');
+    const { env, logging } = options;
+    const params = { env, logging };
 
-        Logger.handle(err);
-      }
-    });
+    this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>({ ...params, path: autocompletePath, name: 'autocomplete' });
+    this.buttons = new BaseInteractionManager<Types.ButtonData>({ ...params, path: buttonPath, name: 'button' });
+    this.forms = new BaseInteractionManager<Types.FormData>({ ...params, path: formPath, name: 'form' });
+    this.selectMenus = new BaseInteractionManager<Types.SelectMenuData>({ ...params, path: selectMenuPath, name: 'select-menu' });
   }
 
   /**
-   * load and build all interactions
-   * @internal
+   * build this manager and all interaction manager
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
     this.builded = true;
 
+    await this.autocompletes.build();
+    await this.buttons.build();
+    await this.forms.build();
+    await this.selectMenus.build();
+
     // ! buttons manager
-    const buttonPath = path.join(this.options.path, 'buttons');
-    if (existsSync(buttonPath) && lstatSync(buttonPath).isDirectory()) {
-      const files = readdirSync(buttonPath).filter((file) => lstatSync(path.join(buttonPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-      this.buttons.collection = new Collection();
+    this.sucrose.on('interactionCreate', async (interaction) => {
+      await this.listener(interaction).catch((err: Error) => {
+        const { autoReply } = this.options.features;
+        const content = autoReply.contents.ERROR({ interaction, error: err });
+        const { channel } = interaction;
 
-      if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
-
-        for await (const file of files) {
-          const index = files.indexOf(file) + 1;
-          loading.next({ index, message: `load /interactions/buttons/${file}` });
-          await this.buttons.add(file);
+        if (autoReply.active && content && channel) {
+          channel.send(content as Discord.MessageOptions).catch(() => null);
         }
 
-        Logger.clear();
-        Logger.give('SUCCESS', `${files.length} buttons loaded`);
-      }
-    }
-
-    // ! select menus manager
-    const selectMenuPath = path.join(this.options.path, 'select-menus');
-    if (existsSync(selectMenuPath) && lstatSync(selectMenuPath).isDirectory()) {
-      const files = readdirSync(selectMenuPath).filter((file) => lstatSync(path.join(selectMenuPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-      this.selectMenus.collection = new Collection();
-
-      if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
-
-        for await (const file of files) {
-          const index = files.indexOf(file) + 1;
-          loading.next({ index, message: `load /interactions/select-menus/${file}` });
-          await this.selectMenus.add(file);
-        }
-
-        Logger.clear();
-        Logger.give('SUCCESS', `${files.length} select menus loaded`);
-      }
-    }
-
-    // ! form modals manager
-    const formPath = path.join(this.options.path, 'forms');
-    if (existsSync(formPath) && lstatSync(formPath).isDirectory()) {
-      const files = readdirSync(formPath).filter((file) => lstatSync(path.join(formPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-      this.forms.collection = new Collection();
-
-      if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
-
-        for await (const file of files) {
-          const index = files.indexOf(file) + 1;
-          loading.next({ index, message: `load /interactions/forms/${file}` });
-          await this.forms.add(file);
-        }
-
-        Logger.clear();
-        Logger.give('SUCCESS', `${files.length} form modals loaded`);
-      }
-    }
-
-    // ! autocompletes manager
-    const autocompletePath = path.join(this.options.path, 'autocompletes');
-    if (existsSync(autocompletePath) && lstatSync(autocompletePath).isDirectory()) {
-      const files = readdirSync(autocompletePath).filter((file) => lstatSync(path.join(autocompletePath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
-      this.autocompletes.collection = new Collection();
-
-      if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
-
-        for await (const file of files) {
-          const index = files.indexOf(file) + 1;
-          loading.next({ index, message: `load /interactions/autocompletes/${file}` });
-          await this.autocompletes.add(file);
-        }
-
-        Logger.clear();
-        Logger.give('SUCCESS', `${files.length} autocompletes loaded`);
-      }
-    }
+        if (err instanceof SucroseInteractionError) this.sucrose.emit('error', err);
+        else this.sucrose.emit('error', SInteractionError(err.message, content));
+        Logger.handle(err);
+      });
+    });
   }
 
   /**
@@ -174,35 +109,46 @@ export default class InteractionManager {
    */
   private async listener(
     interaction: Discord.Interaction,
-  ): Promise<void | Discord.InteractionResponse> {
-    const { sucrose, options: { contents } } = this;
+  ): Promise<unknown> {
+    const { sucrose, options: { features: { autoReply: { contents } } } } = this;
     const params = { sucrose };
     const { guild } = interaction;
 
     // ? modal form
     if (interaction.type === InteractionType.ModalSubmit) {
       const { customId } = interaction;
-      const form = this.forms.collection.get(customId);
-      if (!form || await this.permissions(interaction, form.permissions)) return;
-      if (!form.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
+      const form = this.forms.get(customId);
+
+      if (!form) return;
+      await this.permissions(interaction, form.permissions);
+      if (!form.exec) throw SInteractionError(`form "${customId}" exec function not define`, contents.FORM_INTERACTION_MISSING_EXEC({ interaction, customId }));
       return form.exec({ ...params, interaction });
     } // [end] modal form
 
     // ? autocomplete
     if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
       const { commandName } = interaction;
+      const groupName = interaction.options.getSubcommandGroup();
       const optionName = interaction.options.getFocused();
-      const autocomplete = this.autocompletes.collection.get(`${commandName}-${optionName}`) || this.autocompletes.collection.get(commandName);
-      if (!autocomplete || !autocomplete.exec) return;
+
+      let key = commandName;
+      if (groupName) key += groupName;
+      if (optionName) key += optionName;
+      const autocomplete = this.autocompletes.get(key);
+
+      if (!autocomplete) throw SInteractionError(`autocomplete "${key}" interaction missing`, contents.AUTOCOMPLETE_INTERACTION_MISSING({ interaction, key }));
+      if (!autocomplete.exec) throw SInteractionError(`autocomplete "${key}" exec function not define`, contents.AUTOCOMPLETE_INTERACTION_MISSING_EXEC({ interaction, key }));
       return autocomplete.exec({ ...params, interaction });
     } // [end] autocomplete
 
     // ? command or context menu
     if (interaction.type === InteractionType.ApplicationCommand) {
       const name = interaction.commandName;
-      const commands = (guild && sucrose.commands.guilds.get(guild.id)) || sucrose.commands;
-      const command = commands.collection.get(name) || sucrose.commands.collection.get(name);
-      if (!command || await this.permissions(interaction, command.permissions)) return;
+      const command = (guild && sucrose.commands.guilds.get(guild.id)?.get(name))
+        || sucrose.commands.get(name);
+
+      if (!command) throw SInteractionError(`chat input "${name}" interaction missing`, contents.CHAT_INPUT_INTERACTION_MISSING({ interaction, name }));
+      await this.permissions(interaction, command.permissions);
 
       // ? command
       if (interaction.commandType === ApplicationCommandType.ChatInput) {
@@ -210,45 +156,43 @@ export default class InteractionManager {
         const groupName = interaction.options.getSubcommandGroup(false);
         const optionName = interaction.options.getSubcommand(false);
 
-        // ? sub command groupe or sub command
-        if (groupName || optionName) {
-          const option = (groupName || optionName)
-            && chatInput.options?.get(groupName || optionName as string);
-          if (!option) return interaction.reply(contents.MISSING_SUB_COMMAND_GROUP(name));
-          if (await this.permissions(interaction, option.permissions)) return;
+        // ? sub command group
+        if (groupName) {
+          const group = chatInput.options.get(groupName) as Types.ChatInputSubGroupOptionData;
 
-          // ? sub command
-          if (option.option.type === ApplicationCommandOptionType.SubcommandGroup) {
-            const opts = (<Types.SubCommandGroupData>option).options;
-            const subOption = optionName && opts.get(optionName);
-            if (!subOption) return interaction.reply(contents.MISSING_SUB_COMMAND(name));
-            if (await this.permissions(interaction, subOption.permissions)) return;
+          if (!group || group.body.type !== ApplicationCommandOptionType.SubcommandGroup) throw SInteractionError(`group "${groupName}" of "${name}" chat input is missing`, contents.CHAT_INPUT_GROUP_MISSING({ interaction, name, group: groupName }));
+          await this.permissions(interaction, group.permissions);
+          const option = optionName && group.options.get(optionName);
 
-            if (!subOption.exec) {
-              return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-            } return subOption.exec({ ...params, interaction });
-          } // [end] sub command
-
-          if (!option.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+          const contentParams = { name, group: groupName, option: optionName as string };
+          if (!option) throw SInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_GROUP_OPTION_MISSING({ interaction, ...contentParams }));
+          if (!option.exec) throw SInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" exec function is not define`, contents.CHAT_INPUT_GROUP_OPTION_MISSING_EXEC({ interaction, ...contentParams }));
           return option.exec({ ...params, interaction });
-        } // [end] sub command groupe or sub command
+        } // [end] sub command group
+        // ? sub command
+        if (optionName) {
+          const option = chatInput.options.get(optionName) as Types.ChatInputSubOptionData;
 
-        if (!chatInput.exec) {
-          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
-        } return chatInput.exec({ ...params, interaction });
+          if (!option || option.body.type !== ApplicationCommandOptionType.Subcommand) throw SInteractionError(`option "${optionName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_OPTION_MISSING({ interaction, name, option: optionName }));
+          if (!option.exec) throw SInteractionError(`option "${optionName}" of "${name}" chat input exec is not define`, contents.CHAT_INPUT_OPTION_MISSING_EXEC({ interaction, name, option: optionName }));
+          return option.exec({ ...params, interaction });
+        } // [end] sub command
+
+        if (!chatInput.exec) throw SInteractionError(`chat input "${name}" exec function is not define`, contents.CHAT_INPUT_INTERACTION_MISSING_EXEC({ interaction, name }));
+        return chatInput.exec({ ...params, interaction });
       } // [end] command
 
       // ? message context menu
       if (interaction.commandType === ApplicationCommandType.Message) {
-        const context = command as Types.MessageContextMenu;
-        if (!context.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+        const context = command as Types.MessageContextMenuData;
+        if (!context.exec) throw SInteractionError(`message context menu "${name}" exec function is not define`, contents.MESSAGE_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
         return context.exec({ ...params, interaction });
       } // [end] message context menu
 
       // ? user context menu
       if (interaction.commandType === ApplicationCommandType.User) {
-        const context = command as Types.UserContextMenu;
-        if (!context.exec) return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(name));
+        const context = command as Types.UserContextMenuData;
+        if (!context.exec) throw SInteractionError(`user context menu "${name}" exec function is not define`, contents.USER_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
         return context.exec({ ...params, interaction });
       } // [end] user context menu
     } // [end] command or context menu
@@ -258,23 +202,25 @@ export default class InteractionManager {
       // ? select menu
       if (interaction.componentType === ComponentType.SelectMenu) {
         const { customId } = interaction;
-        const selectMenu = this.selectMenus.collection.get(customId);
-        if (!selectMenu || await this.permissions(interaction, selectMenu.permissions)) return;
-        if (!selectMenu.exec) {
-          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
-        } return selectMenu.exec({ ...params, interaction });
+        const selectMenu = this.selectMenus.get(customId);
+        if (!selectMenu) return;
+        await this.permissions(interaction, selectMenu.permissions);
+        if (!selectMenu.exec) throw SInteractionError(`select menu "${customId}" exec function is not define`, contents.SELECT_MENU_INTERACTION_MISSING_EXEC({ interaction, customId }));
+        return selectMenu.exec({ ...params, interaction });
       } // [end] select menu
 
       // ? button
       if (interaction.componentType === ComponentType.Button) {
         const { customId } = interaction;
-        const button = this.buttons.collection.get(customId);
-        if (!button || await this.permissions(interaction, button.permissions)) return;
-        if (!button.exec) {
-          return interaction.reply(contents.MISSING_LOCAL_INTERACTION_EXEC(customId));
-        } return button.exec({ ...params, interaction });
+        const button = this.buttons.get(customId);
+        if (!button) return;
+        await this.permissions(interaction, button.permissions);
+        if (!button.exec) throw SInteractionError(`button "${customId}" exec function is not define`, contents.BUTTON_INTERACTION_MISSING_EXEC({ interaction, customId }));
+        return button.exec({ ...params, interaction });
       } // [end] button
     }
+
+    throw SInteractionError('interaction is unknown', contents.UNKNOWN_INTERACTION({ interaction }));
   }
 
   /**
@@ -285,17 +231,13 @@ export default class InteractionManager {
    * @param permissions - current interaction permissions
    */
   private async permissions(
-    interaction: Discord.CommandInteraction
-    | Discord.ButtonInteraction
-    | Discord.SelectMenuInteraction
-    | Discord.MessageComponentInteraction
-    | Discord.ModalSubmitInteraction,
+    interaction: Interaction,
     permissions?: Types.Permissions,
-  ): Promise<Discord.InteractionResponse | void> {
+  ): Promise<void> {
     if (!permissions) return;
 
-    const { contents } = this.options;
-    const { client, user, channel } = interaction;
+    const { features: { autoReply: { contents } } } = this.options;
+    const { user, channel } = interaction;
 
     // ! Guild check
     if (interaction.guild && interaction.guild.members.me) {
@@ -306,70 +248,50 @@ export default class InteractionManager {
       // ! Client
       if (permissions.client) {
         const missing = me.permissions.missing(permissions.client);
-        if (missing.length) {
-          const content = contents.PERMISSIONS_MISSING_CLIENT(client, missing);
-          return interaction.reply(content);
-        }
+        if (missing.length) throw SInteractionError('client does not have permissions', contents.PERMISSIONS_CLIENT_MISSING({ interaction, permissions: missing }));
       }
 
       // ! Member
       if (permissions.member) {
         const missing = member.permissions.missing(permissions.member);
-        if (missing.length) {
-          const content = contents.PERMISSIONS_MISSING_MEMBER(member, missing);
-          return interaction.reply(content);
-        }
+        if (missing.length) throw SInteractionError('member does not have permissions', contents.PERMISSIONS_CURRENT_MEMBER_MISSING({ interaction, permissions: missing }));
       }
 
       // ! Roles
       if (permissions.roles) {
         const arr = <string[]>permissions.roles;
         const has = member.roles.cache.some((r) => arr.includes(r.id));
-        if (!has) {
-          const roles = guild.roles.cache.filter((r) => arr.includes(r.id));
-          const content = contents.PERMISSIONS_MISSING_ALLOW_ROLES(member, roles);
-          return interaction.reply(content);
-        }
+        if (!has) throw SInteractionError('member don\'t have allowed member', contents.PERMISSIONS_MEMBER_ALLOW_ROLES_MISSING({ interaction, roleIDs: arr }));
       }
 
       // ! Guilds
       if (permissions.guilds) {
         const arr = <string[]>permissions.guilds;
         const has = arr.includes((<Discord.Guild>guild).id);
-        if (!has) {
-          const guilds = client.guilds.cache.filter((g) => arr.includes(g.id));
-          const content = contents.PERMISSIONS_MISSING_ALLOW_GUILDS(member, guilds);
-          return interaction.reply(content);
-        }
+        if (!has) throw SInteractionError('current guild is not allowed', contents.PERMISSIONS_CURRENT_GUILD_NOT_ALLOWED({ interaction, guildIDs: arr }));
       }
 
       // ! Channels
       if (permissions.channels) {
         const arr = <string[]>permissions.channels;
         const has = arr.includes((<Discord.GuildChannel>channel).id);
-        if (!has) {
-          const channels = guild.channels.cache.filter((c) => arr.includes(c.id));
-          const content = contents.PERMISSIONS_MISSING_ALLOW_CHANNELS(member, channels);
-          return interaction.reply(content);
-        }
+        if (!has) throw SInteractionError('current channel is not allowed', contents.PERMISSIONS_CURRENT_GUILD_CHANNEl_NOT_ALLOWED({ interaction, channelIDs: arr }));
       }
+
+      // ! Only private
+      if (permissions.private) throw SInteractionError('guild is not allowed', contents.PERMISSIONS_GUILD_NOT_ALLOWED({ interaction }));
     } // [end] Guild check
 
     // ! Users
     if (permissions.users) {
       const arr = <string[]>permissions.users;
       const has = arr.includes(user.id);
-      if (!has) {
-        const users = client.users.cache.filter((u) => arr.includes(u.id));
-        const content = contents.PERMISSIONS_MISSING_ALLOW_USERS(user, users);
-        return interaction.reply(content);
-      }
+      if (!has) throw SInteractionError('current user is not allowed', contents.PERMISSIONS_CURRENT_USER_NOT_ALLOWED({ interaction, userIDs: arr }));
     }
 
-    // ! Private
+    // ! Only guild
     if (!interaction.guild && typeof permissions.private === 'boolean' && !permissions.private) {
-      const content = contents.PERMISSIONS_DENY_PRIVATE();
-      return interaction.reply(content);
+      throw SInteractionError('current private channel is not allowed', contents.PERMISSIONS_PRIVATE_CHANNEL_NOT_ALLOWED({ interaction }));
     }
   }
 }
