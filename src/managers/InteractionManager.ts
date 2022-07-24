@@ -61,7 +61,7 @@ export default class InteractionManager implements Types.InteractionManager {
     const autocompletePath = path.join(options.path, 'autocompletes');
     const buttonPath = path.join(options.path, 'buttons');
     const formPath = path.join(options.path, 'forms');
-    const selectMenuPath = path.join(options.path, 'select-menu');
+    const selectMenuPath = path.join(options.path, 'select-menus');
     const { env, logging } = options;
     const params = { env, logging };
 
@@ -83,7 +83,6 @@ export default class InteractionManager implements Types.InteractionManager {
     await this.forms.build();
     await this.selectMenus.build();
 
-    // ! buttons manager
     this.sucrose.on('interactionCreate', async (interaction) => {
       await this.listener(interaction).catch((err: Error) => {
         const { autoReply } = this.options.features;

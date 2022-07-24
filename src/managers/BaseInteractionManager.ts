@@ -57,16 +57,16 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
 
     this.clear();
 
-    if (files.length) throw SError('WARN', `${name} interaction directory is empty`);
+    if (!files.length) throw SError('WARN', `${name} interaction directory is empty`);
     const loading = logging?.loadings ? Logger.loading(files.length) : null;
     if (loading) loading.next();
 
     for await (const file of files) {
       const index = files.indexOf(file) + 1;
-      if (loading) loading.next({ index, message: `load /interactions/buttons/${file}` });
+      if (loading) loading.next({ index, message: `load /interactions/${name}s/${file}` });
 
       const to = path.join(this.options.path, file);
-      const interaction = await imported(to, 'button') as T;
+      const interaction = await imported(to, name) as T;
       interaction.path = to;
 
       if ('url' in interaction.body) this.set(interaction.body.url, interaction);
@@ -80,7 +80,7 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
     }
 
     if (loading) Logger.clear();
-    Logger.give('SUCCESS', `${files.length} buttons loaded`);
+    Logger.give('SUCCESS', `${files.length} ${name}s loaded`);
     if (logging?.details) Logger.table(this.map((v, k) => ({ name: k, path: v.path })));
   }
 

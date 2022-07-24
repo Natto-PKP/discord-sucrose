@@ -76,7 +76,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
         this.guilds.set(directory, manager);
       }));
 
-      Logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
+      if (this.guilds.size) Logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
     }
   }
 }
