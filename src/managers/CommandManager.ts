@@ -2,84 +2,87 @@ import { Collection } from 'discord.js';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
+import type Discord from 'discord.js';
 import GuildCommandManager from './GuildCommandManager';
 import BaseCommandManager from './BaseCommandManager';
 import { SError } from '../errors';
-import { Logger } from '../api.doc';
+import Logger from '../services/Logger';
+
+import type Types from '../../typings';
 
 /**
- * command manager
+ * commands manager
+ * @category managers
+ *
  * @public
- * @category Managers
+ * @example Initialize new CommandManager
+ * ```js
+ * new CommandManager(sucrose, options)
+ * ```
  */
-export default class CommandManager extends BaseCommandManager {
+export default class CommandManager extends BaseCommandManager implements Types.CommandManager {
   /**
-   * guild command managers collection
+   * GuildCommandManager collection
    */
-  public guilds: Collection<string, GuildCommandManager> = new Collection();
+  public guilds = new Collection<Discord.Snowflake, Types.GuildCommandManager>();
+
+  public constructor(
+    sucrose: Types.Sucrose,
+    protected override options: Types.CommandManagerOptions,
+  ) {
+    super(sucrose, options);
+  }
 
   /**
    * load all global command and build potential guild command manager
-   * @internal
    */
-  public async build(): Promise<void> {
+  public async build() {
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');
     this.builded = true;
 
-    const globalPath = this.options.path;
-    if (existsSync(globalPath) && lstatSync(globalPath).isDirectory()) {
-      this.collection = new Collection();
+    const { env, logging } = this.options;
 
-      const files = readdirSync(globalPath).filter((file) => lstatSync(path.join(globalPath, file)).isFile() && file.endsWith(`.${this.options.ext}`));
+    if (existsSync(this.path) && lstatSync(this.path).isDirectory()) {
+      this.clear();
+
+      const files = readdirSync(this.path).filter((file) => {
+        const lstat = lstatSync(path.join(this.path, file));
+        const extFile = file.endsWith(`.${env.ext}`);
+        return lstat.isFile() && extFile;
+      });
 
       if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
+        const loading = logging.loadings ? Logger.loading(files.length) : null;
+        if (loading) loading.next();
 
-        for await (const file of files) {
-          const index = files.indexOf(file) + 1;
-          loading.next({ index, message: `load /commands/global/${file}` });
+        let index = 0;
+        await Promise.all(files.map(async (file) => {
           await this.add(file);
-        }
+          if (loading) loading.next({ index: index += 1, message: `./${file} loaded` });
+        }));
 
-        Logger.clear();
+        if (loading) Logger.clear();
         Logger.give('SUCCESS', `${files.length} global commands loaded`);
       }
     }
 
-    const guildsPath = path.join(this.options.path, '../guilds');
-    if (existsSync(guildsPath) && lstatSync(guildsPath).isDirectory()) {
-      const dirs = readdirSync(guildsPath).filter((file) => {
-        const p = lstatSync(path.join(guildsPath, file));
-        return p.isDirectory();
+    const guildsCommandsPath = this.options.directories.guilds;
+    if (existsSync(guildsCommandsPath) && lstatSync(guildsCommandsPath).isDirectory()) {
+      this.guilds.clear();
+
+      const guildDirectories = readdirSync(guildsCommandsPath).filter((directory) => {
+        const lstat = lstatSync(path.join(guildsCommandsPath, directory));
+        return lstat.isDirectory();
       });
 
-      if (dirs.length) {
-        this.guilds = new Collection();
+      await Promise.all(guildDirectories.map(async (directory) => {
+        const params = { guildId: directory, directory: path.join(guildsCommandsPath, directory) };
+        const manager = new GuildCommandManager(this.sucrose, { ...this.options, ...params });
+        await manager.build();
+        this.guilds.set(directory, manager);
+      }));
 
-        for await (const dir of dirs) {
-          const guildPath = path.join(guildsPath, dir);
-          const files = readdirSync(guildPath).filter((file) => {
-            const p = lstatSync(path.join(guildPath, file));
-            return p.isFile() && file.endsWith(`.${this.options.ext}`);
-          });
-
-          if (files.length) {
-            const { options } = this;
-            options.path = guildPath;
-
-            const manager = new GuildCommandManager(dir, this.sucrose, options);
-            await manager.build();
-
-            this.guilds.set(dir, manager);
-          }
-        }
-
-        if (this.guilds.size) {
-          const total = this.guilds.reduce((acc, cmds) => acc + cmds.collection.size, 0);
-          if (total) Logger.give('SUCCESS', `${total} guilds commands loaded (${this.guilds.size} guilds)`);
-        }
-      }
+      if (this.guilds.size) Logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
     }
   }
 }

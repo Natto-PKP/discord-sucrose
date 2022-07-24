@@ -5,271 +5,190 @@ import path from 'path';
 /* Typings */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
-import type Sucrose from '../structures/Sucrose';
 
-import { SError, STypeError } from '../errors';
-import * as helpers from '../helpers';
+import { SError } from '../errors';
+import { imported } from '../helpers';
 
 /**
+ * Base structure for command manager
+ * @category managers
+ *
  * @public
- * @category Managers
+ * @example Initialize BaseCommandManager
+ * ```js
+ * new BaseCommandManager(sucrose, options);
+ * ```
  */
-export default class BaseCommandManager {
-  /**
-   * indicates if this manager was build or not
-   * @internal
-   * @defaultValue false
-   */
+export default class BaseCommandManager
+  extends Collection<string, Types.CommandData> implements Types.BaseCommandManager {
   protected builded = false;
 
-  /**
-   * collection of commands
-   */
-  public collection: Discord.Collection<string, Types.CommandData> = new Collection();
+  protected path: string;
 
-  /**
-   * @internal
-   */
   public constructor(
-    protected sucrose: Sucrose,
-    protected options: { path: string, ext: 'js' | 'ts' },
-  ) {}
+    protected sucrose: Types.Sucrose,
+    protected options: Types.BaseCommandManagerOptions,
+  ) {
+    super();
+
+    this.path = options.directory;
+  }
 
   /**
-   * load one or more commands
-   *
-   * @param files - string or string array of files to load
-   *
-   * @example
-   * await manager.add('file.ts');
-   * await manager.add(['file.ts', 'another-file.ts']);
+   * Load and set a new command
+   * @param file
+   * @example Add a new command
+   * ```js
+   * manager.add('command.js')
+   * ```
+   * @returns
    */
-  public async add(files: string[]): Promise<Types.CommandData[]>;
-  public async add(files: string): Promise<Types.CommandData>;
-  public async add(files: unknown): Promise<Types.CommandData[] | Types.CommandData> {
-    if (!Array.isArray(files) && typeof files !== 'string') throw STypeError('files', 'string or string[]', files);
+  public async add(file: string): Promise<Types.CommandData> {
+    const { options } = this;
 
-    const names: string[] = Array.isArray(files) ? files : [files];
-    const results = <Types.CommandData[]>[];
+    const to = path.join(this.path, file);
+    if (!existsSync(to)) throw SError('ERROR', `command file "${file}" does not exist`);
+    if (!lstatSync(to).isFile()) throw SError('ERROR', `command file "${file}" is not a file`);
+    if (!file.endsWith(`.${options.env.ext}`)) throw SError('ERROR', `command file "${file}" extension is not ${options.env.ext}`);
+    const command = await imported(to, 'command') as Types.CommandData;
+    command.path = to;
 
-    // loop all files
-    await Promise.all(names.map(async (name) => {
-      const to = path.join(this.options.path, name);
-      if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
-      if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
+    if (this.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
 
-      const command = <Types.CommandData> await helpers.imported(path.join(process.cwd(), to), 'command');
-      command.path = to;
+    // ? chat input
+    if (!command.body.type || command.body.type === ApplicationCommandType.ChatInput) {
+      const chatInput = command as Types.ChatInputData;
+      const chatInputOptionsPath = path.join(this.path, chatInput.body.name);
 
-      if (this.collection.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
+      // ? sub command groups or sub commands
+      if (existsSync(chatInputOptionsPath) && lstatSync(chatInputOptionsPath).isDirectory()) {
+        const chatInputOptions = readdirSync(chatInputOptionsPath).filter((optionFile) => {
+          const lstat = lstatSync(path.join(chatInputOptionsPath, optionFile));
+          return lstat.isFile() && optionFile.endsWith(`.${options.env.ext}`);
+        });
 
-      // chat input
-      if (!command.body.type || command.body.type === ApplicationCommandType.ChatInput) {
-        const parent = <Types.ChatInputData>command;
-        const folder = path.join(this.options.path, parent.body.name);
-        if (!command.body.description || typeof command.body.description !== 'string') throw STypeError('command.body.description', 'string', command.body.description);
+        if (!chatInputOptions.length) throw SError('WARN', `command "${chatInput.body.name}" has an empty subcommands folder`);
 
-        // sub command groups or sub commands
-        if (existsSync(folder) && lstatSync(folder).isDirectory()) {
-          const options = readdirSync(folder).filter((f) => {
-            const p = lstatSync(path.join(folder, f));
-            return p.isFile() && f.endsWith(`.${this.options.ext}`);
-          });
+        chatInput.body.options = [];
+        chatInput.options = new Collection();
 
-          if (!options.length) throw SError('ERROR', `command "${parent.body.name}" has an empty subcommands folder`);
+        // ? loop all group folders or sub command subFiles
+        await Promise.all(chatInputOptions.map(async (optionFile) => {
+          const chatInputOptionPath = path.join(chatInputOptionsPath, optionFile);
+          const chatInputOption = await imported(chatInputOptionPath, 'option') as Types.ChatInputOptionData;
+          chatInputOption.path = chatInputOptionPath;
 
-          // # define options objects
-          parent.body.options = [];
-          parent.options = new Collection();
+          if (chatInputOption.body.type === ApplicationCommandOptionType.SubcommandGroup) {
+            const chatInputGroup = chatInputOption as Types.ChatInputSubGroupOptionData;
+            const chatInputGroupPath = path.join(chatInputOptionsPath, chatInputGroup.body.name);
 
-          // ? loop all group folders or sub command subFiles
-          await Promise.all(options.map(async (file) => {
-            const optionPath = path.join(folder, file);
-            const option = <Types.CommandOptionData> await helpers.imported(path.join(process.cwd(), optionPath), 'option');
-            option.path = optionPath;
-            option.parent = parent.body.name;
+            if (!existsSync(chatInputGroupPath)) throw SError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder not exist`);
+            if (!lstatSync(chatInputGroupPath).isDirectory()) throw SError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder is not a folder`);
 
-            // sub command group
-            if (option.option.type === ApplicationCommandOptionType.SubcommandGroup) {
-              const group = <Types.SubCommandGroupData>option;
-              const groupPath = path.join(folder, group.option.name);
-
-              if (!existsSync(groupPath)) throw SError('ERROR', `sub command group "${`${parent.body.name} ${group.option.name}`}" folder not exist`);
-              if (!lstatSync(groupPath).isDirectory()) throw SError('ERROR', `sub command group "${`${parent.body.name} ${group.option.name}`}" folder is not a folder`);
-
-              const groupFiles = readdirSync(groupPath).filter((f) => {
-                const p = lstatSync(path.join(groupPath, f));
-                return p.isFile() && f.endsWith(`.${this.options.ext}`);
+            const chatInputGroupOptions = readdirSync(chatInputGroupPath)
+              .filter((groupOptionFile) => {
+                const lstat = lstatSync(path.join(chatInputGroupPath, groupOptionFile));
+                return lstat.isFile() && groupOptionFile.endsWith(`.${this.options.env.ext}`);
               });
 
-              if (!groupFiles.length) throw SError('ERROR', 'sub command group has no sub command');
+            if (!chatInputGroupOptions.length) throw SError('ERROR', 'sub command group has no sub command');
 
-              // # defined options objects
-              group.option.options = [];
-              group.options = new Collection();
+            // ### defined options objects
+            chatInputGroup.body.options = [];
+            chatInputGroup.options = new Collection();
 
-              // loop all group sub command files
-              await Promise.all(groupFiles.map(async (groupFile) => {
-                const subPath = path.join(groupPath, groupFile);
-                const sub = <Types.SubCommandData> await helpers.imported(path.join(process.cwd(), subPath), 'option');
-                sub.path = subPath;
-                sub.parent = group.option.name;
+            // loop all group sub command files
+            await Promise.all(chatInputGroupOptions.map(async (groupOptionFile) => {
+              const chatInputGroupOptionPath = path.join(chatInputGroupPath, groupOptionFile);
+              const chatInputGroupOption = await imported(chatInputGroupOptionPath, 'option') as Types.ChatInputSubOptionData;
+              chatInputGroupOption.path = chatInputGroupOptionPath;
 
-                // # define sub option on group
-                group.option.options?.push(sub.option);
-                group.options.set(sub.option.name, sub);
-              }));// [end] loop all group sub command files
+              // ### define sub option on group
+              chatInputGroup.body.options?.push(chatInputGroupOption.body);
+              chatInputGroup.options.set(chatInputGroupOption.body.name, chatInputGroupOption);
+            }));// [end] loop all group sub command files
 
-              // # define group on parent
-              parent.body.options?.push(group.option);
-              parent.options?.set(group.option.name, group);
+            // ### define group on parent
+            chatInput.body.options?.push(chatInputGroup.body);
+            chatInput.options.set(chatInputGroup.body.name, chatInputGroup);
 
-              // [end] sub command group
-            } else if (option.option.type === ApplicationCommandOptionType.Subcommand) {
-              // sub command
-              const sub = <Types.SubCommandData>option;
+            // [end] sub command group
+          } else if (chatInputOption.body.type === ApplicationCommandOptionType.Subcommand) {
+            const chatInputSubOption = chatInputOption as Types.ChatInputSubOptionData;
 
-              // # define sub command on parent
-              parent.body.options?.push(sub.option);
-              parent.options?.set(sub.option.name, sub);
-            } // [end] sub command
-          })); // [end] loop all group folders or sub command subFiles
-        } // [end] sub command groups or sub commands
-      } // [end] chat input
+            chatInput.body.options?.push(chatInputSubOption.body);
+            chatInput.options?.set(chatInputSubOption.body.name, chatInputSubOption);
+          } // [end] sub command
+        })); // [end] loop all group folders or sub command subFiles
+      } // [end] sub command groups or sub commands
+    } // [end] chat input
 
-      results.push(command);
-      this.collection.set(command.body.name, command);
-    })); // [end] loop all files
+    this.set(command.body.name, command);
 
-    return Array.isArray(files) ? results : results[0];
+    return command;
   }
 
   /**
-   * create one or more commands in discord api
-   *
-   * @param names - string or string array of names
-   *
-   * @example
-   * await manager.define('say');
-   * await manager.define(['say', 'user']);
+   * Send a existing command in discord api
+   * @param name
+   * @example Send a command
+   * ```js
+   * manager.name('commandName')
+   * ```
+   * @returns
    */
-  public async define(names: string): Promise<Discord.ApplicationCommand>;
-  public async define(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async define(names: unknown): Promise<Discord.ApplicationCommand
-  | Discord.ApplicationCommand[]> {
-    if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
-
-    const files: string[] = Array.isArray(names) ? names : [names];
+  public async define(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
-    const results = <Discord.ApplicationCommand[]>[];
 
-    // ? loop all files
-    await Promise.all(files.map(async (name) => {
-      const localCommand = this.collection.get(name);
-      if (!localCommand) throw SError('ERROR', `command "${name}" not exist`);
+    const command = this.get(name);
+    if (!command) throw SError('ERROR', `command "${name}" not exist`);
 
-      const apiCommand = await this.sucrose.application?.commands.create(
-        localCommand.body,
-        guildId,
-      );
-
-      if (apiCommand) results.push(apiCommand);
-    })); // [end] loop all files
-
-    return Array.isArray(files) ? results : results[0];
+    return this.sucrose.application?.commands.create(command.body, guildId);
   }
 
   /**
-   * remove command from discord api
-   *
-   * @param names - string or string array of names to delete
-   *
-   * @example
-   * await manager.delete('say');
-   * await manager.delete(['say', 'user']);
+   * Delete a existing command in discord api
+   * @param name
+   * @example Delete a command
+   * ```js
+   * manager.remove('commandName')
+   * ```
+   * @returns
    */
-  public async delete(names: string): Promise<Discord.ApplicationCommand>;
-  public async delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async delete(names: unknown): Promise<Discord.ApplicationCommand
-  | Discord.ApplicationCommand[]> {
-    if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
-
-    const files: string[] = Array.isArray(names) ? names : [names];
+  public async remove(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
-    const results = <Discord.ApplicationCommand[]>[];
 
-    // ? loop all files
-    await Promise.all(files.map(async (name) => {
-      if (!this.collection.has(name)) throw SError('ERROR', `command "${name}" not exist`);
-      const apiCommand = await this.sucrose.application?.commands.delete(name, guildId);
-      if (apiCommand) results.push(apiCommand);
-    })); // [end] loop all files
-
-    return Array.isArray(files) ? results : results[0];
+    if (!this.has(name)) throw SError('ERROR', `command "${name}" not exist`);
+    return this.sucrose.application?.commands.delete(name, guildId);
   }
 
   /**
-   * refresh command in local (remove() and add())
-   *
-   * @param names - string or string array of names to refresh
-   *
-   * @example
-   * await manager.refresh('say');
-   * await manager.refresh(['say', 'user']);
+   * Delete and add an existing command
+   * @param name
+   * @example Refresh a command
+   * ```js
+   * manager.refresh('commandName')
+   * ```
+   * @returns
    */
-  public async refresh(names: string[]): Promise<Types.CommandData[]>;
-  public async refresh(names: string): Promise<Types.CommandData>;
-  public async refresh(names: unknown): Promise<Types.CommandData[] | Types.CommandData> {
-    if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
-    const commands = Array.isArray(names) ? names : [names];
-
-    return Promise.all(commands.map((name) => {
-      const command = this.collection.get(name);
-      if (!command) throw SError('ERROR', `command "${name}" not exist`);
-      this.remove(name);
-      return this.add(path.basename(command.path));
-    }));
+  public async refresh(name: string): Promise<Types.CommandData> {
+    const command = this.get(name);
+    if (!command) throw SError('ERROR', `command "${name}" not exist`);
+    this.delete(name);
+    return this.add(path.basename(command.path));
   }
 
   /**
-   * restore command(s) from discord api (delete() and define())
-   *
-   * @param names - string or string array of names to restore
-   *
-   * @example
-   * await manager.restore('say');
-   * await manager.restore(['say', 'user']);
+   * Remove and define an existing command
+   * @param name
+   * @example Restore a command
+   * ```js
+   * manager.restore('commandName')
+   * ```
+   * @returns
    */
-  public async restore(names: string): Promise<Discord.ApplicationCommand>;
-  public async restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public async restore(names: unknown): Promise<Discord.ApplicationCommand
-  | Discord.ApplicationCommand[]> {
-    if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
-
-    if (Array.isArray(names)) {
-      await this.delete(names);
-      return this.define(names);
-    }
-
-    await this.delete(names);
-    return this.define(names);
-  }
-
-  /**
-   * remove command(s) in local
-   *
-   * @param names - string or string array of names to remove
-   *
-   * @example
-   * await manager.remove('say');
-   * await manager.remove(['say', 'user']);
-   */
-  public remove(names: string[]): void;
-  public remove(names: string): void;
-  public remove(names: unknown): void {
-    if (!Array.isArray(names) && typeof names !== 'string') throw STypeError('names', 'string or string[]', names);
-
-    const array = Array.isArray(names) ? names : [names];
-    array.forEach((name) => this.collection.delete(name));
+  public async restore(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
+    await this.remove(name);
+    return this.define(name);
   }
 }

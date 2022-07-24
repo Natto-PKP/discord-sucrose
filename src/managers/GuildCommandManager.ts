@@ -1,59 +1,66 @@
-import { Collection } from 'discord.js';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
 /* Types */
-import type Sucrose from '../structures/Sucrose';
+import type Discord from 'discord.js';
+import type Types from '../../typings';
 
 import { SError } from '../errors';
 import BaseCommandManager from './BaseCommandManager';
-import { Logger } from '../api.doc';
+import Logger from '../services/Logger';
 
 /**
  * guild command manager
+ * @category managers
+ *
  * @public
- * @category Managers
+ * @example Initialize new GuildCommandManager
+ * ```js
+ * new GuildCommandManager(sucrose, options);
+ * ```
  */
-export default class GuildCommandManager extends BaseCommandManager {
+export default class GuildCommandManager
+  extends BaseCommandManager
+  implements Types.GuildCommandManager {
   /**
    * id of the guild the manager is based on
    * @readonly
    */
-  public readonly guildId: string;
+  public readonly guildId: Discord.Snowflake;
 
-  /**
-   * @internal
-   */
-  public constructor(guildId: string, sucrose: Sucrose, options: { ext: 'js' | 'ts', path: string }) {
+  public constructor(sucrose: Types.Sucrose, options: Types.GuildCommandManagerOptions) {
     super(sucrose, options);
-    this.guildId = guildId;
+    this.guildId = options.guildId;
   }
 
   /**
-   * load all commands
-   * @internal
-   */
+    * load all guild commands
+    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);
     this.builded = true;
 
-    const to = this.options.path;
+    const to = this.path;
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
-    this.collection = new Collection();
+    const { env, logging } = this.options;
+    this.clear();
 
-    const files = readdirSync(to).filter((file) => lstatSync(path.join(to, file)).isFile() && file.endsWith(`.${this.options.ext}`));
+    const files = readdirSync(to).filter((file) => {
+      const lstat = lstatSync(path.join(to, file));
+      return lstat.isFile() && file.endsWith(`.${env.ext}`);
+    });
 
     if (files.length) {
-      const loading = Logger.loading(files.length);
-      loading.next();
+      const loading = logging.loadings ? Logger.loading(files.length) : null;
+      if (loading) loading.next();
 
-      for await (const file of files) {
-        const index = files.indexOf(file) + 1;
-        loading.next({ index, message: `load /commands/guilds/${this.guildId}/${file}` });
+      let index = 0;
+      await Promise.all(files.map(async (file) => {
         await this.add(file);
-      }
+        if (loading) loading.next({ index: index += 1, message: `load ./${this.guildId}/${file}` });
+      }));
 
-      Logger.clear();
+      if (loading) Logger.clear();
     }
   }
 }

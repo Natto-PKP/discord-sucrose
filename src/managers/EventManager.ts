@@ -4,20 +4,25 @@ import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
-import type Sucrose from '../structures/Sucrose';
+import type Types from '../../typings';
 
-import { SError, STypeError } from '../errors';
-import Event from '../structures/Event';
-import { Logger } from '../api.doc';
-
-type EventNames = keyof Discord.ClientEvents;
+import { SError } from '../errors';
+import Logger from '../services/Logger';
+import Event from './Event';
 
 /**
  * event manager
+ * @category managers
+ *
  * @public
- * @category Managers
+ * @example Initialize EventManager
+ * ```js
+ * new EventManager(sucrose, options)
+ * ```
  */
-export default class EventManager {
+export default class EventManager
+  extends Collection<Types.EventNames, Event>
+  implements Types.EventManager {
   /**
    * indicates if this manager was build or not
    * @internal
@@ -25,181 +30,137 @@ export default class EventManager {
    */
   private builded = false;
 
-  /**
-   * Collection of Event
-   */
-  public collection: Discord.Collection<EventNames, Event<EventNames>> = new Collection();
+  private path: string;
+
+  public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {
+    super();
+
+    this.path = options.directory;
+  }
 
   /**
-   * @internal
-   */
-  public constructor(private sucrose: Sucrose, private options: { ext: 'js' | 'ts'; path: string; }) {}
-
-  /**
-   * load and build each events
-   * @internal
+   * load and build each event
    */
   public async build(): Promise<void> {
     if (this.builded) throw SError('ERROR', 'EventManager is already build');
     this.builded = true;
 
-    if (this.collection.size) await Promise.all(this.collection.map((event) => event.remove()));
-    this.collection = new Collection();
+    if (this.size) await Promise.all(this.map((event) => event.remove()));
+    this.clear();
 
-    const to = this.options.path;
+    const to = this.path;
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
     const events = readdirSync(to).filter((file) => lstatSync(path.join(to, file)).isDirectory());
+    const { logging } = this.options;
 
     if (events.length) {
-      const loading = Logger.loading(events.length);
-      loading.next();
+      const loading = logging.loadings ? Logger.loading(events.length) : null;
+      if (loading) loading.next();
 
       for await (const event of events) {
         const index = events.indexOf(event) + 1;
-        loading.next({ index, message: `load /events/${event}/handler.${this.options.ext}` });
-        await this.add(event as keyof Discord.ClientEvents);
+        if (loading) loading.next({ index, message: `load /events/${event}/handler.${this.options.env.ext}` });
+        await this.add(event as Types.EventNames);
       }
 
-      Logger.clear();
+      if (loading) Logger.clear();
       Logger.give('SUCCESS', `${events.length} events loaded`);
+      if (logging.details) Logger.table(this.map((v, k) => ({ name: k, path: v.path })));
     }
   }
 
   /**
    * load one or multiple events
    *
-   * @param events - string or array of string of events names
+   * @example
+   * ```js
+   * await events.create("ready");
+   * ```
+   */
+  public async add(name: Types.EventNames): Promise<Types.Event> {
+    const { env, logging } = this.options;
+
+    if (this.has(name)) throw SError('ERROR', `event "${name}" already exists`);
+    const to = path.join(this.path, name, `handler.${env.ext}`);
+    if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
+    if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
+
+    const params = { env, logging };
+    const event = new Event(name, { path: to, sucrose: this.sucrose, ...params });
+    await event.listen();
+
+    this.set(name, event);
+
+    return event;
+  }
+
+  /**
+   * Delete one or multiple events
    *
    * @example
-   * await events.create("ready");
-   * await events.create(["ready", "messageCreate", "messageDelete"]);
+   * ```js
+   * await events.delete('ready');
+   * ```
    */
-  public async add(events: EventNames[]): Promise<Event<EventNames>[]>;
-  public async add(events: EventNames): Promise<Event<EventNames>>;
-  public async add(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
-    if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
-
-    const results = <Event<EventNames>[]>[];
-    const names: EventNames[] = Array.isArray(events) ? events : [events];
-
-    await Promise.all(names.map(async (name) => {
-      if (this.collection.has(name)) throw SError('ERROR', `event "${name}" already exists`);
-      const to = path.join(this.options.path, name, `handler.${this.options.ext}`);
-      if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
-      if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
-
-      const event = new Event(name, { path: to, sucrose: this.sucrose });
-      await event.listen();
-
-      this.collection.set(name, event);
-      results.push(event);
-    }));
-
-    return Array.isArray(events) ? results : results[0];
+  public override delete(key: Types.EventNames): boolean {
+    this.remove(key);
+    return true;
   }
 
   /**
    * active one or multiple events
    *
-   * @param events - string or array of string of events names
-   *
    * @example
+   * ```js
    * await events.listen("ready");
-   * await events.listen(["ready", "messageCreate", "messageDelete"]);
+   * ```
    */
-  public async listen(events: EventNames[]): Promise<Event<EventNames>>;
-  public async listen(events: EventNames): Promise<Event<EventNames>>;
-  public async listen(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
-    if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
+  public async listen(name: Types.EventNames): Promise<Event> {
+    const event = this.get(name);
+    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    if (name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
 
-    const results = <Event<EventNames>[]>[];
-    const names: EventNames[] = Array.isArray(events) ? events : [events];
-
-    Promise.all(names.map(async (name) => {
-      const event = this.collection.get(name);
-      if (!event) throw SError('ERROR', `event ${name} does not exist`);
-      if (name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
-
-      results.push(await event.listen());
-    }));
-
-    return Array.isArray(events) ? results : results[0];
+    return event;
   }
 
   /**
    * desactive one or multiple events
    *
-   * @param events - string or array of string of events names
-   *
    * @example
+   * ```js
    * await events.mute("ready");
-   * await events.mute(["ready", "messageCreate", "messageDelete"]);
+   * ```
    */
-  public async mute(events: EventNames[]): Promise<Event<EventNames>[]>;
-  public async mute(events: EventNames): Promise<Event<EventNames>>;
-  public async mute(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
-    if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
-
-    const results = <Event<EventNames>[]>[];
-    const names: EventNames[] = Array.isArray(events) ? events : [events];
-
-    await Promise.all(names.map(async (name) => {
-      const event = this.collection.get(name);
-      if (!event) throw SError('ERROR', `event ${name} does not exist`);
-
-      results.push(await event.mute());
-    }));
-
-    return Array.isArray(events) ? results : results[0];
+  public async mute(name: Types.EventNames): Promise<Event> {
+    const event = this.get(name);
+    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    return event.mute();
   }
 
   /**
    * refresh one or multiple events (remove() and add())
    *
-   * @param events - string or array of string of events names
-   *
    * @example
+   * ```js
    * await events.refresh("ready");
-   * await events.refresh(["ready", "messageCreate", "messageDelete"]);
+   * ```
    */
-  public async refresh(events: EventNames[]): Promise<Event<EventNames>[]>;
-  public async refresh(events: EventNames): Promise<Event<EventNames>>;
-  public async refresh(events: unknown): Promise<Event<EventNames>[] | Event<EventNames>> {
-    if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
-
-    const results = <Event<EventNames>[]>[];
-    const names: (keyof Discord.ClientEvents)[] = Array.isArray(events) ? events : [events];
-
-    await Promise.all(names.map(async (name) => {
-      const event = this.collection.get(name);
-      if (!event) throw SError('ERROR', `event ${name} does not exist`);
-
-      results.push(await event.refresh());
-    }));
-
-    return Array.isArray(events) ? results : results[0];
+  public async refresh(name: Types.EventNames): Promise<Event> {
+    const event = this.get(name);
+    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    return event.refresh();
   }
 
   /**
    * remove one or multiple events
    *
-   * @param events - string or array of string of events names
-   *
    * @example
+   * ```js
    * await events.remove("ready");
-   * await events.remove(["ready", "messageCreate", "messageDelete"]);
+   * ```
    */
-  public remove(events: EventNames[]): void;
-  public remove(events: EventNames): void;
-  public remove(events: unknown): void {
-    if (!Array.isArray(events) && typeof events !== 'string') throw STypeError('events', 'string or string[]', events);
-    const names: EventNames[] = Array.isArray(events) ? events : [events];
-
-    names.forEach((name) => {
-      const event = this.collection.get(name);
-      if (!event) throw SError('ERROR', `event ${name} does not exist`);
-
-      event.remove();
-    });
+  public remove(name: Types.EventNames) {
+    const event = this.get(name);
+    if (event) event.remove();
   }
 }

@@ -1,434 +1,374 @@
 /* eslint-disable max-classes-per-file */
+
+/**
+ * @module discord-sucrose
+ */
+
 import type Discord from 'discord.js';
 
 /**
- * @module types
+ * Base structure for command manager
+ * @category managers
+ *
+ * @public
+ * @example Initialize BaseCommandManager
+ * ```js
+ * new BaseCommandManager(sucrose, options);
+ * ```
  */
-
-// # export manager
-declare class AutocompleteInteractionManager {
-  /**
-   * collection of autocomplete
-   */
-  public collection: Discord.Collection<string, AutocompleteData>;
-
-  constructor(options: { ext: 'js' | 'ts'; path: string; });
+declare class BaseCommandManager extends Discord.Collection<string, CommandData> {
+  constructor(sucrose: Sucrose, options: BaseCommandManagerOptions);
 
   /**
-   * upload the files to add your autocomplete to the collection
-   *
-   * @param files - string or string array of files to load
-   *
-   * @example
-   * await manager.add(["command.ts", "command-option.ts"]);
-   * await manager.add("command.ts");
+   * Load and set a new command
+   * @param file
+   * @example Add a new command
+   * ```js
+   * manager.add('command.js')
+   * ```
+   * @returns
    */
-  public add(files: string): Promise<AutocompleteData>;
-  public add(files: string[]): Promise<AutocompleteData[]>;
-  public add(files: unknown): Promise<AutocompleteData | AutocompleteData[]>;
+  public async add(file: string): Promise<CommandData>;
 
   /**
-   * refresh one or more autocomplete (remove() and add())
-   *
-   * @param names - name or names array of autocomplete to refresh
-   *
-   * @example
-   * await manager.refresh(["command", "command-option"]);
-   * await manager.refresh("command");
+   * Send a existing command in discord api
+   * @param name
+   * @example Send a command
+   * ```js
+   * manager.name('commandName')
+   * ```
+   * @returns
    */
-  public refresh(names: string): Promise<AutocompleteData>;
-  public refresh(names: string[]): Promise<AutocompleteData[]>;
-  public refresh(names: unknown): Promise<AutocompleteData | AutocompleteData[]>;
+  public async define(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
 
   /**
-   * remove one or more autocomplete
-   *
-   * @param names - name or names array of autocomplete to remove
-   *
-   * @example
-   * await manager.remove(["command", "command-option"]);
-   * await manager.remove("command");
+   * Delete a existing command in discord api
+   * @param name
+   * @example Delete a command
+   * ```js
+   * manager.remove('commandName')
+   * ```
+   * @returns
    */
-  public remove(names: string): void;
-  public remove(names: string[]): void;
-  public remove(names: unknown): void;
+  public async remove(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
+
+  /**
+   * Delete and add an existing command
+   * @param name
+   * @example Refresh a command
+   * ```js
+   * manager.refresh('commandName')
+   * ```
+   * @returns
+   */
+  public async refresh(name: string): Promise<CommandData>;
+
+  /**
+   * Remove and define an existing command
+   * @param name
+   * @example Restore a command
+   * ```js
+   * manager.restore('commandName')
+   * ```
+   * @returns
+   */
+  public async restore(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
 }
 
-declare class BaseCommandManager {
+/**
+ * Base structure for basic discord.js interaction
+ * @category managers
+ *
+ * @public
+ * @example Initialize new BaseInteractionManager
+ * ```js
+ * new BaseInteractionManager(options);
+ * ```
+ */
+declare class BaseInteractionManager<T extends InteractionData = InteractionData>
+  extends Discord.Collection<string, T> {
   /**
-   * collection of commands
+   * Define interactions directory
    */
-  public collection: Discord.Collection<string, CommandData>;
+  public path: string;
 
-  public constructor(sucrose: Sucrose, options: { path: string, ext: 'js' | 'ts' });
+  constructor(options: BaseInteractionManagerOptions<T>);
 
   /**
-   * load one or more commands
-   *
-   * @param files - string or string array of files to load
+   * Build this interaction manager
+   */
+  public async build(): Promise<void>;
+
+  /**
+   * Delete and set an existing interaction
+   * @param name
    *
    * @example
-   * await manager.add('file.ts');
-   * await manager.add(['file.ts', 'another-file.ts']);
+   * ```js
+   * manager.refresh('interaction-name');
+   * ```
+   *
+   * @returns
    */
-  public add(files: string[]): Promise<CommandData[]>;
-  public add(files: string): Promise<CommandData>;
-  public add(files: unknown): Promise<CommandData[] | CommandData>;
-
-  /**
-   * create one or more commands in discord api
-   *
-   * @param names - string or string array of names
-   *
-   * @example
-   * await manager.define('say');
-   * await manager.define(['say', 'user']);
-   */
-  public define(names: string): Promise<Discord.ApplicationCommand>;
-  public define(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public define(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
-
-  /**
-   * remove command from discord api
-   *
-   * @param names - string or string array of names to delete
-   *
-   * @example
-   * await manager.delete('say');
-   * await manager.delete(['say', 'user']);
-   */
-  public delete(names: string): Promise<Discord.ApplicationCommand>;
-  public delete(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public delete(names: unknown): Promise<Discord.ApplicationCommand | Discord.ApplicationCommand[]>;
-
-  /**
-   * refresh command in local (remove() and add())
-   *
-   * @param names - string or string array of names to refresh
-   *
-   * @example
-   * await manager.refresh('say');
-   * await manager.refresh(['say', 'user']);
-   */
-  public refresh(names: string[]): Promise<CommandData[]>;
-  public refresh(names: string): Promise<CommandData>;
-  public refresh(names: unknown): Promise<CommandData[] | CommandData>;
-
-  /**
-   * restore command(s) from discord api (delete() and define())
-   *
-   * @param names - string or string array of names to restore
-   *
-   * @example
-   * await manager.restore('say');
-   * await manager.restore(['say', 'user']);
-   */
-  public restore(names: string): Promise<Discord.ApplicationCommand>;
-  public restore(names: string[]): Promise<Discord.ApplicationCommand[]>;
-  public restore(names: unknown): Promise< Discord.ApplicationCommand
-  | Discord.ApplicationCommand[] >;
-
-  /**
-   * remove command(s) in local
-   *
-   * @param names - string or string array of names to remove
-   *
-   * @example
-   * await manager.remove('say');
-   * await manager.remove(['say', 'user']);
-   */
-  public remove(names: string[]): void;
-  public remove(names: string): void;
-  public remove(names: unknown): void;
+  public async refresh(name): Promise<this>;
 }
 
-declare class ButtonInteractionManager {
+/**
+ * commands manager
+ * @category managers
+ *
+ * @public
+ * @example Initialize new CommandManager
+ * ```js
+ * new CommandManager(sucrose, options)
+ * ```
+ */
+declare class CommandManager extends BaseCommandManager implements Types.CommandManager {
   /**
-   * collection of buttons
+   * GuildCommandManager collection
    */
-  public collection: Discord.Collection<string, ButtonData>;
+  public readonly guilds: Discord.Collection<Discord.Snowflake, GuildCommandManager>;
 
-  constructor(options: { ext: 'js' | 'ts'; path: string; });
-
-  /**
-   * upload the files to add your buttons to the collection
-   *
-   * @param files - string or string array of files to load
-   *
-   * @example
-   * await buttons.add(["useme.ts", "google.ts"]);
-   * await buttons.add("useme.ts");
-   */
-  public add(files: string): Promise<ButtonData>;
-  public add(files: string[]): Promise<ButtonData[]>;
-  public add(files: unknown): Promise<ButtonData | ButtonData[]>;
+  constructor(sucrose: Sucrose, options: CommandManagerOptions);
 
   /**
-   * refresh one or more button (remove() and add())
-   *
-   * @param names - name or names array of button to refresh
-   *
-   * @example
-   * await buttons.refresh(["useme", "google"]);
-   * await buttons.refresh("useme");
+   * load all global command and build potential guild command manager
    */
-  public refresh(names: string): Promise<ButtonData>;
-  public refresh(names: string[]): Promise<ButtonData[]>;
-  public refresh(names: unknown): Promise<ButtonData | ButtonData[]>;
-
-  /**
-   * remove one or more button
-   *
-   * @param names - name or names array of button to remove
-   *
-   * @example
-   * await buttons.remove(["useme", "google"]);
-   * await buttons.remove("useme");
-   */
-  public remove(names: string): void;
-  public remove(names: string[]): void;
-  public remove(names: unknown): void;
+  public async build(): Promise<void>;
 }
 
-declare class CommandManager extends BaseCommandManager {
+/**
+ * Structure for manager our event
+ * @category managers
+ *
+ * @public
+ * @example Initialize new Event
+ * ```js
+ * new Event(options);
+ * ```
+ */
+declare class Event<E extends EventNames = EventNames> {
   /**
-   * guild command managers collection
+   * determines whether the event is running or not
+   * @readonly
+   * @defaultValue false
    */
-  public guilds: Discord.Collection<string, GuildCommandManager>;
+  public disabled = false;
 
-  public build(): Promise<void>;
+  /**
+    * redirects to the event manager
+    * @readonly
+    * @remarks
+    * See {@link EventManager}
+    */
+  public readonly manager: EventManager;
+
+  /**
+   * Path to event folder
+   */
+  public path: string;
+
+  public constructor(public readonly name: E, options: EventOptions);
+
+  /**
+   * active this event - search et load event handler in your files and run event listener
+   *
+   * @example
+   * ```js
+   * await event.listen();
+   * ```
+   */
+  public async listen(): Promise<this>;
+
+  /**
+   * disable this event
+   *
+   * @example
+   * ```js
+   * await event.mute();
+   * ```
+   */
+  public async mute(): Promise<this>;
+
+  /**
+   * refresh this event - mute and listen event
+   *
+   * @example
+   * ```js
+   * await event.refresh();
+   * ```
+   */
+  public async refresh(): Promise<this>;
+
+  /**
+ * remove/delete this event - destroy this event
+ *
+ * @example
+ * ```js
+ * await event.refresh();
+ * ```
+ */
+  public async remove(): Promise<void>;
 }
 
-declare class EventManager {
-  /**
-   * Collection of Event
-   */
-  public collection: Discord.Collection<EventNames, Event>;
-
-  public constructor(sucrose: Sucrose, options: { ext: 'js' | 'ts'; path: string; });
-
-  public build(): Promise<void>;
-
-  /**
-   * load one or multiple events
-   *
-   * @param events - string or array of string of events names
-   *
-   * @example
-   * await events.create("ready");
-   * await events.create(["ready", "messageCreate", "messageDelete"]);
-   */
-  public add(events: EventNames[]): Promise<Event[]>;
-  public add(events: EventNames): Promise<Event>;
-  public add(events: unknown): Promise<Event[] | Event>;
+/**
+ * event manager
+ * @category managers
+ *
+ * @public
+ * @example Initialize EventManager
+ * ```js
+ * new EventManager(sucrose, options)
+ * ```
+ */
+declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
+  constructor(sucrose: Sucrose, options: EventManagerOptions);
 
   /**
-   * active one or multiple events
-   *
-   * @param events - string or array of string of events names
-   *
-   * @example
-   * await events.listen("ready");
-   * await events.listen(["ready", "messageCreate", "messageDelete"]);
-   */
-  public listen(events: EventNames[]): Promise<Event>;
-  public listen(events: EventNames): Promise<Event>;
-  public listen(events: unknown): Promise<Event[] | Event>;
+    * load and build each event
+    */
+  public async build(): Promise<void>;
 
   /**
-   * desactive one or multiple events
-   *
-   * @param events - string or array of string of events names
-   *
-   * @example
-   * await events.mute("ready");
-   * await events.mute(["ready", "messageCreate", "messageDelete"]);
-   */
-  public mute(events: EventNames[]): Promise<Event[]>;
-  public mute(events: EventNames): Promise<Event>;
-  public mute(events: unknown): Promise<Event[] | Event>;
+    * load one or multiple events
+    *
+    * @example
+    * ```js
+    * await events.create("ready");
+    * ```
+    */
+  public async add(name: EventNames): Promise<Event>;
 
   /**
-   * refresh one or multiple events (remove() and add())
-   *
-   * @param events - string or array of string of events names
-   *
-   * @example
-   * await events.refresh("ready");
-   * await events.refresh(["ready", "messageCreate", "messageDelete"]);
-   */
-  public refresh(events: EventNames[]): Promise<Event[]>;
-  public refresh(events: EventNames): Promise<Event>;
-  public refresh(events: unknown): Promise<Event[] | Event>;
+    * active one or multiple events
+    *
+    * @example
+    * ```js
+    * await events.listen("ready");
+    * ```
+    */
+  public async listen(name: EventNames): Promise<Event>;
 
   /**
-   * remove one or multiple events
-   *
-   * @param events - string or array of string of events names
-   *
-   * @example
-   * await events.remove("ready");
-   * await events.remove(["ready", "messageCreate", "messageDelete"]);
-   */
-  public remove(events: EventNames[]): void;
-  public remove(events: EventNames): void;
-  public remove(events: unknown): void;
+    * desactive one or multiple events
+    *
+    * @example
+    * ```js
+    * await events.mute("ready");
+    * ```
+    */
+  public async mute(name: EventNames): Promise<Event>;
+
+  /**
+    * refresh one or multiple events (remove() and add())
+    *
+    * @example
+    * ```js
+    * await events.refresh("ready");
+    * ```
+    */
+  public async refresh(
+    name: EventNames
+  ): Promise<Event>;
+
+  /**
+    * remove one or multiple events
+    *
+    * @example
+    * ```js
+    * await events.remove("ready");
+    * ```
+    */
+  public remove(name: EventNames): void;
 }
 
+/**
+ * guild command manager
+ * @category managers
+ *
+ * @public
+ * @example Initialize new GuildCommandManager
+ * ```js
+ * new GuildCommandManager(sucrose, options);
+ * ```
+ */
 declare class GuildCommandManager extends BaseCommandManager {
   /**
    * id of the guild the manager is based on
    * @readonly
    */
-  public readonly guildId: string;
+  public readonly guildId: Discord.Snowflake;
 
-  public constructor(guildId: string, sucrose: Sucrose, options: { ext: 'js' | 'ts', path: string });
+  constructor(sucrose: Types.Sucrose, options: Types.GuildCommandManagerOptions);
 
-  public build(): Promise<void>;
+  /**
+   * load all guild commands
+   */
+  public async build(): Promise<void>;
 }
 
+/**
+ * Structure for manage all classic interaction
+ * @category managers
+ *
+ * @public
+ * @example Initialize new InteractionManager
+ * ```js
+ * new InteractionManager(sucrose, options);
+ * ```
+ */
 declare class InteractionManager {
   /**
-   * manager or autocompletes
+   * autocomplete interaction manager
    */
-  public autocompletes: AutocompleteInteractionManager;
+  public autocompletes: BaseInteractionManager<AutocompleteData>;
 
   /**
-   * manager of buttons
+   * buttons interaction manager
    */
-  public buttons: ButtonInteractionManager;
+  public buttons: BaseInteractionManager<ButtonData>;
 
   /**
-   * manager of form modals
+   * form modals interaction manager
    */
-  public forms: FormModalInteractionManager;
+  public forms: BaseInteractionManager<FormData>;
 
   /**
-   * manager of select menu
+   * select menus interaction manager
    */
-  public selectMenus: SelectMenuInteractionManager;
+  public selectMenus: BaseInteractionManager<SelectMenuData>;
 
-  public constructor(sucrose: Sucrose, options: {
-    contents: Required<InteractionContent>;
-    ext: 'js' | 'ts';
-    path: string;
-  });
+  constructor(sucrose: Sucrose, options: BaseInteractionManagerOptions);
 
-  public build(): Promise<void>;
+  /**
+   * build this manager and all interaction manager
+   */
+  public async build(): Promise<void>;
 }
 
-declare class FormModalInteractionManager {
-  public collection: Discord.Collection<string, FormData>;
-
-  constructor(options: { ext: 'js' | 'ts'; path: string; });
-
-  /**
-   * load one or multiple file
-   *
-   * @param files - string or array of string
-   *
-   * @example
-   * await manager.add('file.ts');
-   * await manager.add(['file.ts', 'other-file.ts']);
-   */
-  public add(files: string): Promise<FormData>;
-  public add(files: string[]): Promise<FormData[]>;
-  public add(files: unknown): Promise<FormData | FormData[]>;
-
-  /**
-   * refresh one or multiple file (remove() and add())
-   *
-   * @param names - string or array of string
-   *
-   * @example
-   * await manager.refresh('ticket');
-   * await manager.refresh(['ticket', 'report']);
-   */
-  public refresh(names: string): Promise<FormData>;
-  public refresh(names: string[]): Promise<FormData[]>;
-  public refresh(names: unknown): Promise<FormData | FormData[]>;
-
-  /**
-   * remove one or multiple file
-   *
-   * @param names - string or array of string
-   *
-   * @example
-   * await manager.remove('ticket');
-   * await manager.remove(['ticket', 'report']);
-   */
-  public remove(names: string): void;
-  public remove(names: string[]): void;
-  public remove(names: unknown): void;
-}
-
-declare class SelectMenuInteractionManager {
-  public collection: Discord.Collection<string, SelectMenuData>;
-
-  constructor(options: { ext: 'js' | 'ts'; path: string; });
-
-  /**
-   * load one or multiple file
-   *
-   * @param files - string or array of string
-   *
-   * @example
-   * await manager.add('file.ts');
-   * await manager.add(['file.ts', 'other-file.ts']);
-   */
-  public add(files: string): Promise<SelectMenuData>;
-  public add(files: string[]): Promise<SelectMenuData[]>;
-  public add(files: unknown): Promise<SelectMenuData | SelectMenuData[]>;
-
-  /**
-   * refresh one or multiple file (remove() and add())
-   *
-   * @param names - string or array of string
-   *
-   * @example
-   * await manager.refresh('select-me');
-   * await manager.refresh(['select-me', 'no-select-meee']);
-   */
-  public refresh(names: string): Promise<SelectMenuData>;
-  public refresh(names: string[]): Promise<SelectMenuData[]>;
-  public refresh(names: unknown): Promise<SelectMenuData | SelectMenuData[]>;
-
-  /**
-   * remove one or multiple file
-   *
-   * @param names - string or array of string
-   *
-   * @example
-   * await manager.remove('select-me');
-   * await manager.remove(['select-me', 'no-select-meee']);
-   */
-  public remove(names: string): void;
-  public remove(names: string[]): void;
-  public remove(names: unknown): void;
-}
-
-// # export services
-export enum Codes {
-  'FATAL' = '\x1b[1m\x1b[31m🔥 FATAL\x1b[0m',
-  'ERROR' = '\x1b[1m\x1b[31m✖ ERROR\x1b[0m',
-  'WARN' = '\x1b[1m\x1b[33m🔔 WARN\x1b[0m',
-  'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
-  'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
-}
-
-export type Code = keyof typeof Codes;
-
-type ErrorCode = 'FATAL' | 'ERROR' | 'WARN';
-
+/**
+ * @public
+ * @category services
+ */
 declare class Logger {
   static console: Console;
+
+  static clear(): void;
 
   /**
    * get current date formatted
    *
    * @param format - allow to format date (default true)
    */
-  static date(format?: boolean): string | Date;
+  static date(format = true): string | Date;
+
+  /**
+   * give a code with content message to write
+   *
+   * @param code - code of log level
+   * @param content - content to log
+   */
+  static give(code: Code, content: Error | string): void;
 
   /**
    * handle errors array
@@ -438,12 +378,11 @@ declare class Logger {
   static handle(...errors: Error[]): void;
 
   /**
-   * give a code with content message to write
+   * Generate loading bar
    *
-   * @param code - code of log level
-   * @param content - content to log
+   * @param total
    */
-  static give(code: Code, content: Error | string): void;
+  static* loading(total: number): Generator<void, void, { index: number; message: string; }>;
 
   /**
    * write a table in consoles
@@ -460,78 +399,32 @@ declare class Logger {
   static write(message: string): void;
 }
 
-// # export structures
-declare class Event {
-  /**
-   * redirects to the event manager
-   * @readonly
-   * @see {@link EventManager}
-   */
-  public readonly manager: EventManager;
-
-  /**
-   * event name
-   */
-  public readonly name: EventNames;
-
-  /**
-   * active this event - search et load event handler in your files and run event listener
-   *
-   * @returns current event
-   *
-   * @example
-   * await event.listen();
-   */
-  public listen(): Promise<this>;
-
-  /**
-   * disable this event
-   *
-   * @returns current event
-   *
-   * @example
-   * await event.mute();
-   */
-  public mute(): Promise<this>;
-
-  /**
-   * refresh this event - mute and listen event
-   *
-   * @returns current event
-   *
-   * @example
-   * await event.refresh();
-   */
-  public refresh(): Promise<this>;
-
-  /**
-   * remove/delete this event - destroy this event
-   *
-   * @returns current event
-   *
-   * @example
-   * await event.refresh();
-   */
-  public remove(): Promise<void>;
-}
-
+/**
+ * Sucrose client
+ *
+ * @public
+ * @example Initialize new Sucrose client
+ * ```js
+ * const client = await Sucrose.build(options);
+ * ```
+ */
 declare class Sucrose extends Discord.Client {
   /**
-   * access the commands manager
+   * commands manager
    * @readonly
    */
   public readonly commands: CommandManager;
 
   /**
-   * access the events manager
-   * @readonly
-   */
+    * events manager
+    * @readonly
+    */
   public readonly events: EventManager;
 
   /**
-   * access the interactions manager
-   * @readonly
-   */
+    * interactions managers
+    * @readonly
+    */
   public readonly interactions: InteractionManager;
 
   /**
@@ -541,168 +434,564 @@ declare class Sucrose extends Discord.Client {
    * @returns Sucrose
    *
    * @example
-   * (async () =\> \{
-   *   await Sucrose.build(\{ env: \{ source: 'src', ext: 'ts' \} \})
-   * \})()
+   * ```js
+   * const client = await Sucrose.build(options);
+   * ```
    */
-  static build(options: SucroseOptions): Promise<Sucrose>;
-}
-
-// # export interface
-/**
- * automatic messages content regarding interactions
- * @public
- */
-export interface InteractionContent {
-  /**
-   * when the interaction encounters a global error
-   * @param err - error encountered
-   */
-  ERROR?: (err: Error) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the command is missing in Discord API
-   * @param name - name of command
-   */
-  MISSING_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the interaction is missing in local
-   * @param name - name of command
-   */
-  MISSING_LOCAL_INTERACTION?: (name: string) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the interaction exec is missing in local
-   * @param name - name of command
-   */
-  MISSING_LOCAL_INTERACTION_EXEC?: (name: string) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the subcommand is missing
-   * @param name - name of command
-   */
-  MISSING_SUB_COMMAND?: (name: string) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the subcommandgroup is missing in local
-   * @param name - name of command
-   */
-  MISSING_SUB_COMMAND_GROUP?: (name: string) => Discord.InteractionReplyOptions;
-
-  /**
-   * when interaction is not allowed in private messages
-   */
-  PERMISSIONS_DENY_PRIVATE?: () => Discord.InteractionReplyOptions;
-
-  /**
-   * when interaction is prohibited in the channel
-   * @param member - member who initiated the interaction
-   * @param channels - authorized channels
-   */
-  PERMISSIONS_MISSING_ALLOW_CHANNELS?: (
-    member: Discord.GuildMember,
-    channels: Discord.Collection<string, Discord.GuildChannel | Discord.GuildBasedChannel>
-  ) => Discord.InteractionReplyOptions;
-
-  /**
-   * when interaction is prohibited in the guild
-   * @param member - member who initiated the interaction
-   * @param guilds - authorized guilds
-   */
-  PERMISSIONS_MISSING_ALLOW_GUILDS?: (
-    member: Discord.GuildMember,
-    guilds: Discord.Collection<string, Discord.Guild>
-  ) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the user is not authorized
-   * @param user - user who initiated the interaction
-   * @param users - authorized users
-   */
-  PERMISSIONS_MISSING_ALLOW_USERS?: (
-    user: Discord.User,
-    users: Discord.Collection<string, Discord.User>
-  ) => Discord.InteractionReplyOptions;
-
-  /**
-   * when user roles do not allow it
-   * @param member - member who initiated the interaction
-   * @param roles - authorized roles
-   */
-  PERMISSIONS_MISSING_ALLOW_ROLES?: (
-    member: Discord.GuildMember,
-    roles: Discord.Collection<string, Discord.Role>
-  ) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the client does not have the requested permissions
-   * @param client - discord client
-   * @param permissions - missing permissions
-   */
-  PERMISSIONS_MISSING_CLIENT?: (
-    client: Discord.Client,
-    permissions: Discord.PermissionString[]
-  ) => Discord.InteractionReplyOptions;
-
-  /**
-   * when the member does not have the requested permissions
-   * @param client - member who initiated the interaction
-   * @param permissions - missing permissions
-   */
-  PERMISSIONS_MISSING_MEMBER?: (
-    member: Discord.GuildMember,
-    permissions: Discord.PermissionString[]
-  ) => Discord.InteractionReplyOptions;
+  static async build(options: SucroseOptions): Promise<Sucrose>;
 }
 
 /**
- * autocomplete interaction
+ * Autocomplete interaction object
+ * @category interactions
+ *
  * @public
+ * @example
+ * ```js
+ * module.exports = {
+ *  body: {
+ *    command: 'command-name',
+ *    option: 'option-name',
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    await interaction.respond(['ferret', 'otter', 'cat']);
+ *  },
+ * };
+ * ```
  */
 export interface Autocomplete {
   /**
-   * the autocomplete body
+   * Interaction body
    */
-  body: { command: string; option?: string; };
+  body: {
+    /**
+     * Command name
+     */
+    command: string;
+
+    /**
+     * Sub command group where is focus option
+     */
+    group?: string;
+
+    /**
+     * Sub command option and focus option
+     */
+    option?: string;
+  };
 
   /**
-   * function that will be executed when the command or command + option is called
+   * Trigger when this interaction is called
    */
-  exec?: BaseExec<{ interaction: Discord.AutocompleteInteraction }>;
+  exec?: BaseInteractionExec<{ interaction: Discord.AutocompleteInteraction }>;
 }
 
 /**
- * chat input interaction
+ * Autocomplete interaction data
  * @public
  */
-export interface ChatInput extends BaseInteraction {
+export interface AutocompleteData extends Autocomplete {
+  path: string;
+}
+
+/**
+ * BaseCommandManagerOptions
+ * @category options
+ * @public
+ */
+export interface BaseCommandManagerOptions extends GlobalOptions {
+  env: EnvironmentOptions;
+  directory: string;
+}
+
+/**
+ * Base interaction
+ * @public
+ */
+export interface BaseInteraction { path: string; }
+
+/**
+ * BaseInteractionManager options
+ * @category options
+ * @public
+ */
+export interface BaseInteractionManagerOptions extends GlobalOptions {
+  env: EnvironmentOptions;
+  name: string;
+  directory: string;
+}
+
+/**
+ * Button interaction object
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ButtonStyle, ComponentType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    customId: 'use-me',
+ *    type: ComponentType.Button,
+ *    style: ButtonStyle.Primary,
+ *    label: 'Use me',
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    await interaction.reply('Yeaaaah');
+ *  },
+ * };
+ * ```
+ */
+export interface Button {
   /**
-   * the command body that will be sent to the API
+   * Interaction body
+   */
+  body: Discord.ButtonComponentData;
+
+  /**
+   * Trigger when this interaction is called
+   */
+  exec?: BaseInteractionExec<{ interaction: Discord.ButtonInteraction }>;
+
+  permissions?: Permissions;
+}
+
+/**
+ * Button interaction data
+ * @public
+ */
+export interface ButtonData extends Button { path: string; }
+
+/**
+ * ChatInput interaction
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ApplicationCommandType, ApplicationCommandOptionType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    name: 'say',
+ *    description: 'I will say something',
+ *    type: ApplicationCommandType.ChatInput, // No required for chat input
+ *    options: [{
+ *      name: 'text',
+ *      description: 'text to say',
+ *      type: ApplicationCommandOptionType.STRING,
+ *      required: true,
+ *    }],
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    const text = interaction.options.getString('text', true);
+ *    await interaction.reply(text);
+ *  },
+ * };
+ * ```
+ */
+export interface ChatInput {
+  /**
+   * Interaction chat input body
    */
   body: Discord.ChatInputApplicationCommandData;
 
   /**
-   * the function that will be executed when the command is called
+   * Trigger when this interaction is called
    */
-  exec?: BaseExec<{ interaction: Discord.ChatInputCommandInteraction }>;
+  exec?: BaseInteractionExec<{ interaction: Discord.ChatInputCommandInteraction }>;
+
+  permissions?: Permissions;
 }
 
 /**
- * message context menu interaction
+ * ChatInputInteraction data
  * @public
  */
-export interface MessageContextMenu extends BaseInteraction {
+export interface ChatInputData extends ChatInput {
+  path: string;
+  options: Discord.Collection<string, ChatInputSubOptionData | ChatInputSubGroupOptionData>
+}
+
+/**
+ * ChatInputSubGroupOption interaction
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ApplicationCommandOptionType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    name: 'animals',
+ *    description: 'select an animal to receive image',
+ *    type: ApplicationCommandOptionType.SubCommandGroup,
+ *  },
+ * };
+ * ```
+ */
+export interface ChatInputSubGroupOption {
   /**
-   * the message context menu body that will be sent to the API
+   * Interaction body
+   */
+  body: Discord.ApplicationCommandSubGroupData;
+  permissions?: Permissions;
+}
+
+/**
+ * ChatInputSubGroupOption data
+ * @public
+ */
+export interface ChatInputSubGroupOptionData extends ChatInputSubGroupOption {
+  path: string;
+  options: Discord.Collection<string, ChatInputSubOptionData>;
+}
+
+/**
+ * ChatInputSubOption
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ApplicationCommandOptionType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    name: 'ferret',
+ *    description: 'receive ferret image',
+ *    type: ApplicationCommandOptionType.SubCommand,
+ *    options: [{
+ *      name: 'format',
+ *      description: 'image format',
+ *      type: ApplicationCommandOptionType.STRING,
+ *    }],
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    const format = interaction.options.getString('format') || 'png';
+ *    await interaction.reply(`[insert cute-ferret.${format}]`);
+ *  },
+ * };
+ * ```
+ */
+export interface ChatInputSubOption {
+  /**
+   * interaction body
+   */
+  body: Discord.ApplicationCommandSubCommandData;
+
+  /**
+   * Trigger when this interaction is called
+   */
+  exec?: BaseInteractionExec<{ interaction: Discord.ChatInputCommandInteraction }>;
+  permissions?: Permissions;
+}
+
+/**
+ * ChatInputSubOption data
+ * @public
+ */
+export interface ChatInputSubOptionData extends ChatInputSubOption { path: string; }
+
+/**
+ * Configure directories for commands managers
+ * @public
+ */
+export interface CommandDirectories {
+  /**
+   * Configure directory for globals commands
+   * @defaultValue 'commands/globals'
+   */
+  globals: string,
+
+  /**
+   * Configure directory for guilds commands
+   * @defaultValue 'commands/guilds'
+   */
+  guilds: string,
+}
+
+/**
+ * CommandManager options
+ * @category options
+ * @public
+ */
+export interface CommandManagerOptions extends BaseCommandManagerOptions {
+  directories: CommandDirectories;
+}
+
+/**
+ * Configure directories for interactions manager
+ * @public
+ */
+export interface Directories {
+  /**
+   * Configure directories for commands manager
+   */
+  commands: CommandDirectories;
+
+  /**
+   * Configure directory for events manager
+   * @defaultValue 'events'
+   */
+  events: string;
+
+  /**
+   * Configure directories form interactions manager
+   */
+  interactions: InteractionDirectories;
+}
+
+/**
+ * App environment options
+ * @category options
+ * @public
+ */
+export interface EnvironmentOptions {
+  /**
+   * Source app directory
+   * @defaultValue ''
+   */
+  source: string;
+
+  /**
+   * Define file extension (js or ts)
+   * @defaultValue 'js'
+   */
+  ext: 'js' | 'ts';
+}
+
+/**
+ * EventManager options
+ * @category options
+ * @public
+ */
+export interface EventManagerOptions extends GlobalOptions {
+  env: EnvironmentOptions;
+  directory: string;
+}
+
+/**
+ * Event options
+ * @category options
+ * @public
+ */
+export interface EventOptions extends GlobalOptions {
+  env: EnvironmentOptions;
+  sucrose: Sucrose;
+  path: string;
+}
+
+/**
+ * Sucrose features
+ * @features
+ * @public
+ */
+export interface Features {
+  interactions: InteractionFeatures;
+}
+
+/**
+ * Form interaction
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ComponentType, InteractionType, TextInputStyle } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    customId: 'report',
+ *    title: 'Report form',
+ *    components: [{
+ *      type: ComponentType.ActionRow,
+ *      components: [{
+ *        customId: 'reason',
+ *        style: TextInputStyle.Paragraph,
+ *        label: 'Report reason',
+ *        minLength: 10,
+ *        maxLength: 500,
+ *      }],
+ *    }],
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    const reason = interaction.fields.getTextInputValue('reason');
+ *    await interaction.reply(reason);
+ *  }
+ * };
+ * ```
+ */
+export interface Form {
+  /**
+   * Interaction form
+   */
+  body: Discord.ModalComponentData;
+
+  /**
+   * Trigger when this interaction is called
+   */
+  exec?: BaseInteractionExec<{ interaction: Discord.ModalSubmitInteraction }>;
+  permissions?: Permissions;
+}
+
+/**
+ * FormInteraction data
+ * @public
+ */
+export interface FormData extends Form { path: string; }
+
+/**
+ * Global options
+ * @category options
+ * @public
+ */
+export interface GlobalOptions {
+  logging: LoggingOptions;
+}
+
+/**
+ * GuildCommandManager options
+ * @category options
+ * @public
+ */
+export interface GuildCommandManagerOptions extends BaseCommandManagerOptions {
+  guildId: Discord.Snowflake;
+}
+
+/**
+ * AutoReply to interaction (error message)
+ * @category features
+ * @public
+ */
+export interface InteractionAutoReplyFeature {
+  /**
+   * @defaultValue true
+   */
+  active: boolean;
+
+  /**
+   * Custom reply message
+   */
+  contents: InteractionAutoReplyContents;
+}
+
+/**
+ * Interaction directories
+ * @public
+ */
+export interface InteractionDirectories {
+  /**
+   * Directory for autocompletes manager
+   * @defaultValue 'interactions/autocompletes'
+   */
+  autocompletes: string;
+
+  /**
+   * Directory for buttons manager
+   * @defaultValue 'interactions/buttons'
+   */
+  buttons: string;
+
+  /**
+   * Directory for forms manager
+   * @defaultValue 'interactions/forms'
+   */
+  forms: string;
+
+  /**
+   * Directory for selectMenus manager
+   * @defaultValue 'interactions/select-menus'
+   */
+  selectMenus: string;
+}
+
+/**
+ * Interactions feature options
+ * @category features
+ * @public
+ */
+export interface InteractionFeatures {
+  autoReply: InteractionAutoReplyFeature;
+}
+
+/**
+ * Interaction manager options
+ * @category options
+ * @public
+ */
+export interface InteractionManagerOptions extends GlobalOptions {
+  directories: InteractionDirectories;
+  features: InteractionFeatures;
+  env: EnvironmentOptions;
+}
+
+/**
+ * Logging options
+ * @category options
+ * @public
+ */
+export interface LoggingOptions {
+  /**
+   * Active loading bar when your app start
+   * @default true
+   */
+  loadings: boolean;
+
+  /**
+   * Active log details when your app start (console.table of interactions loaded)
+   * @default false
+   */
+  details: boolean;
+}
+
+/**
+ * MessageContextMenu
+ * @category interactions
+ *
+ * @public
+ * @example
+ * ```js
+ * const { ApplicationCommandType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    name: 'copy',
+ *    description: 'Copy message content',
+ *    type: ApplicationCommandType.Message,
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    await interaction.reply(interaction.message.content);
+ *  },
+ * };
+ * ```
+ */
+export interface MessageContextMenu {
+  /**
+   * Interaction body
    */
   body: Discord.MessageApplicationCommandData;
 
   /**
-   * the function that will be executed when the message context menu is called
+   * Trigger when this interaction is called
    */
-  exec?: BaseExec<{ interaction: Discord.MessageContextMenuCommandInteraction }>;
+  exec?: BaseInteractionExec<{ interaction: Discord.MessageContextMenuCommandInteraction }>
+  permissions?: Permissions;
 }
+
+/**
+ * @public
+ * MessageContextMenu data
+ */
+export interface MessageContextMenuData extends MessageContextMenu { path: string; }
 
 /**
  * permissions object
@@ -746,261 +1035,375 @@ export interface Permissions {
 }
 
 /**
- * select menu interaction
+ * UserMenu interaction
+ * @category interactions
+ *
  * @public
+ * @example
+ * ```js
+ * const { ComponentType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    customId: 'select-me',
+ *    type: ComponentType.SelectMenu,
+ *    options: [
+ *      { label: 'me', value: 'Yeaaah' },
+ *      { label: 'no-me', value: 'Oh god' },
+ *    ],
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    const [value] = interaction.values;
+ *    await interaction.reply(value);
+ *  },
+ * };
+ * ```
  */
-export interface SelectMenu extends BaseInteraction {
+export interface SelectMenu {
   /**
-   * select menu body
+   * Interaction body
    */
-  data: Discord.SelectMenuComponentData;
+  body: Discord.SelectMenuComponent;
 
   /**
-   * function executed when the select menu is activated
+   * Trigger when this interaction is called
    */
-  exec?: BaseExec<{ interaction: Discord.SelectMenuInteraction }>;
+  exec?: BaseInteractionExec<{ interaction: Discord.SelectMenuInteraction }>;
+  permissions?: Permissions;
 }
 
 /**
- * sucrose client options
  * @public
+ * SelectMenuInteraction data
  */
-export interface SucroseOptions extends Discord.ClientOptions {
-  /**
-   * allows you to change the structure's automatic messages, such as error messages
-   */
-  contents?: {
-    /**
-     * allows you to change automatic messages concerning your interactions, such as error messages
-     */
-    interaction?: InteractionContent;
-  };
-
-  /**
-   * allows you to configure a specific environment for the structure to locate
-   * @example
-   * const env = \{
-   *  source: 'src',
-   *  ext: 'ts',
-   * \}
-   */
-  env?: {
-    /**
-     * indicate the source folder of your project,
-     * the folder that contains your index.js or index.ts as well as the command folders, etc...
-     *
-     * @defaultValue ''
-     */
-    source?: string;
-
-    /**
-     * indicate the extension of your files so that the structure can be identified
-     *
-     * @defaultValue 'js'
-     */
-    ext?: 'js' | 'ts';
-  };
-
-  /**
-   * indicate the token of your discord bot here or in an .env file
-   */
-  token?: string;
-}
+export interface SelectMenuData extends SelectMenu { path: string; }
 
 /**
- * sub command group
+ * UserContextMenu
+ * @category interactions
+ *
  * @public
+ * @example
+ * ```js
+ * const { ApplicationCommandType } = require('discord.js');
+ *
+ * module.exports = {
+ *  body: {
+ *    name: 'avatar',
+ *    description: 'Get user avatar',
+ *    type: ApplicationCommandType.User,
+ *  },
+ *
+ *  exec: async ({ interaction }) => {
+ *    await interaction.reply(interaction.user.displayAvatarUrl());
+ *  },
+ * };
+ * ```
  */
-export interface SubCommandGroup extends BaseInteraction {
+export interface UserContextMenu {
   /**
-   * sub command group body
-   */
-  option: Discord.ApplicationCommandSubGroupData;
-
-  /**
-   * function executed when the sub command group is activated
-   */
-  exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
-}
-
-/**
- * sub command
- * @public
- */
-export interface SubCommand extends BaseInteraction {
-  /**
-   * sub command body
-   */
-  option: Discord.ApplicationCommandSubCommandData;
-
-  /**
-   * function executed when the sub command is activated
-   */
-  exec?: BaseExec<{ interaction: Discord.CommandInteraction }>;
-}
-
-/**
- * user context menu interaction
- * @public
- */
-export interface UserContextMenu extends BaseInteraction {
-  /**
-   * user context menu body
+   * Interaction body
    */
   body: Discord.UserApplicationCommandData;
 
   /**
-   * function executed when the user context menu is activated
+   * Trigger when this interaction is called
    */
-  exec?: BaseExec<{ interaction: Discord.UserContextMenuCommandInteraction }>;
-}
-
-// # export types
-/**
- * button
- * @public
- */
-export type Button = BaseInteraction & {
-  /**
-   * button body
-   */
-  data: Discord.ButtonComponentData;
-
-  /**
-   * function executed when the button is activated
-   */
-  exec?: BaseExec<{ interaction: Discord.ButtonInteraction }>;
-};
-
-/**
- * event handler
- * @public
- */
-export type EventHandler<E extends keyof Discord.ClientEvents> = BaseExec<{
-  args: Discord.ClientEvents[E]
-}>;
-
-/**
- * form
- * @public
- */
-export type Form = BaseInteraction & {
-  /**
-   * form body
-   */
-  data: Discord.ModalComponentData;
-
-  /**
-   * function executed when the form modal is activated
-   */
-  exec?: BaseExec<{ interaction: Discord.ModalSubmitInteraction }>
-};
-
-// # internal
-/**
- * @public
- */
-interface CommandType {
-  CHAT_INPUT: ChatInputData;
-  USER: UserContextMenuData;
-  MESSAGE: MessageContextMenuData;
+  exec?: BaseInteractionExec<{ interaction: Discord.UserContextMenuCommandInteraction }>;
+  permissions?: Permissions;
 }
 
 /**
+ * UserContextMenu data
  * @public
  */
-type AutocompleteData = Autocomplete & { path: string; };
+export interface UserContextMenuData extends UserContextMenu { path: string; }
+
+/**
+ * Interaction auto reply feature contents
+ * @category contents
+ * @public
+ */
+export interface InteractionAutoReplyContents {
+  /**
+   * when the interaction encounters a global error
+   */
+  ERROR: (
+    params: { interaction: Discord.Interaction; error: Error; }
+  ) => ContentReturn;
+
+  /**
+   * when the autocomplete interaction is missing
+   */
+  AUTOCOMPLETE_INTERACTION_MISSING: (
+    params: { interaction: Discord.AutocompleteInteraction; key: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the autocomplete interaction exec function is not define
+   */
+  AUTOCOMPLETE_INTERACTION_MISSING_EXEC: (
+    params: { interaction: Discord.AutocompleteInteraction; key: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the button interaction exec function is not define
+   */
+  BUTTON_INTERACTION_MISSING_EXEC: (
+    params: { interaction: Discord.ButtonInteraction; customId: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input interaction is missing
+   */
+  CHAT_INPUT_INTERACTION_MISSING: (
+    params: { interaction: Discord.CommandInteraction; name: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input interaction exec function is not define
+   */
+  CHAT_INPUT_INTERACTION_MISSING_EXEC: (
+    params: { interaction: Discord.CommandInteraction; name: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input group is missing
+   */
+  CHAT_INPUT_GROUP_MISSING: (
+    params: { interaction: Discord.CommandInteraction; name: string; group: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input group option is missing
+   */
+  CHAT_INPUT_GROUP_OPTION_MISSING: (
+    params: {
+      interaction: Discord.CommandInteraction;
+      name: string;
+      group: string;
+      option: string;
+    }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input group option exec function is not define
+   */
+  CHAT_INPUT_GROUP_OPTION_MISSING_EXEC: (
+    params: {
+      interaction: Discord.CommandInteraction;
+      name: string;
+      group: string;
+      option: string;
+    }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input option is missing
+   */
+  CHAT_INPUT_OPTION_MISSING: (
+    params: { interaction: Discord.CommandInteraction; name: string; option: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the chat input option exec function is not define
+   */
+  CHAT_INPUT_OPTION_MISSING_EXEC: (
+    params: { interaction: Discord.CommandInteraction; name: string; option: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the form interaction exec function is not define
+   */
+  FORM_INTERACTION_MISSING_EXEC: (
+    params: { interaction: Discord.ModalSubmitInteraction; customId: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the message context menu exec function is not define
+   */
+  MESSAGE_CONTEXT_MENU_MISSING_EXEC: (
+    params: { interaction: Discord.MessageContextMenuCommandInteraction; name: string; }
+  ) => ContentReturn;
+
+  /**
+   * when no other interaction has been taken
+   */
+  UNKNOWN_INTERACTION: (params: { interaction: Discord.Interaction }) => ContentReturn
+
+  /**
+   * when the user context menu exec function is not define
+   */
+  USER_CONTEXT_MENU_MISSING_EXEC: (
+    params: { interaction: Discord.UserContextMenuCommandInteraction; name: string; }
+  ) => ContentReturn;
+
+  /**
+   * when the client missing permissions
+   */
+  PERMISSIONS_CLIENT_MISSING: (
+    params: { interaction: Discord.Interaction; permissions: Discord.PermissionsString[]; }
+  ) => ContentReturn;
+
+  /**
+   * when the current guild is not allowed
+   */
+  PERMISSIONS_CURRENT_GUILD_NOT_ALLOWED: (
+    params: { interaction: Discord.Interaction; guildIDs: Discord.Snowflake[]; }
+  ) => ContentReturn;
+
+  /**
+   * when the guild channel is not allowed
+   */
+  PERMISSIONS_CURRENT_GUILD_CHANNEl_NOT_ALLOWED: (
+    params: { interaction: Discord.Interaction; channelIDs: Discord.Snowflake[]; }
+  ) => ContentReturn;
+
+  /**
+   * when guid is not allowed
+   */
+  PERMISSIONS_GUILD_NOT_ALLOWED: (
+    params: { interaction: Discord.Interaction; }
+  ) => ContentReturn;
+
+  /**
+   * when the member missing permissions
+   */
+  PERMISSIONS_CURRENT_MEMBER_MISSING: (
+    params: { interaction: Discord.Interaction; permissions: Discord.PermissionsString[]; }
+  ) => ContentReturn;
+
+  /**
+   * when one of allowed roles is missing in member
+   */
+  PERMISSIONS_MEMBER_ALLOW_ROLES_MISSING: (
+    params: { interaction: Discord.Interaction; roleIDs: Discord.Snowflake[]; }
+  ) => ContentReturn;
+
+  /**
+   * when the user is not allowed
+   */
+  PERMISSIONS_CURRENT_USER_NOT_ALLOWED: (
+    params: { interaction: Discord.Interaction; userIDs: Discord.Snowflake[]; }
+  ) => ContentReturn;
+
+  /**
+   * when private channel is not allowed
+   */
+  PERMISSIONS_PRIVATE_CHANNEL_NOT_ALLOWED: (
+    params: { interaction: Discord.Interaction; }
+  ) => ContentReturn;
+
+  /**
+   * when the select menu exec function is not define
+   */
+  SELECT_MENU_INTERACTION_MISSING_EXEC: (
+    params: { interaction: Discord.SelectMenuInteraction; customId: string; }
+  ) => ContentReturn;
+}
+
+/**
+ * Sucrose options
+ * @category options
+ * @public
+ */
+export interface SucroseOptions extends Discord.ClientOptions, Partial<GlobalOptions> {
+  directories?: Partial<Directories>;
+  env?: Partial<EnvironmentOptions>;
+  features?: Partial<Features>;
+  token?: string;
+}
+
+/**
+ * Base interaction exec
+ * @public
+ */
+export type BaseInteractionExec<T> = (params: BaseParams & T) => Return;
 
 /**
  * @public
  */
-type BaseExec<I> = (params: BaseParams & I) => Discord.Awaitable<void>;
+export type BaseParams = { sucrose: Sucrose };
 
 /**
  * @public
  */
-type BaseInteraction = { permissions?: Permissions; };
+export type ChatInputOption = ChatInputSubGroupOption | ChatInputSubOption;
 
 /**
  * @public
  */
-type BaseParams = { sucrose: Sucrose };
+export type ChatInputOptionData = ChatInputSubGroupOptionData | ChatInputSubOptionData;
 
 /**
  * @public
  */
-type ButtonData = Button & { path: string };
+export type Command = ChatInput | MessageContextMenu | UserContextMenu;
 
 /**
  * @public
  */
-type ChatInputData = ChatInput & {
-  options: Discord.Collection<string, CommandOptionData | SubCommandData> | null;
-  path: string;
+export type CommandData = ChatInputData | MessageContextMenuData | UserContextMenuData;
+
+/**
+ * @public
+ */
+export type EventHandler<E extends EventNames> = (
+  params: EventHandlerParams<E>
+) => unknown;
+
+/**
+ * @public
+ */
+export type EventHandlerParams<E extends EventNames> = BaseParams & {
+  args: Discord.ClientEvents[E];
 };
 
 /**
+ * All interaction
  * @public
  */
-type CommandOption = SubCommandGroup | SubCommand;
+export type Interaction = Autocomplete | Button | Form | SelectMenu;
 
 /**
+ * All interaction data
  * @public
  */
-type CommandOptionData = SubCommandGroupData | SubCommandData;
+export type InteractionData = AutocompleteData | ButtonData | FormData | SelectMenuData;
 
 /**
- * @public
+ * @internal
  */
-type CommandData<T extends keyof CommandType = keyof CommandType> = CommandType[T];
+type ContentReturn = Discord.InteractionReplyOptions | Promise<Discord.InteractionReplyOptions >;
 
 /**
- * @public
- */
-type DiscordCommand = Discord.UserContextMenuInteraction &
-Discord.MessageContextMenuInteraction &
-Discord.CommandInteraction;
-
-/**
- * @public
+ * @internal
  */
 type EventNames = keyof Discord.ClientEvents;
 
 /**
- * @public
+ * @internal
  */
-type InteractionData = CommandData | ButtonData | SelectMenuData;
+type MessageReturn = Promise<Discord.MessageOptions> | Discord.MessageOptions;
 
 /**
- * @public
+ * @internal
  */
-type MessageContextMenuData = MessageContextMenu & { path: string; };
+type Return = unknown;
 
 /**
- * @public
+ * @internal
  */
-type FormData = Form & { path: string };
+enum Codes {
+  'FATAL' = '\x1b[1m\x1b[31m🔥 FATAL\x1b[0m',
+  'ERROR' = '\x1b[1m\x1b[31m✖ ERROR\x1b[0m',
+  'WARN' = '\x1b[1m\x1b[33m🔔 WARN\x1b[0m',
+  'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
+  'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
+}
 
 /**
- * @public
+ * @internal
  */
-type SelectMenuData = SelectMenu & { path: string; };
-
-/**
- * @public
- */
-type SubCommandData = SubCommand & { group?: string; path: string; parent: string; };
-
-/**
- * @public
- */
-type SubCommandGroupData = SubCommandGroup & {
-  options: Discord.Collection<string, SubCommandData>;
-  path: string;
-  parent: string;
-};
-
-/**
- * @public
- */
-type UserContextMenuData = UserContextMenu & { path: string; };
+type Code = keyof typeof Codes;
