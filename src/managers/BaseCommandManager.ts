@@ -23,10 +23,7 @@ export default class BaseCommandManager
   extends Collection<string, Types.CommandData> implements Types.BaseCommandManager {
   protected builded = false;
 
-  /**
-   * Define commands directory path
-   */
-  public path: string;
+  protected path: string;
 
   public constructor(
     protected sucrose: Types.Sucrose,
@@ -34,7 +31,7 @@ export default class BaseCommandManager
   ) {
     super();
 
-    this.path = options.path;
+    this.path = options.directory;
   }
 
   /**

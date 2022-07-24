@@ -17,11 +17,6 @@ import type Discord from 'discord.js';
  * ```
  */
 declare class BaseCommandManager extends Discord.Collection<string, CommandData> {
-  /**
-   * Define commands directory path
-   */
-  public path: string;
-
   constructor(sucrose: Sucrose, options: BaseCommandManagerOptions);
 
   /**
@@ -133,6 +128,8 @@ declare class CommandManager extends BaseCommandManager implements Types.Command
    * GuildCommandManager collection
    */
   public readonly guilds: Discord.Collection<Discord.Snowflake, GuildCommandManager>;
+
+  constructor(sucrose: Sucrose, options: CommandManagerOptions);
 
   /**
    * load all global command and build potential guild command manager
@@ -322,11 +319,6 @@ declare class GuildCommandManager extends BaseCommandManager {
  */
 declare class InteractionManager {
   /**
-   * Define interactions parent directory
-   */
-  public path: string;
-
-  /**
    * autocomplete interaction manager
    */
   public autocompletes: BaseInteractionManager<AutocompleteData>;
@@ -510,7 +502,7 @@ export interface AutocompleteData extends Autocomplete {
  */
 export interface BaseCommandManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  path: string;
+  directory: string;
 }
 
 /**
@@ -527,7 +519,7 @@ export interface BaseInteraction { path: string; }
 export interface BaseInteractionManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
   name: string;
-  path: string;
+  directory: string;
 }
 
 /**
@@ -708,15 +700,41 @@ export interface ChatInputSubOption {
 export interface ChatInputSubOptionData extends ChatInputSubOption { path: string; }
 
 /**
+ * Configure directories for commands managers
+ * @public
+ */
+export interface CommandDirectories {
+  /**
+   * Configure directory for globals commands
+   * @defaultValue 'commands/globals'
+   */
+  globals: string,
+
+  /**
+   * Configure directory for guilds commands
+   * @defaultValue 'commands/guilds'
+   */
+  guilds: string,
+}
+
+/**
+ * CommandManager options
+ * @category options
+ * @public
+ */
+export interface CommandManagerOptions extends BaseCommandManagerOptions {
+  directories: CommandDirectories;
+}
+
+/**
  * Configure directories for interactions manager
  * @public
  */
 export interface Directories {
   /**
-   * Configure directory for commands manager
-   * @defaultValue 'commands'
+   * Configure directories for commands manager
    */
-  commands: string;
+  commands: CommandDirectories;
 
   /**
    * Configure directory for events manager
@@ -726,7 +744,6 @@ export interface Directories {
 
   /**
    * Configure directories form interactions manager
-   * @defaultValue 'interactions'
    */
   interactions: InteractionDirectories;
 }
@@ -757,7 +774,7 @@ export interface EnvironmentOptions {
  */
 export interface EventManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  path: string;
+  directory: string;
 }
 
 /**
@@ -873,33 +890,27 @@ export interface InteractionAutoReplyFeature {
 export interface InteractionDirectories {
   /**
    * Directory for autocompletes manager
-   * @defaultValue 'autocompletes'
+   * @defaultValue 'interactions/autocompletes'
    */
   autocompletes: string;
 
   /**
    * Directory for buttons manager
-   * @defaultValue 'buttons'
+   * @defaultValue 'interactions/buttons'
    */
   buttons: string;
 
   /**
    * Directory for forms manager
-   * @defaultValue 'forms'
+   * @defaultValue 'interactions/forms'
    */
   forms: string;
 
   /**
    * Directory for selectMenus manager
-   * @defaultValue 'select-menus'
+   * @defaultValue 'interactions/select-menus'
    */
   selectMenus: string;
-
-  /**
-   * Directory for interactions manager
-   * @defaultValue 'interactions'
-   */
-  source: string;
 }
 
 /**
@@ -920,7 +931,6 @@ export interface InteractionManagerOptions extends GlobalOptions {
   directories: InteractionDirectories;
   features: InteractionFeatures;
   env: EnvironmentOptions;
-  path: string;
 }
 
 /**
@@ -1380,4 +1390,20 @@ type MessageReturn = Promise<Discord.MessageOptions> | Discord.MessageOptions;
 /**
  * @internal
  */
- type Return = unknown;
+type Return = unknown;
+
+/**
+ * @internal
+ */
+enum Codes {
+  'FATAL' = '\x1b[1m\x1b[31m🔥 FATAL\x1b[0m',
+  'ERROR' = '\x1b[1m\x1b[31m✖ ERROR\x1b[0m',
+  'WARN' = '\x1b[1m\x1b[33m🔔 WARN\x1b[0m',
+  'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
+  'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
+}
+
+/**
+ * @internal
+ */
+type Code = keyof typeof Codes;

@@ -35,7 +35,7 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
   constructor(private options: Types.BaseInteractionManagerOptions) {
     super();
 
-    this.path = options.path;
+    this.path = options.directory;
   }
 
   /**
@@ -47,10 +47,10 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
     if (this.builded) throw SError('ERROR', `${this.options.name} is already builded`);
     this.builded = true;
 
-    if (!existsSync(this.options.path) || !lstatSync(this.options.path).isDirectory()) return;
+    if (!existsSync(this.path) || !lstatSync(this.path).isDirectory()) return;
 
-    const files = readdirSync(this.options.path).filter((file) => {
-      const isFile = lstatSync(path.join(this.options.path, file)).isFile();
+    const files = readdirSync(this.path).filter((file) => {
+      const isFile = lstatSync(path.join(this.path, file)).isFile();
       const extFile = file.endsWith(`.${env.ext}`);
       return isFile && extFile;
     });
@@ -65,7 +65,7 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
       const index = files.indexOf(file) + 1;
       if (loading) loading.next({ index, message: `load /interactions/${name}s/${file}` });
 
-      const to = path.join(this.options.path, file);
+      const to = path.join(this.path, file);
       const interaction = await imported(to, name) as T;
       interaction.path = to;
 

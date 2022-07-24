@@ -26,6 +26,13 @@ export default class CommandManager extends BaseCommandManager implements Types.
    */
   public guilds = new Collection<Discord.Snowflake, Types.GuildCommandManager>();
 
+  public constructor(
+    sucrose: Types.Sucrose,
+    protected override options: Types.CommandManagerOptions,
+  ) {
+    super(sucrose, options);
+  }
+
   /**
    * load all global command and build potential guild command manager
    */
@@ -35,12 +42,11 @@ export default class CommandManager extends BaseCommandManager implements Types.
 
     const { env, logging } = this.options;
 
-    const globalCommandsPath = path.join(this.options.path, 'globals');
-    if (existsSync(globalCommandsPath) && lstatSync(globalCommandsPath).isDirectory()) {
+    if (existsSync(this.path) && lstatSync(this.path).isDirectory()) {
       this.clear();
 
-      const files = readdirSync(globalCommandsPath).filter((file) => {
-        const lstat = lstatSync(path.join(globalCommandsPath, file));
+      const files = readdirSync(this.path).filter((file) => {
+        const lstat = lstatSync(path.join(this.path, file));
         const extFile = file.endsWith(`.${env.ext}`);
         return lstat.isFile() && extFile;
       });
@@ -52,7 +58,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
         let index = 0;
         await Promise.all(files.map(async (file) => {
           await this.add(file);
-          if (loading) loading.next({ index: index += 1, message: `/commands/global/${file} loaded` });
+          if (loading) loading.next({ index: index += 1, message: `./${file} loaded` });
         }));
 
         if (loading) Logger.clear();
@@ -60,17 +66,17 @@ export default class CommandManager extends BaseCommandManager implements Types.
       }
     }
 
-    const guildCommandsPath = path.join(this.options.path, 'guilds');
-    if (existsSync(guildCommandsPath) && lstatSync(guildCommandsPath).isDirectory()) {
+    const guildsCommandsPath = this.options.directories.guilds;
+    if (existsSync(guildsCommandsPath) && lstatSync(guildsCommandsPath).isDirectory()) {
       this.guilds.clear();
 
-      const guildDirectories = readdirSync(guildCommandsPath).filter((directory) => {
-        const lstat = lstatSync(path.join(guildCommandsPath, directory));
+      const guildDirectories = readdirSync(guildsCommandsPath).filter((directory) => {
+        const lstat = lstatSync(path.join(guildsCommandsPath, directory));
         return lstat.isDirectory();
       });
 
       await Promise.all(guildDirectories.map(async (directory) => {
-        const params = { guildId: directory, path: path.join(guildCommandsPath, directory) };
+        const params = { guildId: directory, directory: path.join(guildsCommandsPath, directory) };
         const manager = new GuildCommandManager(this.sucrose, { ...this.options, ...params });
         await manager.build();
         this.guilds.set(directory, manager);

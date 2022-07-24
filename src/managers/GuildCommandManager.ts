@@ -40,7 +40,7 @@ export default class GuildCommandManager
     if (this.builded) throw SError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);
     this.builded = true;
 
-    const to = this.options.path;
+    const to = this.path;
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
     const { env, logging } = this.options;
     this.clear();
@@ -57,7 +57,7 @@ export default class GuildCommandManager
       let index = 0;
       await Promise.all(files.map(async (file) => {
         await this.add(file);
-        if (loading) loading.next({ index: index += 1, message: `load /commands/guilds/${this.guildId}/${file}` });
+        if (loading) loading.next({ index: index += 1, message: `load ./${this.guildId}/${file}` });
       }));
 
       if (loading) Logger.clear();

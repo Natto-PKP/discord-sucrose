@@ -1,9 +1,12 @@
 /* eslint-disable consistent-return */
 
 import {
-  ApplicationCommandOptionType, ApplicationCommandType, ComponentType, Interaction, InteractionType,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ComponentType,
+  Interaction,
+  InteractionType,
 } from 'discord.js';
-import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
@@ -13,6 +16,7 @@ import type Sucrose from '../Sucrose';
 import { SError, SInteractionError, SucroseInteractionError } from '../errors';
 import BaseInteractionManager from './BaseInteractionManager';
 import Logger from '../services/Logger';
+import * as defaults from '../options';
 
 /**
  * Structure for manage all classic interaction
@@ -29,11 +33,6 @@ export default class InteractionManager implements Types.InteractionManager {
    * Define if this manager is builded or not
    */
   private builded = false;
-
-  /**
-   * Define interactions parent directory
-   */
-  public path: string;
 
   /**
    * autocomplete interaction manager
@@ -56,19 +55,15 @@ export default class InteractionManager implements Types.InteractionManager {
   public selectMenus: BaseInteractionManager<Types.SelectMenuData>;
 
   public constructor(private sucrose: Sucrose, private options: Types.InteractionManagerOptions) {
-    this.path = options.path;
+    const autocompleteOptions = defaults.getAutocompleteInteractionManagerOptions(options);
+    const buttonOptions = defaults.getButtonInteractionManagerOptions(options);
+    const formOptions = defaults.getFormInteractionManagerOptions(options);
+    const selectMenuOptions = defaults.getSelectMenuInteractionManagerOptions(options);
 
-    const autocompletePath = path.join(options.path, 'autocompletes');
-    const buttonPath = path.join(options.path, 'buttons');
-    const formPath = path.join(options.path, 'forms');
-    const selectMenuPath = path.join(options.path, 'select-menus');
-    const { env, logging } = options;
-    const params = { env, logging };
-
-    this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>({ ...params, path: autocompletePath, name: 'autocomplete' });
-    this.buttons = new BaseInteractionManager<Types.ButtonData>({ ...params, path: buttonPath, name: 'button' });
-    this.forms = new BaseInteractionManager<Types.FormData>({ ...params, path: formPath, name: 'form' });
-    this.selectMenus = new BaseInteractionManager<Types.SelectMenuData>({ ...params, path: selectMenuPath, name: 'select-menu' });
+    this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>(autocompleteOptions);
+    this.buttons = new BaseInteractionManager<Types.ButtonData>(buttonOptions);
+    this.forms = new BaseInteractionManager<Types.FormData>(formOptions);
+    this.selectMenus = new BaseInteractionManager<Types.SelectMenuData>(selectMenuOptions);
   }
 
   /**

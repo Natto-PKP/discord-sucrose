@@ -1,5 +1,4 @@
 import { Client } from 'discord.js';
-import path from 'path';
 
 /* Types */
 import type Types from '../typings';
@@ -8,8 +7,7 @@ import Logger from './services/Logger';
 import EventManager from './managers/EventManager';
 import CommandManager from './managers/CommandManager';
 import InteractionManager from './managers/InteractionManager';
-
-import * as contents from './contents';
+import * as defaults from './options';
 
 /**
  * Sucrose client
@@ -41,45 +39,15 @@ export default class Sucrose extends Client {
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    const env = { source: '', ext: 'js', ...(options.env || {}) } as Types.EnvironmentOptions;
-    const logging = {
-      details: false,
-      loading: true,
-      ...(options.logging || {}),
-    } as Types.LoggingOptions;
-    const params = { env, logging };
-    const srcPath = path.join(process.cwd(), env.source);
+    const opts = options;
+    opts.directories = defaults.getDirectoriesOptions(opts);
+    opts.env = defaults.getEnvironmentOptions(opts);
+    opts.logging = defaults.getLoggingOptions(opts);
+    opts.features = defaults.getFeaturesOptions(opts);
 
-    this.commands = new CommandManager(this, {
-      ...params,
-      path: path.join(srcPath, options.directories?.commands || 'commands'),
-    });
-
-    this.events = new EventManager(this, {
-      ...params,
-      path: path.join(srcPath, options.directories?.events || 'events'),
-    });
-
-    this.interactions = new InteractionManager(this, {
-      ...params,
-      directories: {
-        autocompletes: options.directories?.interactions?.autocompletes || 'autocompletes',
-        buttons: options.directories?.interactions?.buttons || 'buttons',
-        forms: options.directories?.interactions?.forms || 'forms',
-        selectMenus: options.directories?.interactions?.selectMenus || 'select-menus',
-        source: options.directories?.interactions?.source || 'interactions',
-      },
-      features: {
-        autoReply: {
-          active: Boolean(options.features?.interactions?.autoReply?.active),
-          contents: {
-            ...contents.InteractionAutoReplyContents,
-            ...(options.features?.interactions?.autoReply?.contents || {}),
-          },
-        },
-      },
-      path: path.join(srcPath, options.directories?.interactions?.source || 'interactions'),
-    });
+    this.commands = new CommandManager(this, defaults.getCommandManagerOptions(opts));
+    this.events = new EventManager(this, defaults.getEventManagerOptions(opts));
+    this.interactions = new InteractionManager(this, defaults.getInteractionManagerOptions(opts));
   }
 
   /**

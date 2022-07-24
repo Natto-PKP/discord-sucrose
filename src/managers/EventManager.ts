@@ -30,8 +30,12 @@ export default class EventManager
    */
   private builded = false;
 
+  private path: string;
+
   public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {
     super();
+
+    this.path = options.directory;
   }
 
   /**
@@ -44,7 +48,7 @@ export default class EventManager
     if (this.size) await Promise.all(this.map((event) => event.remove()));
     this.clear();
 
-    const to = this.options.path;
+    const to = this.path;
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
     const events = readdirSync(to).filter((file) => lstatSync(path.join(to, file)).isDirectory());
     const { logging } = this.options;
@@ -77,7 +81,7 @@ export default class EventManager
     const { env, logging } = this.options;
 
     if (this.has(name)) throw SError('ERROR', `event "${name}" already exists`);
-    const to = path.join(this.options.path, name, `handler.${env.ext}`);
+    const to = path.join(this.path, name, `handler.${env.ext}`);
     if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
 
