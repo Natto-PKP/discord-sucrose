@@ -69,7 +69,7 @@ implements Types.Event<E> {
     if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
 
-    const handler = await imported(path.join(process.cwd(), to), 'handler') as Types.EventHandler<E>;
+    const handler = await imported(to, 'handler') as Types.EventHandler<E>;
     if (typeof handler !== 'function') throw STypeError('handler', 'function', handler);
 
     const listener = async (...args: Discord.ClientEvents[E]) => {

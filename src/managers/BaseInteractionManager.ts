@@ -44,7 +44,7 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
   public async build() {
     const { env, name, logging } = this.options;
 
-    if (!this.builded) throw SError('ERROR', `${this.options.name} is already builded`);
+    if (this.builded) throw SError('ERROR', `${this.options.name} is already builded`);
     this.builded = true;
 
     if (!existsSync(this.options.path) || !lstatSync(this.options.path).isDirectory()) return;
