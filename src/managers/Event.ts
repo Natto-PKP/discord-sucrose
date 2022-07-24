@@ -65,7 +65,7 @@ implements Types.Event<E> {
     if (this.disabled) throw SError('ERROR', `event "${this.name}" is disabled`);
     if (this.listener) throw SError('ERROR', `event "${this.name}" already hare listener`);
 
-    const to = this.path;
+    const to = path.join(this.path, `handler.${this.options.env.ext}`);
     if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
 
