@@ -49,11 +49,11 @@ export default class BaseCommandManager
   public async add(file: string): Promise<Types.CommandData> {
     const { options } = this;
 
-    const to = path.join(options.path, file);
-    if (!existsSync(to)) throw SError('ERROR', 'command file does not exist');
-    if (!lstatSync(to).isFile()) throw SError('ERROR', 'command file is not a file');
-    if (!file.endsWith(`.${options.env.ext}`)) throw SError('ERROR', `command file extension is not ${options.env.ext}`);
-    const command = await imported(path.join(process.cwd(), to), 'command') as Types.CommandData;
+    const to = path.join(this.path, file);
+    if (!existsSync(to)) throw SError('ERROR', `command file "${file}" does not exist`);
+    if (!lstatSync(to).isFile()) throw SError('ERROR', `command file "${file}" is not a file`);
+    if (!file.endsWith(`.${options.env.ext}`)) throw SError('ERROR', `command file "${file}" extension is not ${options.env.ext}`);
+    const command = await imported(to, 'command') as Types.CommandData;
     command.path = to;
 
     if (this.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
@@ -78,7 +78,7 @@ export default class BaseCommandManager
         // ? loop all group folders or sub command subFiles
         await Promise.all(chatInputOptions.map(async (optionFile) => {
           const chatInputOptionPath = path.join(chatInputOptionsPath, optionFile);
-          const chatInputOption = await imported(path.join(process.cwd(), chatInputOptionPath), 'option') as Types.ChatInputOptionData;
+          const chatInputOption = await imported(chatInputOptionPath, 'option') as Types.ChatInputOptionData;
           chatInputOption.path = chatInputOptionPath;
 
           if (chatInputOption.body.type === ApplicationCommandOptionType.SubcommandGroup) {
@@ -103,7 +103,7 @@ export default class BaseCommandManager
             // loop all group sub command files
             await Promise.all(chatInputGroupOptions.map(async (groupOptionFile) => {
               const chatInputGroupOptionPath = path.join(chatInputGroupPath, groupOptionFile);
-              const chatInputGroupOption = await imported(path.join(process.cwd(), chatInputGroupOptionPath), 'option') as Types.ChatInputSubOptionData;
+              const chatInputGroupOption = await imported(chatInputGroupOptionPath, 'option') as Types.ChatInputSubOptionData;
               chatInputGroupOption.path = chatInputGroupOptionPath;
 
               // ### define sub option on group
