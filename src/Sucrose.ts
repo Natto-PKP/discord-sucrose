@@ -82,6 +82,8 @@ export default class Sucrose extends Client {
     Logger.give('INFO', `Launched in ${Date.now() - now}ms`);
     Logger.write('\n');
 
+    if (client.events.has('ready')) client.emit('ready', client as Client);
+
     return client;
   }
 }

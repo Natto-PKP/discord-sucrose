@@ -83,10 +83,7 @@ implements Types.Event<E> {
     };
 
     if (this.options.sucrose.listeners(this.name).includes(listener)) throw SError('ERROR', `event "${this.name}" listener already active`);
-
     this.options.sucrose.on(this.name, listener);
-    if (this.name === 'ready') this.options.sucrose.emit('ready', <Discord.Client> this.options.sucrose);
-
     this.listener = listener;
     return this;
   }
