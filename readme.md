@@ -1,6 +1,25 @@
 # Discord bot structure using discord.js
 
-### [Documentation here](https://docs.discord.sucrose.xyz/)
+### **[[Documentation here]](https://docs.discord.sucrose.xyz/)**
+
+<br>
+
+- [Getting started](#getting-started)
+
+<br>
+
+- [Create a event](#create-a-event)
+- [Create a command](#create-a-command)
+- [Create a button](#create-a-button)
+- [Create a select-menu](#create-a-select-menu)
+- [Create a form modal](#create-a-form-modal)
+- [Create a autocompletion](#create-a-autocompletion)
+
+<br>
+
+- [Changelog](#changelog)
+
+<br>
 
 ## **Getting started**
 
@@ -27,7 +46,17 @@ $ git clone app git@github.com:{userName}/{repositoryName}.git example-bot
 $ cd example-bot && code .
 ```
 
-<br>
+#### # Install dependencies
+
+```sh
+$ npm install
+```
+
+#### # Install husky
+
+```sh
+$ npx husky install
+```
 
 #### # Create .env file
 
@@ -39,6 +68,7 @@ TOKEN='discord bot token'
 
 </details>
 
+<br>
 <br>
 
 ### # **Install dependencies**
@@ -53,6 +83,8 @@ npm install discord-sucrose discord.js dotenv
 TOKEN='discord bot token'
 ```
 
+<br>
+
 ### # **Setup Sucrose structure**
 
 _Create index.js_
@@ -66,6 +98,8 @@ Sucrose.build({ intents: [GatewayIntentBits.Guilds], partials: [Partials.Channel
 ```
 
 > Start bot with node index.js
+
+<br>
 
 ## **Create a event**
 
@@ -82,6 +116,8 @@ module.exports = ({ sucrose }) => {
   console.log(sucrose.user.username + ' is online !');
 };
 ```
+
+<br>
 
 ## **Create a command**
 
@@ -113,6 +149,8 @@ module.exports = {
 > Easily place your command online in discord API with `sucrose.commands.define('command');`  
 > _For guilds command `sucrose.commands.guilds.get('guildId').define('command');`_
 
+<br>
+
 ## **Create a button**
 
 - **Create a folder named "interactions" and in it, create a folder named "buttons"**. This last folder will contain your buttons
@@ -139,6 +177,8 @@ module.exports = {
 ```
 
 > Get your button with `sucrose.interactions.buttons.collection.get('use-me');`
+
+<br>
 
 ## **Create a select-menu**
 
@@ -173,6 +213,8 @@ module.exports = {
 ```
 
 > Get your select-menu with `sucrose.interactions.selectMenus.collection.get('select-me');`
+
+<br>
 
 ## **Create a form modal**
 
@@ -227,6 +269,8 @@ module.exports = {
 
 > Get your form modal with `sucrose.interactions.forms.collection.get('report');`
 
+<br>
+
 ## **Create a autocompletion**
 
 - **Create a folder named "interactions" and in it, create a folder named "autocompletions"**. This last folder will contain your autocompletion
@@ -268,3 +312,33 @@ module.exports = {
   },
 };
 ```
+
+<br>
+
+## **Changelog**
+
+[6.1.6](#616), [6.1.5](#615)
+
+### # `6.1.6`
+
+> #### Readme
+>
+> ```diff
+> + update readme.md
+> ```
+
+### # `6.1.5`
+
+> #### EventManager
+>
+> ```diff
+> - emit ready event before sucrose end log
+>
+> + emit ready event after sucrose end log
+> ```
+
+> #### Husky + Commitlint (On template)
+>
+> ```diff
+> + add husky + commit for proper manage your commit
+> ```
