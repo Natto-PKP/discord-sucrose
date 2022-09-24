@@ -85,7 +85,7 @@ export default class InteractionManager implements Types.InteractionManager {
         const { channel } = interaction;
 
         if (autoReply.active && content && channel) {
-          channel.send(content as Discord.MessageOptions).catch(() => null);
+          channel.send(content as Discord.MessageCreateOptions).catch(() => null);
         }
 
         if (err instanceof SucroseInteractionError) this.sucrose.emit('error', err);
