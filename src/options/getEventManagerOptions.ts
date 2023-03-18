@@ -6,7 +6,7 @@ export default (options: Types.SucroseOptions): Types.EventManagerOptions => {
   const logging = options.logging as Types.LoggingOptions;
   const directory = options.directories?.events as string;
 
-  const eventsPath = path.join(process.cwd(), directory);
+  const eventsPath = path.join(process.cwd(), env.source, directory);
 
   return {
     directory: eventsPath,
