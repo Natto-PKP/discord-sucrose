@@ -317,9 +317,29 @@ module.exports = {
 
 ## **Changelog**
 
-[6.1.6](#616), [6.1.5](#615)
+[6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+
+### # `6.2.1`
+
+> #### Update discord.js
+>
+> ```diff
+> + update discord.js to 14.8.0
+> ```
+
+> #### Readme
+>
+> ```diff
+> + update readme.md
+> ```
 
 ### # `6.1.6`
+
+> #### Update discord.js
+>
+> ```diff
+> + update discord.js to 14.7.1
+> ```
 
 > #### Readme
 >

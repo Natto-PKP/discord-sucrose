@@ -84,7 +84,7 @@ export default class InteractionManager implements Types.InteractionManager {
         const content = autoReply.contents.ERROR({ interaction, error: err });
         const { channel } = interaction;
 
-        if (autoReply.active && content && channel) {
+        if (autoReply.active && content && channel && 'send' in channel) {
           channel.send(content as Discord.MessageCreateOptions).catch(() => null);
         }
 
