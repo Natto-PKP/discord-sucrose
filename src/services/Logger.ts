@@ -66,8 +66,8 @@ export default class Logger {
       console.error(error.message);
     } else {
       const message = pre + (content instanceof Error ? content.message : content);
-      Logger.console.error(message);
-      console.error(message);
+      Logger.console.log(message);
+      console.log(message);
     }
   }
 
