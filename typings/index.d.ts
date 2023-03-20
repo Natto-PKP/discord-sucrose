@@ -5,6 +5,7 @@
  */
 
 import type Discord from 'discord.js';
+import type EventEmitter from 'events';
 
 /**
  * Base structure for command manager
@@ -350,9 +351,12 @@ declare class InteractionManager {
  * @public
  * @category services
  */
-declare class Logger {
-  static console: Console;
+declare class Logger extends EventEmitter {
+  public console: Console;
 
+  public directory: Console | null;
+
+  constructor(options: LoggerOptions);
   static clear(): void;
 
   /**
@@ -363,19 +367,26 @@ declare class Logger {
   static date(format = true): string | Date;
 
   /**
+   * write a error in consoles
+   *
+   * @param content - message to log
+   */
+  public error(content: string | Error, original?: string | Error): void;
+
+  /**
    * give a code with content message to write
    *
    * @param code - code of log level
    * @param content - content to log
    */
-  static give(code: Code, content: Error | string): void;
+  public give(code: Code, content: Error | string): void;
 
   /**
    * handle errors array
    *
    * @param errors - array or errors to log
    */
-  static handle(...errors: Error[]): void;
+  public handle(...errors: Error[]): void;
 
   /**
    * Generate loading bar
@@ -389,14 +400,14 @@ declare class Logger {
    *
    * @param content - content to log
    */
-  static table(content: object | unknown[]): void;
+  public table(content: object | unknown[]): void;
 
   /**
    * write a message in consoles
    *
    * @param message - message to write
    */
-  static write(message: string): void;
+  public write(message: string, original?: string): void;
 }
 
 /**
@@ -730,11 +741,11 @@ export interface CommandManagerOptions extends BaseCommandManagerOptions {
  * Configure directories for interactions manager
  * @public
  */
-export interface Directories {
+export interface Directories<P extends boolean = false> {
   /**
    * Configure directories for commands manager
    */
-  commands: CommandDirectories;
+  commands: P extends true ? Partial<CommandDirectories> : CommandDirectories;
 
   /**
    * Configure directory for events manager
@@ -745,7 +756,7 @@ export interface Directories {
   /**
    * Configure directories form interactions manager
    */
-  interactions: InteractionDirectories;
+  interactions: P extends true ? Partial<InteractionDirectories> : InteractionDirectories;
 }
 
 /**
@@ -789,12 +800,32 @@ export interface EventOptions extends GlobalOptions {
 }
 
 /**
+ * all events
+ * @category events
+ * @public
+ */
+export interface Events {
+  logger: LoggerEvents;
+}
+
+/**
+ * all logger events
+ * @category events
+ * @public
+ */
+export interface LoggerEvents {
+  output: [content: string | object | unknown[]];
+  error: [content: string | Error];
+  raw: [content: unknown];
+}
+
+/**
  * Sucrose features
  * @features
  * @public
  */
-export interface Features {
-  interactions: InteractionFeatures;
+export interface Features<P extends boolean = false> {
+  interactions: P extends true ? Partial<InteractionFeatures<true>> : InteractionFeatures;
 }
 
 /**
@@ -853,8 +884,8 @@ export interface FormData extends Form { path: string; }
  * @category options
  * @public
  */
-export interface GlobalOptions {
-  logging: LoggingOptions;
+export interface GlobalOptions<P extends boolean = false> {
+  logging: P extends true ? Partial<LoggerOptions> : LoggerOptions;
 }
 
 /**
@@ -871,7 +902,7 @@ export interface GuildCommandManagerOptions extends BaseCommandManagerOptions {
  * @category features
  * @public
  */
-export interface InteractionAutoReplyFeature {
+export interface InteractionAutoReplyFeature<P extends boolean = false> {
   /**
    * @defaultValue true
    */
@@ -880,7 +911,7 @@ export interface InteractionAutoReplyFeature {
   /**
    * Custom reply message
    */
-  contents: InteractionAutoReplyContents;
+  contents: P extends true ? Partial<InteractionAutoReplyContents> : InteractionAutoReplyContents;
 }
 
 /**
@@ -918,8 +949,9 @@ export interface InteractionDirectories {
  * @category features
  * @public
  */
-export interface InteractionFeatures {
-  autoReply: InteractionAutoReplyFeature;
+export interface InteractionFeatures<P extends boolean = false> {
+  autoReply: P extends true ?
+    Partial<InteractionAutoReplyFeature<true>> : InteractionAutoReplyFeature;
 }
 
 /**
@@ -934,22 +966,14 @@ export interface InteractionManagerOptions extends GlobalOptions {
 }
 
 /**
- * Logging options
+ * Logger options
  * @category options
  * @public
  */
-export interface LoggingOptions {
-  /**
-   * Active loading bar when your app start
-   * @default true
-   */
-  loadings: boolean;
-
-  /**
-   * Active log details when your app start (console.table of interactions loaded)
-   * @default false
-   */
-  details: boolean;
+export interface LoggerOptions {
+  details?: boolean;
+  directory?: string;
+  verbose?: boolean;
 }
 
 /**
@@ -995,6 +1019,7 @@ export interface MessageContextMenuData extends MessageContextMenu { path: strin
 
 /**
  * permissions object
+ * @category interactions
  * @public
  */
 export interface Permissions {
@@ -1308,10 +1333,11 @@ export interface InteractionAutoReplyContents {
  * @category options
  * @public
  */
-export interface SucroseOptions extends Discord.ClientOptions, Partial<GlobalOptions> {
-  directories?: Partial<Directories>;
-  env?: Partial<EnvironmentOptions>;
-  features?: Partial<Features>;
+export interface SucroseOptions<P extends boolean = false>
+  extends Discord.ClientOptions, Partial<GlobalOptions<P>> {
+  directories?: P extends true ? Partial<Directories<true>> : Directories;
+  env?: P extends true ? Partial<EnvironmentOptions> : EnvironmentOptions;
+  features?: P extends true ? Partial<Features<true>> : Features;
   token?: string;
 }
 
@@ -1351,7 +1377,7 @@ export type CommandData = ChatInputData | MessageContextMenuData | UserContextMe
  */
 export type EventHandler<E extends EventNames> = (
   params: EventHandlerParams<E>
-) => unknown;
+) => Return;
 
 /**
  * @public
@@ -1390,7 +1416,7 @@ type MessageReturn = Promise<Discord.MessageOptions> | Discord.MessageOptions;
 /**
  * @internal
  */
-type Return = unknown;
+type Return = any;
 
 /**
  * @internal

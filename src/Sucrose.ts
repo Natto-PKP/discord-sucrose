@@ -9,58 +9,30 @@ import CommandManager from './managers/CommandManager';
 import InteractionManager from './managers/InteractionManager';
 import * as defaults from './options';
 
-/**
- * Sucrose client
- * @public
- * @example Initialize new Sucrose client
- * ```js
- * const client = await Sucrose.build(options);
- * ```
- */
 export default class Sucrose extends Client {
-  /**
-   * commands manager
-   * @readonly
-   */
   public readonly commands: CommandManager;
 
-  /**
-   * events manager
-   * @readonly
-   */
   public readonly events: EventManager;
 
-  /**
-   * interactions managers
-   * @readonly
-   */
   public readonly interactions: InteractionManager;
 
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    const opts = options;
-    opts.directories = defaults.getDirectoriesOptions(opts);
-    opts.env = defaults.getEnvironmentOptions(opts);
-    opts.logging = defaults.getLoggingOptions(opts);
-    opts.features = defaults.getFeaturesOptions(opts);
+    const opts = options as Required<Types.SucroseOptions<true>>;
+    opts.directories = defaults.getDirectoriesOptions(options);
+    opts.env = defaults.getEnvironmentOptions(options);
+    opts.features = defaults.getFeaturesOptions(options);
+    opts.logging = defaults.getLoggingOptions(options);
 
-    this.commands = new CommandManager(this, defaults.getCommandManagerOptions(opts));
-    this.events = new EventManager(this, defaults.getEventManagerOptions(opts));
-    this.interactions = new InteractionManager(this, defaults.getInteractionManagerOptions(opts));
+    this.commands = new CommandManager(this, defaults.getCommandManagerOptions(options));
+    this.events = new EventManager(this, defaults.getEventManagerOptions(options));
+    this.interactions = new InteractionManager(
+      this,
+      defaults.getInteractionManagerOptions(options),
+    );
   }
 
-  /**
-   * build your Sucrose client
-   *
-   * @param options - Sucrose options
-   * @returns Sucrose
-   *
-   * @example
-   * ```js
-   * const client = await Sucrose.build(options);
-   * ```
-   */
   static async build(options: Types.SucroseOptions): Promise<Sucrose> {
     const client = new Sucrose(options);
     const now = Date.now();
@@ -72,15 +44,17 @@ export default class Sucrose extends Client {
       client.removeAllListeners('ready');
     }
 
-    // managers
-    await client.commands.build().catch(Logger.handle);
-    await client.interactions.build().catch(Logger.handle);
-    await client.events.build().catch(Logger.handle);
+    const logger = new Logger(defaults.getLoggingOptions(options));
 
-    Logger.write('');
-    Logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
-    Logger.give('INFO', `Launched in ${Date.now() - now}ms`);
-    Logger.write('\n');
+    // managers
+    await client.commands.build().catch((err) => logger.handle(err));
+    await client.interactions.build().catch((err) => logger.handle(err));
+    await client.events.build().catch((err) => logger.handle(err));
+
+    logger.write('', '');
+    logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
+    logger.give('INFO', `Launched in ${Date.now() - now}ms`);
+    logger.write('\n', '\n');
 
     if (client.events.has('ready')) client.emit('ready', client as Client);
 

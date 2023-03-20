@@ -10,32 +10,20 @@ import { SError } from '../errors';
 import Logger from '../services/Logger';
 import Event from './Event';
 
-/**
- * event manager
- * @category managers
- *
- * @public
- * @example Initialize EventManager
- * ```js
- * new EventManager(sucrose, options)
- * ```
- */
 export default class EventManager
   extends Collection<Types.EventNames, Event>
   implements Types.EventManager {
-  /**
-   * indicates if this manager was build or not
-   * @internal
-   * @defaultValue false
-   */
   private builded = false;
 
   private path: string;
+
+  private logger: Logger;
 
   public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {
     super();
 
     this.path = options.directory;
+    this.logger = new Logger(this.options.logging);
   }
 
   /**
@@ -54,36 +42,30 @@ export default class EventManager
     const { logging } = this.options;
 
     if (events.length) {
-      const loading = logging.loadings ? Logger.loading(events.length) : null;
-      if (loading) loading.next();
+      const loading = Logger.loading(events.length);
+      loading.next();
 
-      for await (const event of events) {
+      await Promise.all(events.map(async (event) => {
+        await this.add(event as Types.EventNames).catch((err) => this.logger.handle(err));
         const index = events.indexOf(event) + 1;
-        if (loading) loading.next({ index, message: `load /events/${event}/handler.${this.options.env.ext}` });
-        await this.add(event as Types.EventNames);
-      }
+        if (loading) loading.next({ index, message: `load /events/${event}` });
+      }));
 
       if (loading) Logger.clear();
-      Logger.give('SUCCESS', `${events.length} events loaded`);
-      if (logging.details) Logger.table(this.map((v, k) => ({ name: k, path: v.path })));
+      if (this.size) this.logger.give('SUCCESS', `${events.length} events loaded`);
+      if (logging.details) this.logger.table(this.map((v, k) => ({ name: k, path: v.path })));
     }
   }
 
   /**
    * load one or multiple events
-   *
-   * @example
-   * ```js
-   * await events.create("ready");
-   * ```
    */
   public async add(name: Types.EventNames): Promise<Types.Event> {
     const { env, logging } = this.options;
 
-    if (this.has(name)) throw SError('ERROR', `event "${name}" already exists`);
-    const to = path.join(this.path, name, `handler.${env.ext}`);
-    if (!existsSync(to)) throw SError('ERROR', `handler file of event "${name}" does not exist`);
-    if (!lstatSync(to).isFile()) throw SError('ERROR', `handler file of event "${name}" is not a file`);
+    if (this.has(name)) throw SError('ERROR', `event "${name}" already exists (use refresh)`);
+    const to = path.join(this.path, name);
+    if (!existsSync(to) || !lstatSync(to).isDirectory()) throw SError('ERROR', `event directory of "${name}" does not exist`);
 
     const params = { env, logging };
     const event = new Event(name, { path: to, sucrose: this.sucrose, ...params });
@@ -96,11 +78,6 @@ export default class EventManager
 
   /**
    * Delete one or multiple events
-   *
-   * @example
-   * ```js
-   * await events.delete('ready');
-   * ```
    */
   public override delete(key: Types.EventNames): boolean {
     this.remove(key);
@@ -109,11 +86,6 @@ export default class EventManager
 
   /**
    * active one or multiple events
-   *
-   * @example
-   * ```js
-   * await events.listen("ready");
-   * ```
    */
   public async listen(name: Types.EventNames): Promise<Event> {
     const event = this.get(name);
@@ -125,11 +97,6 @@ export default class EventManager
 
   /**
    * desactive one or multiple events
-   *
-   * @example
-   * ```js
-   * await events.mute("ready");
-   * ```
    */
   public async mute(name: Types.EventNames): Promise<Event> {
     const event = this.get(name);
@@ -139,11 +106,6 @@ export default class EventManager
 
   /**
    * refresh one or multiple events (remove() and add())
-   *
-   * @example
-   * ```js
-   * await events.refresh("ready");
-   * ```
    */
   public async refresh(name: Types.EventNames): Promise<Event> {
     const event = this.get(name);
@@ -153,11 +115,6 @@ export default class EventManager
 
   /**
    * remove one or multiple events
-   *
-   * @example
-   * ```js
-   * await events.remove("ready");
-   * ```
    */
   public remove(name: Types.EventNames) {
     const event = this.get(name);

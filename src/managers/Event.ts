@@ -1,85 +1,64 @@
-import { existsSync, lstatSync } from 'fs';
+import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-import { SError, STypeError } from '../errors';
+import { SError } from '../errors';
 import Logger from '../services/Logger';
 import { imported } from '../helpers';
 
-/**
- * Structure for manager our event
- * @category managers
- *
- * @public
- * @example Initialize new Event
- * ```js
- * new Event(options);
- * ```
- */
 export default class Event<E extends Types.EventNames = Types.EventNames>
 implements Types.Event<E> {
-  /**
-   * determines whether the event is running or not
-   * @readonly
-   * @defaultValue false
-   */
   public disabled = false;
 
-  /**
-   * event listener
-   * @internal
-   * @defaultValue null
-   */
   private listener: ((...args: Discord.ClientEvents[E]) => Promise<void>) | null = null;
 
-  /**
-   * redirects to the event manager
-   * @readonly
-   * @remarks
-   * See {@link EventManager}
-   */
+  private logger: Logger;
+
   public readonly manager: Types.EventManager;
 
-  /**
-   * Path to event folder
-   */
   public path: string;
 
   public constructor(public readonly name: E, private options: Types.EventOptions) {
     this.manager = options.sucrose.events;
-    this.path = path.join(options.path, '..');
+    this.path = options.path;
+    this.logger = new Logger(options.logging);
   }
 
   /**
    * active this event - search et load event handler in your files and run event listener
-   *
-   * @example
-   * ```js
-   * await event.listen();
-   * ```
    */
   public async listen(): Promise<this> {
     if (this.disabled) throw SError('ERROR', `event "${this.name}" is disabled`);
     if (this.listener) throw SError('ERROR', `event "${this.name}" already hare listener`);
+    if (!existsSync(this.path)) throw SError('ERROR', `events directory of "${this.name}" does not exist`);
 
-    const to = path.join(this.path, `handler.${this.options.env.ext}`);
-    if (!existsSync(to)) throw SError('ERROR', `event "${this.name}" file no longer exists`);
-    if (!lstatSync(to).isFile()) throw SError('ERROR', `event "${this.name}" path is not a file`);
+    const modules = <Types.EventHandler<E>[]>[];
+    await Promise.all(readdirSync(this.path).map(async (mdl) => {
+      const toMdl = path.join(this.path, mdl);
 
-    const handler = await imported(to, 'handler') as Types.EventHandler<E>;
-    if (typeof handler !== 'function') throw STypeError('handler', 'function', handler);
+      if (lstatSync(toMdl).isDirectory()) {
+        if (mdl.startsWith('_')) return;
+
+        await Promise.all(readdirSync(this.path).map(async (subMld) => {
+          const toSubMdl = path.join(toMdl, subMld);
+          if (!lstatSync(toSubMdl).isFile() || !subMld.endsWith(`.${this.options.env.ext}`)) return;
+          const subMldHandler = await imported(toSubMdl, 'handler') as Types.EventHandler<E>;
+          if (typeof subMldHandler === 'function') modules.push(subMldHandler);
+        }));
+      } else if (lstatSync(toMdl).isFile() && toMdl.endsWith(`.${this.options.env.ext}`)) {
+        const mdlHandler = await imported(toMdl, 'handler') as Types.EventHandler<E>;
+        if (typeof mdlHandler === 'function') modules.push(mdlHandler);
+      }
+    }));
 
     const listener = async (...args: Discord.ClientEvents[E]) => {
-      try {
-        await handler({ sucrose: this.options.sucrose, args });
-      } catch (err) {
-        if (err instanceof Error) Logger.handle(err);
-        else if (Array.isArray(err)) Logger.handle(...err);
-        else Logger.give('ERROR', <string>err);
-      }
+      await Promise.all(modules.map(async (mdl) => {
+        await mdl({ sucrose: this.options.sucrose, args })
+          ?.catch((err: Error) => this.logger.handle(err));
+      }));
     };
 
     if (this.options.sucrose.listeners(this.name).includes(listener)) throw SError('ERROR', `event "${this.name}" listener already active`);
@@ -90,11 +69,6 @@ implements Types.Event<E> {
 
   /**
    * disable this event
-   *
-   * @example
-   * ```js
-   * await event.mute();
-   * ```
    */
   public async mute(): Promise<this> {
     if (this.disabled) throw SError('ERROR', 'event already disabled');
@@ -111,11 +85,6 @@ implements Types.Event<E> {
 
   /**
    * refresh this event - mute and listen event
-   *
-   * @example
-   * ```js
-   * await event.refresh();
-   * ```
    */
   public async refresh(): Promise<this> {
     await this.mute();
@@ -125,11 +94,6 @@ implements Types.Event<E> {
 
   /**
    * remove/delete this event - destroy this event
-   *
-   * @example
-   * ```js
-   * await event.refresh();
-   * ```
    */
   public async remove(): Promise<void> {
     await this.mute().catch(() => null);

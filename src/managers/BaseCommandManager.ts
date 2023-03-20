@@ -8,22 +8,15 @@ import type Types from '../../typings';
 
 import { SError } from '../errors';
 import { imported } from '../helpers';
+import Logger from '../services/Logger';
 
-/**
- * Base structure for command manager
- * @category managers
- *
- * @public
- * @example Initialize BaseCommandManager
- * ```js
- * new BaseCommandManager(sucrose, options);
- * ```
- */
 export default class BaseCommandManager
   extends Collection<string, Types.CommandData> implements Types.BaseCommandManager {
   protected builded = false;
 
   protected path: string;
+
+  protected logger: Logger;
 
   public constructor(
     protected sucrose: Types.Sucrose,
@@ -31,17 +24,13 @@ export default class BaseCommandManager
   ) {
     super();
 
+    this.logger = new Logger(options.logging);
     this.path = options.directory;
   }
 
   /**
    * Load and set a new command
    * @param file
-   * @example Add a new command
-   * ```js
-   * manager.add('command.js')
-   * ```
-   * @returns
    */
   public async add(file: string): Promise<Types.CommandData> {
     const { options } = this;
@@ -75,7 +64,8 @@ export default class BaseCommandManager
         // ? loop all group folders or sub command subFiles
         await Promise.all(chatInputOptions.map(async (optionFile) => {
           const chatInputOptionPath = path.join(chatInputOptionsPath, optionFile);
-          const chatInputOption = await imported(chatInputOptionPath, 'option') as Types.ChatInputOptionData;
+          const chatInputOption = await imported(chatInputOptionPath, 'option').catch((err) => this.logger.handle(err)) as Types.ChatInputOptionData;
+          if (!chatInputOption) return;
           chatInputOption.path = chatInputOptionPath;
 
           if (chatInputOption.body.type === ApplicationCommandOptionType.SubcommandGroup) {
@@ -100,7 +90,8 @@ export default class BaseCommandManager
             // loop all group sub command files
             await Promise.all(chatInputGroupOptions.map(async (groupOptionFile) => {
               const chatInputGroupOptionPath = path.join(chatInputGroupPath, groupOptionFile);
-              const chatInputGroupOption = await imported(chatInputGroupOptionPath, 'option') as Types.ChatInputSubOptionData;
+              const chatInputGroupOption = await imported(chatInputGroupOptionPath, 'option').catch((err) => this.logger.handle(err)) as Types.ChatInputSubOptionData;
+              if (!chatInputGroupOption) return;
               chatInputGroupOption.path = chatInputGroupOptionPath;
 
               // ### define sub option on group
@@ -131,11 +122,6 @@ export default class BaseCommandManager
   /**
    * Send a existing command in discord api
    * @param name
-   * @example Send a command
-   * ```js
-   * manager.name('commandName')
-   * ```
-   * @returns
    */
   public async define(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
@@ -149,11 +135,6 @@ export default class BaseCommandManager
   /**
    * Delete a existing command in discord api
    * @param name
-   * @example Delete a command
-   * ```js
-   * manager.remove('commandName')
-   * ```
-   * @returns
    */
   public async remove(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
@@ -165,11 +146,6 @@ export default class BaseCommandManager
   /**
    * Delete and add an existing command
    * @param name
-   * @example Refresh a command
-   * ```js
-   * manager.refresh('commandName')
-   * ```
-   * @returns
    */
   public async refresh(name: string): Promise<Types.CommandData> {
     const command = this.get(name);
@@ -181,11 +157,6 @@ export default class BaseCommandManager
   /**
    * Remove and define an existing command
    * @param name
-   * @example Restore a command
-   * ```js
-   * manager.restore('commandName')
-   * ```
-   * @returns
    */
   public async restore(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
     await this.remove(name);

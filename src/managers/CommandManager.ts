@@ -10,20 +10,7 @@ import Logger from '../services/Logger';
 
 import type Types from '../../typings';
 
-/**
- * commands manager
- * @category managers
- *
- * @public
- * @example Initialize new CommandManager
- * ```js
- * new CommandManager(sucrose, options)
- * ```
- */
 export default class CommandManager extends BaseCommandManager implements Types.CommandManager {
-  /**
-   * GuildCommandManager collection
-   */
   public guilds = new Collection<Discord.Snowflake, Types.GuildCommandManager>();
 
   public constructor(
@@ -40,7 +27,7 @@ export default class CommandManager extends BaseCommandManager implements Types.
     if (this.builded) throw SError('ERROR', 'CommandManager is already build');
     this.builded = true;
 
-    const { env, logging } = this.options;
+    const { env } = this.options;
 
     if (existsSync(this.path) && lstatSync(this.path).isDirectory()) {
       this.clear();
@@ -52,17 +39,17 @@ export default class CommandManager extends BaseCommandManager implements Types.
       });
 
       if (files.length) {
-        const loading = logging.loadings ? Logger.loading(files.length) : null;
-        if (loading) loading.next();
+        const loading = Logger.loading(files.length);
+        loading.next();
 
         let index = 0;
         await Promise.all(files.map(async (file) => {
-          await this.add(file);
+          await this.add(file).catch((err) => this.logger.handle(err));
           if (loading) loading.next({ index: index += 1, message: `./${file} loaded` });
         }));
 
         if (loading) Logger.clear();
-        Logger.give('SUCCESS', `${files.length} global commands loaded`);
+        if (this.size) this.logger.give('SUCCESS', `${files.length} global commands loaded`);
       }
     }
 
@@ -78,11 +65,11 @@ export default class CommandManager extends BaseCommandManager implements Types.
       await Promise.all(guildDirectories.map(async (directory) => {
         const params = { guildId: directory, directory: path.join(guildsCommandsPath, directory) };
         const manager = new GuildCommandManager(this.sucrose, { ...this.options, ...params });
-        await manager.build();
+        await manager.build().catch((err) => this.logger.handle(err));
         this.guilds.set(directory, manager);
       }));
 
-      if (this.guilds.size) Logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
+      if (this.guilds.size) this.logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
     }
   }
 }

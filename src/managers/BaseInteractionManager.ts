@@ -4,45 +4,30 @@ import path from 'path';
 
 import type Types from '../../typings';
 
-import Logger from '../services/Logger';
 import { SError } from '../errors';
 import { imported } from '../helpers';
+import Logger from '../services/Logger';
 
-/**
- * Base structure for basic discord.js interaction
- * @category managers
- *
- * @public
- * @example Initialize new BaseInteractionManager
- * ```js
- * new BaseInteractionManager(options);
- * ```
- */
 export default class BaseInteractionManager<T extends Types.InteractionData = Types.InteractionData>
   extends Collection<string, T> implements Types.BaseInteractionManager {
-  /**
-   * Define if this manager is builded or not
-   * @internal
-   * @defaultValue false
-   */
   private builded = false;
 
-  /**
-   * Define interactions directory
-   */
+  private logger: Logger;
+
   public path: string;
 
   constructor(private options: Types.BaseInteractionManagerOptions) {
     super();
 
     this.path = options.directory;
+    this.logger = new Logger(options.logging);
   }
 
   /**
    * Build this interaction manager
    */
   public async build() {
-    const { env, name, logging } = this.options;
+    const { env, name } = this.options;
 
     if (this.builded) throw SError('ERROR', `${this.options.name} is already builded`);
     this.builded = true;
@@ -58,15 +43,13 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
     this.clear();
 
     if (!files.length) throw SError('WARN', `${name} interaction directory is empty`);
-    const loading = logging?.loadings ? Logger.loading(files.length) : null;
+    const loading = Logger.loading(files.length);
     if (loading) loading.next();
 
-    for await (const file of files) {
-      const index = files.indexOf(file) + 1;
-      if (loading) loading.next({ index, message: `load /interactions/${name}s/${file}` });
-
+    await Promise.all(files.map(async (file) => {
       const to = path.join(this.path, file);
-      const interaction = await imported(to, name) as T;
+      const interaction = await imported(to, name).catch((err) => this.logger.handle(err)) as T;
+      if (!interaction) return;
       interaction.path = to;
 
       if ('url' in interaction.body) this.set(interaction.body.url, interaction);
@@ -77,23 +60,21 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
         if (interaction.body.option) key += `-${interaction.body.option}`;
         this.set(key, interaction);
       }
-    }
+
+      const index = files.indexOf(file) + 1;
+      if (loading) loading.next({ index, message: `load /interactions/${name}s/${file}` });
+    }));
 
     if (loading) Logger.clear();
-    Logger.give('SUCCESS', `${files.length} ${name}s loaded`);
-    if (logging?.details) Logger.table(this.map((v, k) => ({ name: k, path: v.path })));
+    if (this.size) this.logger.give('SUCCESS', `${files.length} ${name}s loaded`);
+    if (this.options.logging?.details) {
+      this.logger.table(this.map((v, k) => ({ name: k, path: v.path })));
+    }
   }
 
   /**
    * Delete and set an existing interaction
    * @param name
-   *
-   * @example
-   * ```js
-   * manager.refresh('interaction-name');
-   * ```
-   *
-   * @returns
    */
   public async refresh(name: string): Promise<this> {
     const { options } = this;

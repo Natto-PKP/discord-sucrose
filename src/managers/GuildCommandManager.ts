@@ -9,23 +9,9 @@ import { SError } from '../errors';
 import BaseCommandManager from './BaseCommandManager';
 import Logger from '../services/Logger';
 
-/**
- * guild command manager
- * @category managers
- *
- * @public
- * @example Initialize new GuildCommandManager
- * ```js
- * new GuildCommandManager(sucrose, options);
- * ```
- */
 export default class GuildCommandManager
   extends BaseCommandManager
   implements Types.GuildCommandManager {
-  /**
-   * id of the guild the manager is based on
-   * @readonly
-   */
   public readonly guildId: Discord.Snowflake;
 
   public constructor(sucrose: Types.Sucrose, options: Types.GuildCommandManagerOptions) {
@@ -42,7 +28,7 @@ export default class GuildCommandManager
 
     const to = this.path;
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
-    const { env, logging } = this.options;
+    const { env } = this.options;
     this.clear();
 
     const files = readdirSync(to).filter((file) => {
@@ -51,12 +37,12 @@ export default class GuildCommandManager
     });
 
     if (files.length) {
-      const loading = logging.loadings ? Logger.loading(files.length) : null;
-      if (loading) loading.next();
+      const loading = Logger.loading(files.length);
+      loading.next();
 
       let index = 0;
       await Promise.all(files.map(async (file) => {
-        await this.add(file);
+        await this.add(file).catch((err) => this.logger.handle(err));
         if (loading) loading.next({ index: index += 1, message: `load ./${this.guildId}/${file}` });
       }));
 

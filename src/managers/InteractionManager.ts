@@ -18,40 +18,17 @@ import BaseInteractionManager from './BaseInteractionManager';
 import Logger from '../services/Logger';
 import * as defaults from '../options';
 
-/**
- * Structure for manage all classic interaction
- * @category managers
- *
- * @public
- * @example Initialize new InteractionManager
- * ```js
- * new InteractionManager(sucrose, options);
- * ```
- */
 export default class InteractionManager implements Types.InteractionManager {
-  /**
-   * Define if this manager is builded or not
-   */
   private builded = false;
 
-  /**
-   * autocomplete interaction manager
-   */
+  private logger: Logger;
+
   public autocompletes: BaseInteractionManager<Types.AutocompleteData>;
 
-  /**
-   * buttons interaction manager
-   */
   public buttons: BaseInteractionManager<Types.ButtonData>;
 
-  /**
-   * form modals interaction manager
-   */
   public forms: BaseInteractionManager<Types.FormData>;
 
-  /**
-   * select menus interaction manager
-   */
   public selectMenus: BaseInteractionManager<Types.SelectMenuData>;
 
   public constructor(private sucrose: Sucrose, private options: Types.InteractionManagerOptions) {
@@ -60,6 +37,7 @@ export default class InteractionManager implements Types.InteractionManager {
     const formOptions = defaults.getFormInteractionManagerOptions(options);
     const selectMenuOptions = defaults.getSelectMenuInteractionManagerOptions(options);
 
+    this.logger = new Logger(options.logging);
     this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>(autocompleteOptions);
     this.buttons = new BaseInteractionManager<Types.ButtonData>(buttonOptions);
     this.forms = new BaseInteractionManager<Types.FormData>(formOptions);
@@ -81,24 +59,21 @@ export default class InteractionManager implements Types.InteractionManager {
     this.sucrose.on('interactionCreate', async (interaction) => {
       await this.listener(interaction).catch((err: Error) => {
         const { autoReply } = this.options.features;
-        const content = autoReply.contents.ERROR({ interaction, error: err });
         const { channel } = interaction;
+        const content = err instanceof SucroseInteractionError
+          ? err.content : autoReply.contents.ERROR({ interaction, error: err });
 
         if (autoReply.active && content && channel && 'send' in channel) {
           channel.send(content as Discord.MessageCreateOptions).catch(() => null);
         }
 
-        if (err instanceof SucroseInteractionError) this.sucrose.emit('error', err);
-        else this.sucrose.emit('error', SInteractionError(err.message, content));
-        Logger.handle(err);
+        this.logger.handle(err);
       });
     });
   }
 
   /**
    * handle interaction
-   * @internal
-   *
    * @param interaction - current interaction
    */
   private async listener(
@@ -219,8 +194,6 @@ export default class InteractionManager implements Types.InteractionManager {
 
   /**
    * handle interaction permissions
-   * @internal
-   *
    * @param interaction - current interaction
    * @param permissions - current interaction permissions
    */

@@ -4,128 +4,242 @@
 
 <br>
 
-- [Getting started](#getting-started)
-
-<br>
-
-- [Create a event](#create-a-event)
-- [Create a command](#create-a-command)
-- [Create a button](#create-a-button)
-- [Create a select-menu](#create-a-select-menu)
-- [Create a form modal](#create-a-form-modal)
-- [Create a autocompletion](#create-a-autocompletion)
-
-<br>
-
+- [Getting started](#🐤-getting-started)
+- [Some examples](#🖼️-some-examples)
 - [Changelog](#changelog)
 
-<br>
-
-## **Getting started**
-
-<details>
-
-<summary>With template</summary>
-
-Click in "Use this template" and create your own repo
-
-- [Javascript](https://github.com/Natto-PKP/discord-sucrose-javascript-template)
-- [Typescript](https://github.com/Natto-PKP/discord-sucrose-typescript-template)
-
-#### # Create your repository
-
-On this example, we will start with the javascript template.
-
-- Go to https://github.com/Natto-PKP/discord-sucrose-javascript-template
-- Click 'Use template' button and create your repository
-
-#### # Clone your repository
-
-```sh
-$ git clone app git@github.com:{userName}/{repositoryName}.git example-bot
-$ cd example-bot && code .
-```
-
-#### # Install dependencies
-
-```sh
-$ npm install
-```
-
-#### # Install husky
-
-```sh
-$ npx husky install
-```
-
-#### # Create .env file
-
-```
-TOKEN='discord bot token'
-```
-
-> Start bot with `npm start`
-
-</details>
-
-<br>
-<br>
-
-### # **Install dependencies**
-
-```sh
-npm install discord-sucrose discord.js dotenv
-```
-
-### # **Create .env file**
-
-```
-TOKEN='discord bot token'
-```
+#### [🥥 Join our server Discord](https://discord.gg/FjvVHSRdq5)
 
 <br>
 
-### # **Setup Sucrose structure**
+---
 
-_Create index.js_
+## **🐤 Getting started**
+
+- [With template](#with-template)
+- [Without template](#without-template)
+
+<br>
+
+### **With template 🧩**
+
+These templates give you an even faster deployment of your Discord bot structure. They also give you the architecture that your Discord bot should have.
+
+#### **# Installation**
+
+**1.** Use [Javascript template](https://github.com/Natto-PKP/discord-sucrose-javascript-template)
+or [Typescript template](https://github.com/Natto-PKP/discord-sucrose-typescript-template)  
+**2.** Click on "Use this template" and create your own repo  
+**3.** Clone this repo in ur computer  
+**4.** Go to the repo folder and open a terminal  
+**5.** Install all dependencies with `npm install`  
+**6.** Install husky with `npx husky install` (optional: for better git commit)  
+**Installation done ✔️**
+
+<br>
+
+#### **# Configuration**
+
+**1.** Create a .env file in the repo root  
+**2.** Insert this line in: `TOKEN='<discord bot token>'`  
+**Configuration done ✔️**
+
+<br>
+
+> Use `npm start` command to start ur discord bot ! ✨
+
+<br>
+
+### **Without template 🛠️**
+
+<br>
+
+#### **# Installation**
+
+**1.** Create a new folder for ur discord bot and open a terminal in  
+**2.** Use this command `npm i discord-sucrose discord.js dotenv`  
+**3.** Create ur index file (JS or TS)
 
 ```js
 const { Sucrose } = require('discord-sucrose');
 const { GatewayIntentBits, Partials } = require('discord.js');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
-Sucrose.build({ intents: [GatewayIntentBits.Guilds], partials: [Partials.Channel] });
+dotenv.config(); // load ur .env file
+
+Sucrose.build({
+  // env: { ext: 'ts', source: 'src' }, // (for TS user)
+  intents: [GatewayIntentBits.Guilds],
+  partials: [Partials.Channel],
+});
 ```
 
-> Start bot with node index.js
+**Installation done ✔️**
 
 <br>
 
-## **Create a event**
+#### **# Configuration**
 
-- **Create a folder named "events"**, this one will contain all your events
-- **Create a folder named "ready" in the "events" folder**, on this example we will base ourselves on the event ready
+**1.** Create a .env file in the repo root  
+**2.** Insert this line in: `TOKEN='<discord bot token>'`  
+**Configuration done ✔️**
 
-_/events/ready/handler.js_
+<br>
+
+#### **# Create structure**
+
+Your project structure should look like this:
+
+```
+- commands
+  - global
+    - eval.js
+    - avatar.js
+  - guilds
+    - 713172382042423352
+      - ferret.js
+      - otter.js
+    - 874374108912173077
+      - random (command group)
+        - letter.js
+        - number.js
+        - user.js
+      - random.js
+- events
+  - guildMemberAdd
+    - sendWelcomeMessage.js
+    - addDefaultRoles.js
+  - ready
+    - log.js
+- interactions
+  - autocompletes
+    - animals.js
+  - buttons
+    - use-me.js
+    - dont-touch-me.js
+  - forms
+    - report.js
+    - ticket.js
+  - select-menus
+    - durations.js
+    - days.js
+    - languages.js
+- index.js
+```
+
+⚠️ Add these files/folders in ur src folder for Typescript user  
+This structure may seem impressive, but it allows for good organization and visibility.
+
+<br>
+
+---
+
+## **🖼️ Some examples**
+
+- **Commands**
+  - [Create a new command](#create-a-new-command)
+    - [With some permissions](#with-permissions)
+    - [With sub commands](#with-sub-commands)
+    - [With groups and sub commands](#with-group-and-sub-commands)
+  - [Create a new user command](#create-a-new-user-command)
+  - [Create a new message command](#create-a-new-message-command)
+  - [Register a command to Discord API](#register-a-command-to-discord-api)
+  - [Get a command from CommandManager](#get-a-command-from-commandmanager)
+- **Events**
+  - [Create a new event](#create-a-new-event)
+- **Interactions**
+  - [Create a new autocomplete](#create-a-new-autocomplete)
+  - [Create a new button](#create-a-new-button)
+  - [Create a new form](#create-a-new-form)
+  - [Create a new select-menu](#create-a-new-select-menu)
+  - [Call an interaction in a command](#call-an-interaction-in-a-command)
+  - [Create an interaction with permissions](#create-an-interaction-with-permissions)
+
+<br>
+
+### **Create a new command**
+
+**1.** Create a file in ur commands folder (global or guild)  
+**2.** Insert the structure and code that command
 
 ```js
+const { ApplicationCommandType, ApplicationCommandOptionType } = require('discord.js');
+
 /**
- * @type { import('discord-sucrose').EventHandler<'ready'> }
+ * @type { import('discord-sucrose').ChatInput }
  */
-module.exports = ({ sucrose }) => {
-  console.log(sucrose.user.username + ' is online !');
+module.exports = {
+  body: {
+    name: 'say',
+    type: ApplicationCommandType.ChatInput,
+    description: 'A command who reply what u want',
+    options: [
+      {
+        name: 'text',
+        type: ApplicationCommandOptionType.String,
+        description: 'The text the bot will say',
+        required: true,
+      },
+    ],
+  },
+
+  exec: async ({ interaction }) => {
+    const content = interaction.options.getString('text', true);
+    await interaction.reply({ content });
+  },
 };
 ```
 
-<br>
+#### **# With permissions**
 
-## **Create a command**
+U can add some permissions in each command
 
-- **Create a folder named "commands"**, this one will contain all your global and guilds commands
-- **Create a folder named "global" in the "commands" folder**, on this example we will create a global command
-  - For a guild command, you must create a folder named "guilds" as well as a folder named with the id of the guild in question. For example: `/commands/guilds/713172382042423352`
+```js
+const { ApplicationCommandType } = require('discord.js');
 
-_/commands/global/handler.js_
+/**
+ * @type { import('discord-sucrose').ChatInput }
+ */
+module.exports = {
+  permissions: {
+    users: ['502480353328496640'], // allowed users
+    roles: ['881759838424662107'], // allowed roles
+    channels: ['713309212855238707'], // allowed channels
+    guilds: ['713172382042423352'], // allowed guilds
+    client: ['READ_MESSAGES'], // required permissions for bot
+    member: ['ADMINISTRATOR'], // required permissions for member
+
+    // private: true,
+    // true > usable only in pm
+    // false > usable only in guilds
+  },
+
+  body: {
+    name: 'info',
+    type: ApplicationCommandType.ChatInput,
+    description: 'Get serveur and bot information',
+  },
+
+  exec: async ({ interaction }) => {},
+};
+```
+
+#### **# With sub commands**
+
+Sucrose CommandManager will be check automatically if ur command have sub commands or command groups. For that, u have to build ur command with this structure:
+
+```
+- commands
+  - global
+    - animals.js
+    - animals
+      - ferret.js
+      - otter.js
+```
+
+**> animals.js**
+
+U don't have to include the sub command in the command body, the CommandManager will add it
 
 ```js
 const { ApplicationCommandType } = require('discord.js');
@@ -135,27 +249,267 @@ const { ApplicationCommandType } = require('discord.js');
  */
 module.exports = {
   body: {
-    name: 'command',
+    name: 'animals',
     type: ApplicationCommandType.ChatInput,
-    description: 'a command',
-  },
-
-  exec: async ({ interaction }) => {
-    await interaction.reply('I love ferret');
+    description: 'simple command',
   },
 };
 ```
 
-> Easily place your command online in discord API with `sucrose.commands.define('command');`  
-> _For guilds command `sucrose.commands.guilds.get('guildId').define('command');`_
+**>** animals/ferret.js
+
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').ChatInputSubOption }
+ */
+module.exports = {
+  body: {
+    name: 'ferrets',
+    type: ApplicationCommandOptionType.Subcommand,
+    description: 'Give u a ferret gif',
+    options: [
+      {
+        name: 'source',
+        type: ApplicationCommandOptionType.String,
+        description: 'source of image',
+        required: true,
+      },
+    ],
+  },
+
+  exec: async ({ interaction }) => {
+    const source = interaction.options.getString('source', true);
+    await interaction.reply({ content: source + ': [ferret.gif]' });
+  },
+};
+```
+
+> ⚠️ animals/otter.js file will have the same structure
+
+#### **# With group and sub commands**
+
+Sucrose CommandManager will be check automatically if ur command have sub commands or command groups. For that, u have to build ur command with this structure:
+
+```
+- commands
+  - global
+    - animals.js
+    - animals
+      - ferret.js
+      - ferret
+        - white.js
+        - brown.js
+      - otter.js
+      - otter
+        - brown.js
+```
+
+**> animals.js**  
+U don't have to include the groups in the command body, the CommandManager will add it
+
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').ChatInput }
+ */
+module.exports = {
+  body: {
+    name: 'animals',
+    type: ApplicationCommandType.ChatInput,
+    description: 'simple command',
+  },
+};
+```
+
+**> animals/ferret.js**  
+U don't have to include the sub command in the group body, the CommandManager will add it
+
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').ChatInputSubGroupOption }
+ */
+module.exports = {
+  body: {
+    name: 'ferrets',
+    type: ApplicationCommandOptionType.SubcommandGroup,
+    description: 'Give u a ferret gif',
+  },
+};
+```
+
+**> animals/ferret/white.js**
+
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').ChatInputSubOption }
+ */
+module.exports = {
+  body: {
+    name: 'ferrets',
+    type: ApplicationCommandOptionType.Subcommand,
+    description: 'Give u a white ferret gif',
+    options: [
+      {
+        name: 'source',
+        type: ApplicationCommandOptionType.String,
+        description: 'source of image',
+        required: true,
+      },
+    ],
+  },
+
+  exec: async ({ interaction }) => {
+    const source = interaction.options.getString('source', true);
+    await interaction.reply({ content: source + ': [white_ferret.gif]' });
+  },
+};
+```
 
 <br>
 
-## **Create a button**
+### **Create a new user command**
 
-- **Create a folder named "interactions" and in it, create a folder named "buttons"**. This last folder will contain your buttons
+**1.** Create a file in ur commands folder (global or guild)  
+**2.** Insert the structure and code that command
 
-_/interactions/buttons/use-me.js_
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').UserContextMenu }
+ */
+module.exports = {
+  body: {
+    name: 'info',
+    type: ApplicationCommandType.User,
+  },
+
+  exec: () => console.log('this is a user command'),
+};
+```
+
+### **Create a new message command**
+
+**1.** Create a file in ur commands folder (global or guild)  
+**2.** Insert the structure and code that command
+
+```js
+const { ApplicationCommandType } = require('discord.js');
+
+/**
+ * @type { import('discord-sucrose').MessageContextMenu }
+ */
+module.exports = {
+  body: {
+    name: 'info',
+    type: ApplicationCommandType.Message,
+  },
+
+  exec: () => console.log('this is a message command'),
+};
+```
+
+### **Register a command to Discord API**
+
+```js
+await sucrose.commands.define('eval');
+
+const guild = sucrose.commands.guilds.get('874374108912173077');
+await guild.define('random');
+```
+
+### **Get a command from CommandManager**
+
+```js
+await sucrose.commands.get('eval');
+
+const guild = sucrose.commands.guilds.get('874374108912173077');
+await guild.get('random');
+```
+
+### **Create a new event**
+
+**1.** Create a folder in ur events folder  
+**2.** Name it with a discord.js [ClientEvents](https://discord.js.org/#/docs/discord.js/main/typedef/Events)  
+**3.** Create one or multiple file in this event folder  
+**4.** This/These file.s need to have this structure:
+
+```js
+/**
+ * @type { import('discord-sucrose').EventHandler<'ready'> }
+ */
+module.exports = async ({ sucrose }) => {
+  console.log("I'm connected");
+};
+```
+
+> If u create multiple file in the event folder, each file will be loaded and used in one and unique event. U can add folder in, and add ur js/ts files in. File in folder in event folder will be loaded too, folder starting with an underscore (ex: \_sources) will be ignored.
+
+### **Create a new autocomplete**
+
+**1.** Create a file in ur interactions/autocompletes folder  
+**2.** This file need to have this structure:
+
+```js
+/**
+ * @type { import('discord-sucrose').Autocomplete }
+ */
+module.exports = {
+  body: { command: 'image' },
+
+  exec: async ({ interaction }) => {
+    const focus = interaction.options.getFocused();
+
+    if (focus === 'animals') {
+      await interaction.respond([
+        { name: 'Ferret', value: 'ferret' },
+        { name: 'Cat', value: 'cat' },
+        { name: 'Dog', value: 'dog' },
+        { name: 'Otter', value: 'Otter' },
+      ]);
+    } else if (focus === 'games') {
+      await interaction.respond([
+        { name: 'Minecraft', value: 'minecraft' },
+        { name: 'Fortnite', value: 'fortnite' },
+        { name: 'Humankind', value: 'humankind' },
+        { name: 'Idol Manager', value: 'idol-manager' },
+      ]);
+    }
+  },
+};
+```
+
+> U can filter by focused option too with option property in body
+
+```js
+/**
+ * @type { import('discord-sucrose').Autocomplete }
+ */
+module.exports = {
+  body: { command: 'image', option: 'animals' },
+
+  exec: async ({ interaction }) => {
+    await interaction.respond([
+      { name: 'Ferret', value: 'ferret' },
+      { name: 'Cat', value: 'cat' },
+      { name: 'Dog', value: 'dog' },
+      { name: 'Otter', value: 'Otter' },
+    ]);
+  },
+};
+```
+
+### **Create a new button**
+
+**1.** Create a file in ur interactions/buttons folder  
+**2.** This file need to have this structure:
 
 ```js
 const { ComponentType, ButtonStyle } = require('discord.js');
@@ -164,27 +518,75 @@ const { ComponentType, ButtonStyle } = require('discord.js');
  * @type { import('discord-sucrose').Button }
  */
 module.exports = {
-  data: {
+  body: {
     type: ComponentType.Button,
-    customId: 'use-me',
-    style: ButtonStyle.Danger,
+    customId: 'useme',
+    style: ButtonStyle.Primary,
   },
 
-  exec: ({ interaction }) => {
-    interaction.reply('Yeeaaaaah !');
+  exec: async ({ interaction }) => {
+    await interaction.reply('Yeeaaaaah !');
   },
 };
 ```
 
-> Get your button with `sucrose.interactions.buttons.collection.get('use-me');`
+### **Create a new form**
 
-<br>
+**1.** Create a file in ur interactions/forms folder  
+**2.** This file need to have this structure:
 
-## **Create a select-menu**
+```js
+const { ComponentType, TextInputStyle } = require('discord.js');
 
-- **Create a folder named "interactions" and in it, create a folder named "select-menus"**. This last folder will contain your select-menus
+/**
+ * @type { import('discord-sucrose').Form }
+ */
+module.exports = {
+  body: {
+    customId: 'create-report',
+    title: 'Report ticket',
+    components: [
+      {
+        type: ComponentType.ActionRow,
+        components: [
+          {
+            customId: 'report-reason',
+            type: ComponentType.TextInput,
+            style: TextInputStyle.Short,
+            label: 'Indicate the reason for the report',
+            required: true,
+          },
+        ],
+      },
+      {
+        type: ComponentType.ActionRow,
+        components: [
+          {
+            customId: 'report-args',
+            type: TextInputStyle.Paragraph,
+            style: ComponentType.TextInput,
+            label: 'Indicate your problem',
+            required: true,
+          },
+        ],
+      },
+    ],
+  },
 
-_/interactions/select-menus/select-me.js_
+  exec: async ({ interaction }) => {
+    const reason = interaction.fields.getTextInputValue('report-reason');
+    const args = interaction.fields.getTextInputValue('report-args');
+    const content = `Someone sent a report: ${reason}\n\`\`\`${args}\`\`\``;
+
+    await interaction.reply({ content });
+  },
+};
+```
+
+### **Create a new select-menu**
+
+**1.** Create a file in ur interactions/forms folder  
+**2.** This file need to have this structure:
 
 ```js
 const { ComponentType } = require('discord.js');
@@ -193,7 +595,7 @@ const { ComponentType } = require('discord.js');
  * @type { import('discord-sucrose').SelectMenu }
  */
 module.exports = {
-  data: {
+  body: {
     type: ComponentType.SelectMenu,
     customId: 'select-me',
     placeholder: 'Select me !',
@@ -206,159 +608,76 @@ module.exports = {
     ],
   },
 
-  exec: ({ interaction }) => {
-    interaction.reply('I LOVE FERRET !!!');
+  exec: async ({ interaction }) => {
+    await interaction.reply('I LOVE FERRET !!!');
   },
 };
 ```
 
-> Get your select-menu with `sucrose.interactions.selectMenus.collection.get('select-me');`
-
-<br>
-
-## **Create a form modal**
-
-- **Create a folder named "interactions" and in it, create a folder named "forms"**. This last folder will contain your form modals
-
-_/interactions/forms/report.ts_
+### **Call an interaction in a command**
 
 ```js
+const { ApplicationCommandType, ActionRow } = require('discord.js');
+const useMe = require('../buttons/use-me.js');
+
 /**
- * @type { import('discord-sucrose').Form }
+ * @type { import('discord-sucrose').ActionRow }
  */
 module.exports = {
-  data: {
-    customId: 'create-report',
-    title: 'Report ticket',
-    components: [
-      {
-        type: 'ACTION_ROW',
-        components: [
-          {
-            customId: 'report-reason',
-            type: 'TEXT_INPUT',
-            style: 'SHORT',
-            label: 'Indicate the reason for the report',
-            required: true,
-          },
-        ],
-      },
-      {
-        type: 'ACTION_ROW',
-        components: [
-          {
-            customId: 'report-args',
-            type: 'TEXT_INPUT',
-            style: 'PARAGRAPH',
-            label: 'Indicate your problem',
-            required: true,
-          },
-        ],
-      },
-    ],
+  body: {
+    name: 'command',
+    type: ApplicationCommandType.ChatInput,
+    description: 'A simple command',
+    options: [button.body],
   },
 
-  exec: ({ interaction }) => {
-    const reason = interaction.fields.getTextInputValue('report-reason');
-    const args = interaction.fields.getTextInputValue('report-args');
+  exec: async ({ interaction, sucrose }) => {
+    const buttons = sucrose.interactions.buttons;
+    const anotherButton = buttons.get('another-button');
 
-    console.log(reason, args);
+    await interaction.reply({
+      content: 'A simple command',
+      components: [
+        {
+          type: ActionRow,
+          components: [anotherButton.body],
+        },
+      ],
+    });
   },
 };
 ```
 
-> Get your form modal with `sucrose.interactions.forms.collection.get('report');`
-
-<br>
-
-## **Create a autocompletion**
-
-- **Create a folder named "interactions" and in it, create a folder named "autocompletions"**. This last folder will contain your autocompletion
-
-_/interactions/autocompletions/_
+### **Create an interaction with permissions**
 
 ```js
+const { ComponentType, ButtonStyle } = require('discord.js');
+
 /**
- * @type { import('discord-sucrose').Autocomplete }
+ * @type { import('discord-sucrose').Button }
  */
 module.exports = {
-  body: { command: 'image' },
+  permissions: {
+    users: ['502480353328496640'], // allowed users
+    roles: ['881759838424662107'], // allowed roles
+    channels: ['713309212855238707'], // allowed channels
+    guilds: ['713172382042423352'], // allowed guilds
+    client: ['READ_MESSAGES'], // required permissions for bot
+    member: ['ADMINISTRATOR'], // required permissions for member
 
-  exec: ({ interaction }) => {
-    const focus = interaction.options.getFocused();
+    // private: true,
+    // true > usable only in pm
+    // false > usable only in guilds
+  },
 
-    if (focus === 'animals') {
-      /* ... */
-    } else if (focus === 'games') {
-      /* ... */
-    }
+  body: {
+    type: ComponentType.Button,
+    customId: 'useme',
+    style: ButtonStyle.Primary,
+  },
+
+  exec: async ({ interaction }) => {
+    await interaction.reply('Yeeaaaaah !');
   },
 };
 ```
-
-Autocompletion
-
-```js
-/**
- * @type { import('discord-sucrose').Autocomplete }
- */
-module.exports = {
-  body: { command: 'image', option: 'animals' },
-
-  exec: ({ interaction }) => {
-    const focus = interaction.options.getFocused();
-
-    /* ... */
-  },
-};
-```
-
-<br>
-
-## **Changelog**
-
-[6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
-
-### # `6.2.1`
-
-> #### Update discord.js
->
-> ```diff
-> + update discord.js to 14.8.0
-> ```
-
-> #### Readme
->
-> ```diff
-> + update readme.md
-> ```
-
-### # `6.1.6`
-
-> #### Update discord.js
->
-> ```diff
-> + update discord.js to 14.7.1
-> ```
-
-> #### Readme
->
-> ```diff
-> + update readme.md
-> ```
-
-### # `6.1.5`
-
-> #### EventManager
->
-> ```diff
-> - emit ready event before sucrose end log
->
-> + emit ready event after sucrose end log
-> ```
-
-> #### Husky + Commitlint (On template)
->
-> ```diff
-> + add husky + commit for proper manage your commit
-> ```

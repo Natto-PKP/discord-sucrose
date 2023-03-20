@@ -1,37 +1,39 @@
-/* eslint-disable no-console */
-
-import { Console } from 'console';
-import {
-  mkdirSync,
-  existsSync,
-  lstatSync,
-  createWriteStream,
-} from 'fs';
+/* eslint-disable max-classes-per-file */
+import EventEmitter from 'events';
 import path from 'path';
-
+import {
+  createWriteStream, existsSync, lstatSync, mkdirSync,
+} from 'fs';
+import { Console } from 'console';
 import { Code, Codes } from '../errors/codes';
 import { SucroseError } from '../errors';
 
-const date = new Date();
-const directory = path.join(process.cwd(), 'logs');
-if (!existsSync(directory) || !lstatSync(directory).isDirectory()) mkdirSync(directory);
+import type * as Types from '../../typings';
 
-/**
- * @public
- * @category services
- */
-export default class Logger {
-  static console = new Console({
-    stdout: createWriteStream(path.join(directory, `${date.getTime()}-output.log`)),
-    stderr: createWriteStream(path.join(directory, `${date.getTime()}-errors.log`)),
-  });
+const now = Date.now();
+
+export default class Logger extends EventEmitter implements Types.Logger {
+  public console = console;
+
+  public directory: Console | null = null;
+
+  constructor(private options: Types.LoggerOptions) {
+    super();
+
+    if (options.directory) {
+      const to = path.join(process.cwd(), 'logs');
+      if (!existsSync(to) || !lstatSync(to).isDirectory()) mkdirSync(to);
+
+      this.directory = new Console({
+        stdout: createWriteStream(path.join(to, `${now}-output.log`)),
+        stderr: createWriteStream(path.join(to, `${now}-error.log`)),
+      });
+    }
+  }
 
   static clear() {
-    try {
-      process.stdout.clearLine(0);
-      process.stdout.cursorTo(0);
-      return undefined;
-    } catch { return undefined; }
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
   }
 
   /**
@@ -39,48 +41,32 @@ export default class Logger {
    *
    * @param format - allow to format date (default true)
    */
-  static date(format = true): string | Date {
-    const now = new Date();
+  static date(format = true, useColor = true): string | Date {
+    const today = new Date();
 
-    if (!format) return now;
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    return `\x1b[1m\x1b[30m[${hours}:${minutes}:${seconds}]\x1b[0m`;
+    if (!format) return today;
+    const hours = today.getHours().toString().padStart(2, '0');
+    const minutes = today.getMinutes().toString().padStart(2, '0');
+    const seconds = today.getSeconds().toString().padStart(2, '0');
+    if (useColor) return `\x1b[1m\x1b[30m[${hours}:${minutes}:${seconds}]\x1b[0m`;
+    return `[${hours}:${minutes}:${seconds}]`;
   }
 
   /**
-   * give a code with content message to write
+   * write a error in consoles
    *
-   * @param code - code of log level
-   * @param content - content to log
+   * @param message - message to log
    */
-  static give(code: Code, content: Error | string): void {
+  public error(content: string | Error, original?: string | Error): void {
     Logger.clear();
-    const pre = `${Logger.date()} ${Codes[code]} `;
+    this.directory?.error(content);
 
-    if ((code === 'FATAL' || code === 'ERROR' || code === 'WARN') && content instanceof Error) {
-      const error = content;
-      error.message = pre + error.message;
-      Logger.console.error(error);
-      console.error(error.message);
-    } else {
-      const message = pre + (content instanceof Error ? content.message : content);
-      Logger.console.log(message);
-      console.log(message);
-    }
-  }
+    if (content instanceof Error && !this.options.verbose) {
+      this.console.log(content.message);
+    } else this.console.error(content);
 
-  /**
-   * handle errors array
-   *
-   * @param errors - array or errors to log
-   */
-  static handle(...errors: Error[]): void {
-    errors.forEach((err) => {
-      if (err instanceof SucroseError) Logger.give(err.code, err);
-      else Logger.give('ERROR', err);
-    });
+    this.emit('error', original || content);
+    this.emit('raw', original || content);
   }
 
   /**
@@ -97,15 +83,45 @@ export default class Logger {
     }
   }
 
+  public give(code: Code, content: Error | string) {
+    const pre = `${Logger.date()} ${Codes[code]} `;
+
+    if (code === 'FATAL' || code === 'ERROR' || code === 'WARN') {
+      let error = content;
+      if (error instanceof Error) error.message = pre + error.message;
+      else error = pre + content;
+
+      this.error(error, content);
+    } else {
+      const base = content instanceof Error ? content.message : content;
+      const message = pre + base;
+      this.write(message, base);
+    }
+  }
+
+  /**
+   * handle errors array
+   *
+   * @param errors - array or errors to log
+   */
+  public handle(...errors: Error[]): void {
+    errors.forEach((err) => {
+      if (err instanceof SucroseError) this.give(err.code, err);
+      else this.give('ERROR', err);
+    });
+  }
+
   /**
    * write a table in consoles
    *
    * @param content - content to log
    */
-  static table(content: object | unknown[]): void {
+  public table(content: object | unknown[]): void {
     Logger.clear();
-    Logger.console.table(content);
-    console.table(content);
+    this.console.table(content);
+    this.directory?.table(content);
+    this.emit('output', content);
+    this.emit('raw', content);
   }
 
   /**
@@ -113,37 +129,11 @@ export default class Logger {
    *
    * @param message - message to write
    */
-  static write(message: string): void {
+  public write(message: string, original?: string): void {
     Logger.clear();
-    Logger.console.log(message);
-    console.log(message);
+    this.directory?.log(message);
+    this.console.log(message);
+    this.emit('output', original || message);
+    this.emit('raw', original || message);
   }
 }
-
-/*
-  Reset = "\x1b[0m"
-  Bright = "\x1b[1m"
-  Dim = "\x1b[2m"
-  Underscore = "\x1b[4m"
-  Blink = "\x1b[5m"
-  Reverse = "\x1b[7m"
-  Hidden = "\x1b[8m"
-
-  FgBlack = "\x1b[30m"
-  FgRed = "\x1b[31m"
-  FgGreen = "\x1b[32m"
-  FgYellow = "\x1b[33m"
-  FgBlue = "\x1b[34m"
-  FgMagenta = "\x1b[35m"
-  FgCyan = "\x1b[36m"
-  FgWhite = "\x1b[37m"
-
-  BgBlack = "\x1b[40m"
-  BgRed = "\x1b[41m"
-  BgGreen = "\x1b[42m"
-  BgYellow = "\x1b[43m"
-  BgBlue = "\x1b[44m"
-  BgMagenta = "\x1b[45m"
-  BgCyan = "\x1b[46m"
-  BgWhite = "\x1b[47m"
-*/
