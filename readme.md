@@ -12,7 +12,6 @@
 
 <br>
 
----
 
 ## **🐤 Getting started**
 
@@ -131,8 +130,6 @@ Your project structure should look like this:
 This structure may seem impressive, but it allows for good organization and visibility.
 
 <br>
-
----
 
 ## **🖼️ Some examples**
 
