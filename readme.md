@@ -6,7 +6,7 @@
 
 - [Getting started](#🐤-getting-started)
 - [Some examples](#🖼️-some-examples)
-- [Changelog](#changelog)
+- [Changelog 🌐](/CHANGELOG.md)
 
 #### [🥥 Join our server Discord](https://discord.gg/FjvVHSRdq5)
 
