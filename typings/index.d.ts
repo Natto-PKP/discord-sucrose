@@ -357,57 +357,51 @@ declare class Logger extends EventEmitter {
   public directory: Console | null;
 
   constructor(options: LoggerOptions);
+
+  /**
+   * add some style to ur log
+   */
+  static style(str: string, ...formats: LoggerLogFormat[]);
+
+  /**
+   * Clear the current log line
+   */
   static clear(): void;
 
   /**
    * get current date formatted
-   *
-   * @param format - allow to format date (default true)
    */
-  static date(format = true): string | Date;
+  static time(format = true): string | Date;
 
   /**
    * write a error in consoles
-   *
-   * @param content - message to log
    */
-  public error(content: string | Error, original?: string | Error): void;
+  public error(code: Code, content: string | Error, options?: Types.LoggerErrorOptions): void;
 
   /**
    * give a code with content message to write
-   *
-   * @param code - code of log level
-   * @param content - content to log
    */
   public give(code: Code, content: Error | string): void;
 
   /**
    * handle errors array
-   *
-   * @param errors - array or errors to log
    */
   public handle(...errors: Error[]): void;
 
   /**
    * Generate loading bar
-   *
-   * @param total
    */
   static* loading(total: number): Generator<void, void, { index: number; message: string; }>;
 
   /**
    * write a table in consoles
-   *
-   * @param content - content to log
    */
   public table(content: object | unknown[]): void;
 
   /**
    * write a message in consoles
-   *
-   * @param message - message to write
    */
-  public write(message: string, original?: string): void;
+  public write(message: string, options?: Types.LoggerWriteOptions): void;
 }
 
 /**
@@ -820,6 +814,58 @@ export interface LoggerEvents {
 }
 
 /**
+ * LoggerLogOptions
+ * @category options
+ * @public
+ */
+export interface LoggerLogOptions {
+  color?: boolean;
+  time?: boolean;
+}
+
+/**
+ * loggerErrorOptions
+ * @category options
+ * @public
+ */
+export interface LoggerErrorOptions extends LoggerLogOptions {
+  verbose?: boolean;
+}
+/**
+ * @internal
+ */
+export interface LoggerLogStyles {
+  reset: string,
+  bright: string,
+  dim: string,
+  underscore: string,
+  blink: string,
+  reverse: string,
+  hidden: string,
+
+  colors: {
+    black: { font: string, background: string },
+    red: { font: string, background: string },
+    green: { font: string, background: string },
+    yellow: { font: string, background: string },
+    blue: { font: string, background: string },
+    magenta: { font: string, background: string },
+    cyan: { font: string, background: string },
+    white: { font: string, background: string },
+    gray: { font: string, background: string },
+  },
+}
+
+/**
+ * LoggerWriteOptions
+ * @category options
+ * @public
+ */
+export interface LoggerWriteOptions extends LoggerLogOptions {
+  code?: Code;
+}
+
+/**
  * Sucrose features
  * @features
  * @public
@@ -885,7 +931,7 @@ export interface FormData extends Form { path: string; }
  * @public
  */
 export interface GlobalOptions<P extends boolean = false> {
-  logging: P extends true ? Partial<LoggerOptions> : LoggerOptions;
+  logging: P extends true ? Partial<SucroseLoggerOptions> : SucroseLoggerOptions;
 }
 
 /**
@@ -971,7 +1017,6 @@ export interface InteractionManagerOptions extends GlobalOptions {
  * @public
  */
 export interface LoggerOptions {
-  details?: boolean;
   directory?: string;
   verbose?: boolean;
 }
@@ -1103,6 +1148,16 @@ export interface SelectMenu {
  * SelectMenuInteraction data
  */
 export interface SelectMenuData extends SelectMenu { path: string; }
+
+/**
+ * Sucrose logger options
+ * @category options
+ * @public
+ */
+export interface SucroseLoggerOptions extends Required<LoggerOptions> {
+  details: boolean;
+  directory?: string;
+}
 
 /**
  * UserContextMenu
@@ -1385,6 +1440,11 @@ export type EventHandler<E extends EventNames> = (
 export type EventHandlerParams<E extends EventNames> = BaseParams & {
   args: Discord.ClientEvents[E];
 };
+
+/**
+* @internal
+*/
+export type LoggerLogFormat = 'rainbow' | keyof Omit<LoggerLogStyles, 'colors'> | `${keyof typeof LoggerLogStyles['colors']}` | `${keyof typeof LoggerLogStyles['colors']}-${'background' | 'font'}`;
 
 /**
  * All interaction

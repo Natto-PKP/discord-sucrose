@@ -10,7 +10,40 @@ import { SucroseError } from '../errors';
 
 import type * as Types from '../../typings';
 
+const styles = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  underscore: '\x1b[4m',
+  blink: '\x1b[5m',
+  reverse: '\x1b[7m',
+  hidden: '\x1b[8m',
+
+  colors: {
+    black: { font: '\x1b[30m', background: '\x1b[40m' },
+    red: { font: '\x1b[31m', background: '\x1b[41m' },
+    green: { font: '\x1b[32m', background: '\x1b[42m' },
+    yellow: { font: '\x1b[33m', background: '\x1b[43m' },
+    blue: { font: '\x1b[34m', background: '\x1b[44m' },
+    magenta: { font: '\x1b[35m', background: '\x1b[45m' },
+    cyan: { font: '\x1b[36m', background: '\x1b[46m' },
+    white: { font: '\x1b[37m', background: '\x1b[47m' },
+    gray: { font: '\x1b[38m', background: '\x1b[48m' },
+  },
+};
+
 const now = Date.now();
+const colorValues = [
+  styles.colors.red,
+  styles.colors.green,
+  styles.colors.yellow,
+  styles.colors.blue,
+  styles.colors.magenta,
+  styles.colors.cyan,
+];
+const colorKeys = Object.keys(styles.colors);
+const styleKeys = Object.keys(styles);
+styleKeys.pop();
 
 export default class Logger extends EventEmitter implements Types.Logger {
   public console = console;
@@ -31,6 +64,30 @@ export default class Logger extends EventEmitter implements Types.Logger {
     }
   }
 
+  static style(str: string, ...formats: Types.LoggerLogFormat[]) {
+    let base = str;
+    let pre = '';
+
+    formats.forEach((format) => {
+      if (format === 'rainbow') {
+        const characters = str.split('');
+        base = characters.reduce((acc, char) => {
+          if (/\s/.test(char)) return acc + char;
+          const randomColor = colorValues[Math.floor(Math.random() * colorValues.length)].font;
+          return acc + randomColor + char + styles.reset;
+        }, '');
+      } else {
+        const [style, type] = format.split('-');
+        if (colorKeys.includes(style)) {
+          const colorType = (['bg', 'background'].includes(type) && 'background') || 'font';
+          pre += styles.colors[style as keyof typeof styles['colors']][colorType];
+        } else if (styleKeys.includes(style)) pre += styles[style as keyof typeof styles];
+      }
+    });
+
+    return pre + base + styles.reset;
+  }
+
   static clear() {
     process.stdout.clearLine(0);
     process.stdout.cursorTo(0);
@@ -41,32 +98,56 @@ export default class Logger extends EventEmitter implements Types.Logger {
    *
    * @param format - allow to format date (default true)
    */
-  static date(format = true, useColor = true): string | Date {
+  static time(format = true): string | Date {
     const today = new Date();
-
     if (!format) return today;
+
     const hours = today.getHours().toString().padStart(2, '0');
     const minutes = today.getMinutes().toString().padStart(2, '0');
     const seconds = today.getSeconds().toString().padStart(2, '0');
-    if (useColor) return `\x1b[1m\x1b[30m[${hours}:${minutes}:${seconds}]\x1b[0m`;
     return `[${hours}:${minutes}:${seconds}]`;
   }
 
   /**
    * write a error in consoles
-   *
-   * @param message - message to log
    */
-  public error(content: string | Error, original?: string | Error): void {
-    Logger.clear();
-    this.directory?.error(content);
+  public error(code: Code, content: string | Error, options?: Types.LoggerErrorOptions): void {
+    const useColor = typeof options?.color === 'boolean' ? options.color : true;
+    const addTime = typeof options?.time === 'boolean' ? options.time : true;
+    const verbose = typeof options?.verbose === 'boolean' || this.options.verbose ? options?.verbose || this.options.verbose : true;
+    let withoutColor = <string | Error>'';
+    let withColor = <string | Error>'';
 
-    if (content instanceof Error && !this.options.verbose) {
-      this.console.log(content.message);
-    } else this.console.error(content);
+    if (addTime) {
+      let time = Logger.time(true);
+      withoutColor += `${time} `;
+      if (useColor) time = styles.colors.gray.font + time + styles.reset;
+      withColor += `${time} `;
+    }
 
-    this.emit('error', original || content);
-    this.emit('raw', original || content);
+    const codeFormat = Codes[code];
+    if (codeFormat) {
+      if (useColor) withColor += `${codeFormat} `;
+      else withColor += `${code} `;
+      withoutColor += `${code} `;
+    }
+
+    if (content instanceof Error) {
+      const withColorError = new Error(content.message);
+      withColorError.message = withColor + content.message as string;
+      withColor = withColorError;
+      const withoutColorError = new Error(content.message);
+      withoutColorError.message = withoutColor + content.message as string;
+      withoutColor = withoutColorError;
+    } else {
+      withColor += content;
+      withoutColor += content;
+    }
+
+    this.directory?.error(withoutColor);
+    this.console.error((!verbose && withColor instanceof Error && withColor.message) || withColor);
+    this.emit('error', content);
+    this.emit('raw', content);
   }
 
   /**
@@ -84,18 +165,11 @@ export default class Logger extends EventEmitter implements Types.Logger {
   }
 
   public give(code: Code, content: Error | string) {
-    const pre = `${Logger.date()} ${Codes[code]} `;
-
     if (code === 'FATAL' || code === 'ERROR' || code === 'WARN') {
-      let error = content;
-      if (error instanceof Error) error.message = pre + error.message;
-      else error = pre + content;
-
-      this.error(error, content);
+      this.error(code, content);
     } else {
-      const base = content instanceof Error ? content.message : content;
-      const message = pre + base;
-      this.write(message, base);
+      const message = content instanceof Error ? content.message : content;
+      this.write(message, { code });
     }
   }
 
@@ -113,8 +187,6 @@ export default class Logger extends EventEmitter implements Types.Logger {
 
   /**
    * write a table in consoles
-   *
-   * @param content - content to log
    */
   public table(content: object | unknown[]): void {
     Logger.clear();
@@ -126,14 +198,35 @@ export default class Logger extends EventEmitter implements Types.Logger {
 
   /**
    * write a message in consoles
-   *
-   * @param message - message to write
    */
-  public write(message: string, original?: string): void {
-    Logger.clear();
-    this.directory?.log(message);
-    this.console.log(message);
-    this.emit('output', original || message);
-    this.emit('raw', original || message);
+  public write(message: string, options?: Types.LoggerWriteOptions): void {
+    const useColor = typeof options?.color === 'boolean' ? options.color : true;
+    const addTime = typeof options?.time === 'boolean' ? options.time : true;
+    let withoutColor = '';
+    let withColor = '';
+
+    if (addTime) {
+      let time = Logger.time(true);
+      withoutColor += `${time} `;
+      if (useColor) time = styles.colors.gray.font + time + styles.reset;
+      withColor += `${time} `;
+    }
+
+    if (options?.code) {
+      const codeFormat = Codes[options.code];
+      if (codeFormat) {
+        if (useColor) withColor += `${codeFormat} `;
+        else withColor += `${options.code} `;
+        withoutColor += `${options.code} `;
+      }
+    }
+
+    withColor += message;
+    withoutColor += message;
+
+    this.directory?.log(withoutColor);
+    this.console.log(withColor);
+    this.emit('output', message);
+    this.emit('raw', message);
   }
 }

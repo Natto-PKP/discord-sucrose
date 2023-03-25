@@ -51,10 +51,10 @@ export default class Sucrose extends Client {
     await client.interactions.build().catch((err) => logger.handle(err));
     await client.events.build().catch((err) => logger.handle(err));
 
-    logger.write('', '');
+    logger.write('', { time: false });
     logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
     logger.give('INFO', `Launched in ${Date.now() - now}ms`);
-    logger.write('\n', '\n');
+    logger.write('\n', { time: false });
 
     if (client.events.has('ready')) client.emit('ready', client as Client);
 

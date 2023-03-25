@@ -3,7 +3,7 @@ import type Types from '../../typings';
 
 export default (options: Types.SucroseOptions): Types.InteractionManagerOptions => {
   const env = options.env as Types.EnvironmentOptions;
-  const logging = options.logging as Types.LoggerOptions;
+  const logging = options.logging as Types.SucroseLoggerOptions;
   const directories = options.directories?.interactions as Types.InteractionDirectories;
   const features = options.features?.interactions as Types.InteractionFeatures;
 

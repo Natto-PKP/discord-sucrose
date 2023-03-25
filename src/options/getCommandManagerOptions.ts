@@ -3,7 +3,7 @@ import type Types from '../../typings';
 
 export default (options: Types.SucroseOptions): Types.CommandManagerOptions => {
   const env = options.env as Types.EnvironmentOptions;
-  const logging = options.logging as Types.LoggerOptions;
+  const logging = options.logging as Types.SucroseLoggerOptions;
   const directories = options.directories?.commands as Types.CommandDirectories;
 
   const source = path.join(process.cwd(), env.source);

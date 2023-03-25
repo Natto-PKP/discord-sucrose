@@ -1,5 +1,11 @@
 [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
 
+### # `6.4.4`
+
+> ```diff
+> + reword logger again (add style method, and reword some method to me more user friendly)
+> ```
+
 ### # `6.3.14`
 
 > ```diff
