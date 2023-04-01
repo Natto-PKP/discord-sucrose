@@ -37,6 +37,8 @@ export default class Sucrose extends Client {
     const client = new Sucrose(options);
     const now = Date.now();
 
+    client.on('error', () => {}); // Fix "node:events:491; throw er; // Unhandled 'error' event" error
+
     // application log
     await client.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
     if (!client.isReady()) {

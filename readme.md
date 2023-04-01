@@ -4,23 +4,23 @@
 
 <br>
 
-- [Getting started](#🐤-getting-started)
-- [Some examples](#🖼️-some-examples)
+- [Getting started 🐤](#getting-started)
+- [Some examples 🖼️](#some-examples)
 - [Changelog 🌐](/CHANGELOG.md)
+- [F.A.Q](#faq)
 
 #### [🥥 Join our server Discord](https://discord.gg/FjvVHSRdq5)
 
 <br>
 
-
-## **🐤 Getting started**
+## **Getting started**
 
 - [With template](#with-template)
 - [Without template](#without-template)
 
 <br>
 
-### **With template 🧩**
+### **With template**
 
 These templates give you an even faster deployment of your Discord bot structure. They also give you the architecture that your Discord bot should have.
 
@@ -49,7 +49,21 @@ or [Typescript template](https://github.com/Natto-PKP/discord-sucrose-typescript
 
 <br>
 
-### **Without template 🛠️**
+#### **# Dynamically manage bot interaction commands and more**
+
+When the bot start, the eval command will be added.  
+U can use this command to manage the bot commands, interactions, events and more  
+Example of uses:
+
+- /eval "commands.get('eval')" (get eval command object)
+- /eval "commands.define('avatar')" (send avatar command body to discord api)
+- /eval "commands.guilds.get(guild.id).refresh('info')" (refresh info command object)
+- /eval "events.mute("guildMemberRemove")" (mute guildMemberRemove event)
+- /eval "sucrose.user.username" (get bot user username)
+
+<br>
+
+### **Without template**
 
 <br>
 
@@ -131,9 +145,9 @@ This structure may seem impressive, but it allows for good organization and visi
 
 <br>
 
-## **🖼️ Some examples**
+## **Some examples**
 
-- **Commands**
+- **Interaction commands**
   - [Create a new command](#create-a-new-command)
     - [With some permissions](#with-permissions)
     - [With sub commands](#with-sub-commands)
@@ -678,3 +692,14 @@ module.exports = {
   },
 };
 ```
+
+## **F.A.Q**
+
+### **What about error handling?**
+
+> When u throw a error in an interaction or event, it'll be catched by Sucrose Logger  
+> So... U don't need to worry about that
+
+### **Can I use message command?**
+
+> It's not actually supported by the package, but u always can build ur own message command manager with discord.js

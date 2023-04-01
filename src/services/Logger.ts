@@ -57,6 +57,8 @@ export default class Logger extends EventEmitter implements Types.Logger {
       const to = path.join(process.cwd(), 'logs');
       if (!existsSync(to) || !lstatSync(to).isDirectory()) mkdirSync(to);
 
+      this.on('error', () => {}); // Fix "node:events:491; throw er; // Unhandled 'error' event" error
+
       this.directory = new Console({
         stdout: createWriteStream(path.join(to, `${now}-output.log`)),
         stderr: createWriteStream(path.join(to, `${now}-error.log`)),
@@ -192,7 +194,7 @@ export default class Logger extends EventEmitter implements Types.Logger {
     Logger.clear();
     this.console.table(content);
     this.directory?.table(content);
-    this.emit('output', content);
+    this.emit('log', content);
     this.emit('raw', content);
   }
 
@@ -226,7 +228,7 @@ export default class Logger extends EventEmitter implements Types.Logger {
 
     this.directory?.log(withoutColor);
     this.console.log(withColor);
-    this.emit('output', message);
+    this.emit('log', message);
     this.emit('raw', message);
   }
 }

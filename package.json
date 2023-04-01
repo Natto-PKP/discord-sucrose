@@ -1,6 +1,6 @@
 {
   "name": "discord-sucrose",
-  "version": "6.4.4",
+  "version": "6.4.6",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "types": "typings/index.d.ts",

@@ -1,4 +1,13 @@
-[6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+[6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+
+### # `6.4.6`
+
+> ```diff
+> + Fix "node:events:491; throw er; // Unhandled 'error' event" error with adding `client.on('error', () => {})`
+> + Change "output" name on Logger event to "log"
+> + Add more exemples in readme
+> + Add exemple in with template: dynamically manage commands and more with default eval command
+> ```
 
 ### # `6.4.4`
 

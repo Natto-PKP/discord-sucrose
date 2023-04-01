@@ -808,7 +808,7 @@ export interface Events {
  * @public
  */
 export interface LoggerEvents {
-  output: [content: string | object | unknown[]];
+  log: [content: string | object | unknown[]];
   error: [content: string | Error];
   raw: [content: unknown];
 }
