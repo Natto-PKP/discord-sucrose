@@ -9,7 +9,7 @@
 - [Changelog 🌐](/CHANGELOG.md)
 - [F.A.Q](#faq)
 
-#### [🥥 Join our server Discord](https://discord.gg/FjvVHSRdq5)
+#### [🥥 Join our server Discord](https://discord.com/invite/Cd9y3vhWxE)
 
 <br>
 
