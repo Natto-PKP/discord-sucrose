@@ -6,15 +6,15 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SError } from '../errors';
-import BaseCommandManager from './BaseCommandManager';
+import BaseInteractionCommandManager from './BaseInteractionCommandManager';
 import Logger from '../services/Logger';
 
-export default class GuildCommandManager
-  extends BaseCommandManager
-  implements Types.GuildCommandManager {
+export default class GuildInteractionCommandManager
+  extends BaseInteractionCommandManager
+  implements Types.GuildInteractionCommandManager {
   public readonly guildId: Discord.Snowflake;
 
-  public constructor(sucrose: Types.Sucrose, options: Types.GuildCommandManagerOptions) {
+  public constructor(sucrose: Types.Sucrose, options: Types.GuildInteractionCommandManagerOptions) {
     super(sucrose, options);
     this.guildId = options.guildId;
   }

@@ -3,19 +3,21 @@ import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
 
 import type Discord from 'discord.js';
-import GuildCommandManager from './GuildCommandManager';
-import BaseCommandManager from './BaseCommandManager';
+import GuildCommandManager from './InteractionGuildCommandManager';
+import BaseInteractionCommandManager from './BaseInteractionCommandManager';
 import { SError } from '../errors';
 import Logger from '../services/Logger';
 
 import type Types from '../../typings';
 
-export default class CommandManager extends BaseCommandManager implements Types.CommandManager {
-  public guilds = new Collection<Discord.Snowflake, Types.GuildCommandManager>();
+export default class InteractionCommandManager
+  extends BaseInteractionCommandManager
+  implements Types.InteractionCommandManager {
+  public guilds = new Collection<Discord.Snowflake, Types.GuildInteractionCommandManager>();
 
   public constructor(
     sucrose: Types.Sucrose,
-    protected override options: Types.CommandManagerOptions,
+    protected override options: Types.InteractionCommandManagerOptions,
   ) {
     super(sucrose, options);
   }

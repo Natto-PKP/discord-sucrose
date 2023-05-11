@@ -10,8 +10,9 @@ import { SError } from '../errors';
 import { imported } from '../helpers';
 import Logger from '../services/Logger';
 
-export default class BaseCommandManager
-  extends Collection<string, Types.CommandData> implements Types.BaseCommandManager {
+export default class BaseInteractionCommandManager
+  extends Collection<string, Types.InteractionCommandData>
+  implements Types.BaseInteractionCommandManager {
   protected builded = false;
 
   protected path: string;
@@ -20,7 +21,7 @@ export default class BaseCommandManager
 
   public constructor(
     protected sucrose: Types.Sucrose,
-    protected options: Types.BaseCommandManagerOptions,
+    protected options: Types.BaseInteractionCommandManagerOptions,
   ) {
     super();
 
@@ -32,14 +33,14 @@ export default class BaseCommandManager
    * Load and set a new command
    * @param file
    */
-  public async add(file: string): Promise<Types.CommandData> {
+  public async add(file: string): Promise<Types.InteractionCommandData> {
     const { options } = this;
 
     const to = path.join(this.path, file);
     if (!existsSync(to)) throw SError('ERROR', `command file "${file}" does not exist`);
     if (!lstatSync(to).isFile()) throw SError('ERROR', `command file "${file}" is not a file`);
     if (!file.endsWith(`.${options.env.ext}`)) throw SError('ERROR', `command file "${file}" extension is not ${options.env.ext}`);
-    const command = await imported(to, 'command') as Types.CommandData;
+    const command = await imported(to, 'command') as Types.InteractionCommandData;
     command.path = to;
 
     if (this.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
@@ -147,7 +148,7 @@ export default class BaseCommandManager
    * Delete and add an existing command
    * @param name
    */
-  public async refresh(name: string): Promise<Types.CommandData> {
+  public async refresh(name: string): Promise<Types.InteractionCommandData> {
     const command = this.get(name);
     if (!command) throw SError('ERROR', `command "${name}" not exist`);
     this.delete(name);

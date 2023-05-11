@@ -12,9 +12,12 @@ export default (options: Types.SucroseOptions): Types.InteractionManagerOptions 
   const buttonPath = path.join(source, directories.buttons);
   const formPath = path.join(source, directories.forms);
   const selectMenuPath = path.join(source, directories.selectMenus);
+  const globalCommandPath = path.join(source, directories.commands.globals);
+  const guildCommandPath = path.join(source, directories.commands.guilds);
 
   return {
     directories: {
+      commands: { globals: globalCommandPath, guilds: guildCommandPath },
       autocompletes: autocompletePath,
       buttons: buttonPath,
       forms: formPath,

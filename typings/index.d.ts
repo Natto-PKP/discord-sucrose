@@ -128,9 +128,9 @@ declare class BaseInteractionManager<T extends InteractionData = InteractionData
 declare class InteractionCommandManager
   extends BaseInteractionCommandManager implements Types.InteractionCommandManager {
   /**
-   * InteractionGuildCommandManager collection
+   * GuildInteractionCommandManager collection
    */
-  public readonly guilds: Discord.Collection<Discord.Snowflake, InteractionGuildCommandManager>;
+  public readonly guilds: Discord.Collection<Discord.Snowflake, GuildInteractionCommandManager>;
 
   constructor(sucrose: Sucrose, options: InteractionCommandManagerOptions);
 
@@ -290,19 +290,19 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
  * @category managers
  *
  * @public
- * @example Initialize new InteractionGuildCommandManager
+ * @example Initialize new GuildInteractionCommandManager
  * ```js
- * new InteractionGuildCommandManager(sucrose, options);
+ * new GuildInteractionCommandManager(sucrose, options);
  * ```
  */
-declare class InteractionGuildCommandManager extends BaseInteractionCommandManager {
+declare class GuildInteractionCommandManager extends BaseInteractionCommandManager {
   /**
    * id of the guild the manager is based on
    * @readonly
    */
   public readonly guildId: Discord.Snowflake;
 
-  constructor(sucrose: Types.Sucrose, options: Types.InteractionGuildCommandManagerOptions);
+  constructor(sucrose: Types.Sucrose, options: Types.GuildInteractionCommandManagerOptions);
 
   /**
    * load all guild commands
@@ -445,7 +445,7 @@ declare class Sucrose extends Discord.Client {
    * const client = await Sucrose.build(options);
    * ```
    */
-  static async build(options: SucroseOptions): Promise<Sucrose>;
+  static async build(options: SucroseOptions<true>): Promise<Sucrose>;
 }
 
 /**
@@ -932,11 +932,11 @@ export interface GlobalOptions<P extends boolean = false> {
 }
 
 /**
- * InteractionGuildCommandManager options
+ * GuildInteractionCommandManager options
  * @category options
  * @public
  */
-export interface InteractionGuildCommandManagerOptions
+export interface GuildInteractionCommandManagerOptions
   extends BaseInteractionCommandManagerOptions {
   guildId: Discord.Snowflake;
 }
@@ -1467,13 +1467,14 @@ export type InteractionData = AutocompleteData | ButtonData | FormData | SelectM
  * All select menu
  * @public
  */
-export type SelectMenuComponent = Discord.RoleSelectMenuComponent | Discord.UserSelectMenuComponent 
-  | Discord.MentionableSelectMenuComponent | Discord.StringSelectMenuComponent 
-  | Discord.ChannelSelectMenuComponent;
+export type SelectMenuComponent = (Discord.RoleSelectMenuComponent & {
+  type: Discord.ComponentType.RoleSelect
+}) | (Discord.UserSelectMenuComponent & { type: Discord.ComponentType.UserSelect })
+| (Discord.MentionableSelectMenuComponent & { type: Discord.ComponentType.MentionableSelect })
+| (Discord.StringSelectMenuComponent & { type: Discord.ComponentType.StringSelect })
+| (Discord.ChannelSelectMenuComponent & { type: Discord.ComponentType.ChannelSelect });
 
-export type SelectMenuInteraction = Discord.RoleSelectMenuInteraction | Discord.UserSelectMenuInteraction
-  | Discord.MentionableSelectMenuInteraction | Discord.StringSelectMenuInteraction
-  | Discord.ChannelSelectMenuInteraction;
+export type SelectMenuInteraction = Discord.AnySelectMenuInteraction;
 
 /**
  * @internal

@@ -153,14 +153,14 @@ export default class InteractionManager implements Types.InteractionManager {
 
       // ? message context menu
       if (interaction.commandType === ApplicationCommandType.Message) {
-        const context = command as Types.MessageContextMenuData;
+        const context = command as Types.MessageContextCommandData;
         if (!context.exec) throw SInteractionError(`message context menu "${name}" exec function is not define`, contents.MESSAGE_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
         return context.exec({ ...params, interaction });
       } // [end] message context menu
 
       // ? user context menu
       if (interaction.commandType === ApplicationCommandType.User) {
-        const context = command as Types.UserContextMenuData;
+        const context = command as Types.UserContextCommandData;
         if (!context.exec) throw SInteractionError(`user context menu "${name}" exec function is not define`, contents.USER_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
         return context.exec({ ...params, interaction });
       } // [end] user context menu

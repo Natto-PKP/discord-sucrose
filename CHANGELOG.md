@@ -1,4 +1,13 @@
-[6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+[6.4.12](#6412), [6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+
+### # `6.4.12`
+
+> ```diff
+> + Update discord.js to 14.11.0
+> + Fix and type new select menu type
+> + Change commands to interaction commands
+> + Move commands directories in /interactions
+> ```
 
 ### # `6.4.6`
 
@@ -18,7 +27,7 @@
 ### # `6.3.14`
 
 > ```diff
-> + rework logger and add options for (it'll be easer to custom the loger in the futur)
+> + rework logger an d add options for (it'll be easer to custom the loger in the futur)
 > + better error handling for all manager and listeners
 > + update index.d.ts and docs
 > - don't look the numbers of versions

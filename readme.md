@@ -394,7 +394,7 @@ module.exports = {
 const { ApplicationCommandType } = require('discord.js');
 
 /**
- * @type { import('discord-sucrose').UserContextMenu }
+ * @type { import('discord-sucrose').UserContextCommand }
  */
 module.exports = {
   body: {
@@ -415,7 +415,7 @@ module.exports = {
 const { ApplicationCommandType } = require('discord.js');
 
 /**
- * @type { import('discord-sucrose').MessageContextMenu }
+ * @type { import('discord-sucrose').MessageContextCommand }
  */
 module.exports = {
   body: {

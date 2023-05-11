@@ -5,12 +5,12 @@ import type Types from '../typings';
 
 import Logger from './services/Logger';
 import EventManager from './managers/EventManager';
-import CommandManager from './managers/CommandManager';
+import InteractionCommandManager from './managers/InteractionCommandManager';
 import InteractionManager from './managers/InteractionManager';
 import * as defaults from './options';
 
 export default class Sucrose extends Client {
-  public readonly commands: CommandManager;
+  public readonly commands: InteractionCommandManager;
 
   public readonly events: EventManager;
 
@@ -19,18 +19,19 @@ export default class Sucrose extends Client {
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    const opts = options as Required<Types.SucroseOptions<true>>;
+    const opts = options as Required<Types.SucroseOptions>;
     opts.directories = defaults.getDirectoriesOptions(options);
     opts.env = defaults.getEnvironmentOptions(options);
     opts.features = defaults.getFeaturesOptions(options);
     opts.logging = defaults.getLoggingOptions(options);
 
-    this.commands = new CommandManager(this, defaults.getCommandManagerOptions(options));
-    this.events = new EventManager(this, defaults.getEventManagerOptions(options));
-    this.interactions = new InteractionManager(
-      this,
-      defaults.getInteractionManagerOptions(options),
-    );
+    const commandManagerOptions = defaults.getCommandManagerOptions(opts);
+    const eventManagerOptions = defaults.getEventManagerOptions(opts);
+    const interactionManagerOptions = defaults.getInteractionManagerOptions(opts);
+
+    this.commands = new InteractionCommandManager(this, commandManagerOptions);
+    this.events = new EventManager(this, eventManagerOptions);
+    this.interactions = new InteractionManager(this, interactionManagerOptions);
   }
 
   static async build(options: Types.SucroseOptions): Promise<Sucrose> {
