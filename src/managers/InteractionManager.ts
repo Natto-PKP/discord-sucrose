@@ -4,19 +4,24 @@ import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
   ComponentType,
-  Interaction,
   InteractionType,
+  InteractionReplyOptions,
 } from 'discord.js';
 
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
-import type Sucrose from '../Sucrose';
+import Sucrose from '../Sucrose';
 
-import { SError, SInteractionError, SucroseInteractionError } from '../errors';
+import {
+  SucroseError, SucroseCooldownError, SucroseInteractionError, SucrosePermissionError,
+} from '../errors';
 import BaseInteractionManager from './BaseInteractionManager';
+import InteractionCommandManager from './InteractionCommandManager';
 import Logger from '../services/Logger';
 import * as defaults from '../options';
+import ConditionService from '../services/ConditionService';
+import { SucroseConditionError } from '../errors/SConditionError';
 
 export default class InteractionManager implements Types.InteractionManager {
   private builded = false;
@@ -27,19 +32,25 @@ export default class InteractionManager implements Types.InteractionManager {
 
   public buttons: BaseInteractionManager<Types.ButtonData>;
 
+  public commands: InteractionCommandManager;
+
   public forms: BaseInteractionManager<Types.FormData>;
 
   public selectMenus: BaseInteractionManager<Types.SelectMenuData>;
 
   public constructor(private sucrose: Sucrose, private options: Types.InteractionManagerOptions) {
+    this.logger = new Logger(options.logging);
+
+    // # init managers
     const autocompleteOptions = defaults.getAutocompleteInteractionManagerOptions(options);
     const buttonOptions = defaults.getButtonInteractionManagerOptions(options);
+    const commandOptions = defaults.getCommandManagerOptions(options);
     const formOptions = defaults.getFormInteractionManagerOptions(options);
     const selectMenuOptions = defaults.getSelectMenuInteractionManagerOptions(options);
 
-    this.logger = new Logger(options.logging);
     this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>(autocompleteOptions);
     this.buttons = new BaseInteractionManager<Types.ButtonData>(buttonOptions);
+    this.commands = new InteractionCommandManager(sucrose, commandOptions);
     this.forms = new BaseInteractionManager<Types.FormData>(formOptions);
     this.selectMenus = new BaseInteractionManager<Types.SelectMenuData>(selectMenuOptions);
   }
@@ -48,26 +59,52 @@ export default class InteractionManager implements Types.InteractionManager {
    * build this manager and all interaction manager
    */
   public async build(): Promise<void> {
-    if (this.builded) throw SError('ERROR', 'InteractionManager is already build');
+    // # prevent multiple build
+    if (this.builded) throw new SucroseError('ERROR', 'InteractionManager is already build');
     this.builded = true;
 
-    await this.autocompletes.build();
-    await this.buttons.build();
-    await this.forms.build();
-    await this.selectMenus.build();
+    // # build interaction managers
+    await this.autocompletes.build().catch((err: Error) => this.logger.handle(err));
+    await this.buttons.build().catch((err: Error) => this.logger.handle(err));
+    await this.commands.build().catch((err: Error) => this.logger.handle(err));
+    await this.forms.build().catch((err: Error) => this.logger.handle(err));
+    await this.selectMenus.build().catch((err: Error) => this.logger.handle(err));
 
+    // # listen to interactionCreate event
     this.sucrose.on('interactionCreate', async (interaction) => {
-      await this.listener(interaction).catch((err: Error) => {
-        const { autoReply } = this.options.features;
-        const { channel } = interaction;
-        const content = err instanceof SucroseInteractionError
-          ? err.content : autoReply.contents.ERROR({ interaction, error: err });
+      await this.listener(interaction).catch(async (err: Error) => {
+        const { contents } = this.options;
 
-        if (autoReply.active && content && channel && 'send' in channel) {
-          channel.send(content as Discord.MessageCreateOptions).catch(() => null);
+        // # if an error and can reply to interaction
+        if (err instanceof Error && interaction.isRepliable()) {
+          let content: InteractionReplyOptions;
+
+          // # manager sucrose interaction error or sucrose permission error
+          if (err instanceof SucroseInteractionError || err instanceof SucrosePermissionError) {
+            content = await err.content as InteractionReplyOptions;
+            await interaction.reply(content).catch(() => null);
+
+            // # manager sucrose cooldown error
+          } else if (err instanceof SucroseCooldownError) {
+            const { key, cooldown } = err;
+            const response = await contents.COOLDOWN_HIT({ key, cooldown, interaction });
+            content = response as InteractionReplyOptions;
+            await interaction.reply(content).catch(() => null);
+
+            // # manager sucrose condition error
+          } if (err instanceof SucroseConditionError) {
+            const { conditions } = err;
+            const response = await contents.CONDITION_FAILED({ conditions, interaction });
+            content = response as InteractionReplyOptions;
+            await interaction.reply(content).catch(() => null);
+
+            // # manager other type of errors
+          } else {
+            const response = await contents.ERROR({ interaction, error: err });
+            content = response as InteractionReplyOptions;
+            await interaction.reply(content).catch(() => null);
+          }
         }
-
-        this.logger.handle(err);
       });
     });
   }
@@ -78,187 +115,479 @@ export default class InteractionManager implements Types.InteractionManager {
    */
   private async listener(
     interaction: Discord.Interaction,
-  ): Promise<unknown> {
-    const { sucrose, options: { features: { autoReply: { contents } } } } = this;
+  ) {
+    // # define listener variable
+    const { sucrose, options: { contents, features: { hooks } } } = this;
+    const { cooldown, permission } = sucrose;
     const params = { sucrose };
     const { guild } = interaction;
 
-    // ? modal form
+    // # interaction is a form
     if (interaction.type === InteractionType.ModalSubmit) {
-      const { customId } = interaction;
-      const form = this.forms.get(customId);
-
+      // # get form
+      const { customId } = interaction; // get form id
+      const form = this.forms.cache.get(customId);
       if (!form) return;
-      await this.permissions(interaction, form.permissions);
-      if (!form.exec) throw SInteractionError(`form "${customId}" exec function not define`, contents.FORM_INTERACTION_MISSING_EXEC({ interaction, customId }));
-      return form.exec({ ...params, interaction });
-    } // [end] modal form
+      const formId = form.body.customId; // define id
 
-    // ? autocomplete
-    if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+      // # form conditions
+      if (form.conditions) {
+        const { conditions } = form;
+        const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+        if (!alright) throw new SucroseConditionError(`custom error failed on form "${customId}"`, conditions);
+      }
+
+      // # form permissions
+      if (form.permissions) {
+        await permission.isAuthorized({ interaction, permissions: form.permissions });
+      }
+
+      // # form cooldowns
+      if (form.cooldowns) {
+        await cooldown.isOver({ interaction, cooldowns: form.cooldowns, id: formId });
+      }
+
+      // # form can't be executed
+      if (!form.exec) throw new SucroseInteractionError(`form "${customId}" exec function not define`, contents.FORM_INTERACTION_MISSING_EXEC({ interaction, customId }));
+
+      const baseHookParams = { interaction, sucrose };
+      const hookParams = { ...baseHookParams, data: form };
+
+      // # before hooks
+      if (form.hooks?.beforeExecute) await form.hooks.beforeExecute(baseHookParams);
+      if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+      if (hooks?.beforeFormExecute) await hooks.beforeFormExecute(hookParams);
+
+      // # execute form
+      await form.exec({ ...params, interaction });
+
+      // # after form
+      if (form.hooks?.afterExecute) await form.hooks.afterExecute(baseHookParams);
+      if (hooks?.afterFormExecute) await hooks.afterFormExecute(hookParams);
+      if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+
+      // # interaction is autocomplete
+    } else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+      // # get autocomplete info
       const { commandName } = interaction;
       const groupName = interaction.options.getSubcommandGroup();
       const optionName = interaction.options.getFocused();
 
+      // # get autocomplete
       let key = commandName;
       if (groupName) key += groupName;
       if (optionName) key += optionName;
-      const autocomplete = this.autocompletes.get(key);
+      const autocomplete = this.autocompletes.cache.get(key);
+      if (!autocomplete) throw new SucroseInteractionError(`autocomplete "${key}" interaction missing`, contents.AUTOCOMPLETE_INTERACTION_MISSING({ interaction, key }));
 
-      if (!autocomplete) throw SInteractionError(`autocomplete "${key}" interaction missing`, contents.AUTOCOMPLETE_INTERACTION_MISSING({ interaction, key }));
-      if (!autocomplete.exec) throw SInteractionError(`autocomplete "${key}" exec function not define`, contents.AUTOCOMPLETE_INTERACTION_MISSING_EXEC({ interaction, key }));
-      return autocomplete.exec({ ...params, interaction });
-    } // [end] autocomplete
+      // # autocomplete conditions
+      if (autocomplete.conditions) {
+        const { conditions } = autocomplete;
+        const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+        if (!alright) throw new SucroseConditionError(`custom error failed on autocomplete "${key}"`, conditions);
+      }
 
-    // ? command or context menu
-    if (interaction.type === InteractionType.ApplicationCommand) {
-      const name = interaction.commandName;
-      const command = (guild && sucrose.commands.guilds.get(guild.id)?.get(name))
-        || sucrose.commands.get(name);
+      // # autocomplete permissions
+      if (autocomplete.permissions) {
+        await permission.isAuthorized({ interaction, permissions: autocomplete.permissions });
+      }
 
-      if (!command) throw SInteractionError(`chat input "${name}" interaction missing`, contents.CHAT_INPUT_INTERACTION_MISSING({ interaction, name }));
-      await this.permissions(interaction, command.permissions);
+      // # autocomplete cooldowns
+      if (autocomplete.cooldowns) {
+        await cooldown.isOver({ interaction, cooldowns: autocomplete.cooldowns, id: key });
+      }
 
-      // ? command
+      // # autocomplete can't be executed
+      if (!autocomplete.exec) throw new SucroseInteractionError(`autocomplete "${key}" exec function not define`, contents.AUTOCOMPLETE_INTERACTION_MISSING_EXEC({ interaction, key }));
+
+      const baseHookParams = { interaction, sucrose };
+      const hookParams = { ...baseHookParams, data: autocomplete };
+
+      // # before hooks
+      if (autocomplete.hooks?.beforeExecute) await autocomplete.hooks.beforeExecute(baseHookParams);
+      if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+      if (hooks?.beforeAutocompleteExecute) await hooks.beforeAutocompleteExecute(hookParams);
+
+      // # execute autocomplete
+      await autocomplete.exec({ ...params, interaction });
+
+      // # after hooks
+      if (autocomplete.hooks?.afterExecute) await autocomplete.hooks.afterExecute(baseHookParams);
+      if (hooks?.afterAutocompleteExecute) await hooks.afterAutocompleteExecute(hookParams);
+      if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+
+      // # interaction is command
+    } else if (interaction.type === InteractionType.ApplicationCommand) {
+      // # get command
+      const name = interaction.commandName; // get command
+      const command = (guild && sucrose.interactions.commands.guilds.get(guild.id)?.cache.get(name))
+        || sucrose.interactions.commands.cache.get(name);
+      if (!command) throw new SucroseInteractionError(`chat input "${name}" interaction missing`, contents.CHAT_INPUT_INTERACTION_MISSING({ interaction, name }));
+
+      // # interaction is chat input
       if (interaction.commandType === ApplicationCommandType.ChatInput) {
-        const chatInput = <Types.ChatInputData>command;
+        const chatInput = <Types.ChatInputData>command; // cast
+        const chatInputId = chatInput.body.name; // define an id
         const groupName = interaction.options.getSubcommandGroup(false);
         const optionName = interaction.options.getSubcommand(false);
 
-        // ? sub command group
+        // # command conditions
+        if (chatInput.conditions) {
+          const { conditions } = chatInput;
+          const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+          if (!alright) throw new SucroseConditionError(`custom error failed on chat input "${chatInputId}"`, conditions);
+        }
+
+        // # chat input permissions
+        if (command.permissions) {
+          await permission.isAuthorized({ interaction, permissions: command.permissions });
+        }
+
+        // # chat input cooldowns
+        if (command.cooldowns) {
+          await cooldown.isOver({ interaction, cooldowns: command.cooldowns, id: chatInputId });
+        }
+
+        // # chat input has a group
         if (groupName) {
+          // # get chat input group
           const group = chatInput.options.get(groupName) as Types.ChatInputSubGroupOptionData;
+          if (!group || group.body.type !== ApplicationCommandOptionType.SubcommandGroup) throw new SucroseInteractionError(`group "${groupName}" of "${name}" chat input is missing`, contents.CHAT_INPUT_GROUP_MISSING({ interaction, name, group: groupName }));
+          const groupId = `${chatInputId}:${group.body.name}`; // define an id
 
-          if (!group || group.body.type !== ApplicationCommandOptionType.SubcommandGroup) throw SInteractionError(`group "${groupName}" of "${name}" chat input is missing`, contents.CHAT_INPUT_GROUP_MISSING({ interaction, name, group: groupName }));
-          await this.permissions(interaction, group.permissions);
+          // # command group conditions
+          if (group.conditions) {
+            const { conditions } = group;
+            const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+            if (!alright) throw new SucroseConditionError(`custom error failed on command group "${groupId}"`, conditions);
+          }
+
+          // # group permissions
+          if (group.permissions) {
+            await permission.isAuthorized({ interaction, permissions: group.permissions });
+          }
+
+          // # group cooldowns
+          if (group.cooldowns) {
+            await cooldown.isOver({ interaction, cooldowns: group.cooldowns, id: groupId });
+          }
+
+          // # before hooks
+          if (group.hooks?.beforeExecute) await group.hooks.beforeExecute({ sucrose });
+
+          // # execute if exec exist
+          if (group.exec) await group.exec({ sucrose });
+
+          // # after hooks
+          if (group.hooks?.afterExecute) await group.hooks.afterExecute({ sucrose });
+
+          // # get group option
           const option = optionName && group.options.get(optionName);
-
           const contentParams = { name, group: groupName, option: optionName as string };
-          if (!option) throw SInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_GROUP_OPTION_MISSING({ interaction, ...contentParams }));
-          if (!option.exec) throw SInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" exec function is not define`, contents.CHAT_INPUT_GROUP_OPTION_MISSING_EXEC({ interaction, ...contentParams }));
-          return option.exec({ ...params, interaction });
-        } // [end] sub command group
-        // ? sub command
-        if (optionName) {
+          if (!option) throw new SucroseInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_GROUP_OPTION_MISSING({ interaction, ...contentParams }));
+          const optionId = `${chatInputId}:${groupId}:${option.body.name}`; // define an id
+
+          // # command group option conditions
+          if (option.conditions) {
+            const { conditions } = option;
+            const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+            if (!alright) throw new SucroseConditionError(`custom error failed on command group option "${optionId}"`, conditions);
+          }
+
+          // # group option permissions
+          if (option.permissions) {
+            await permission.isAuthorized({ interaction, permissions: option.permissions });
+          }
+
+          // # group option cooldowns
+          if (option.cooldowns) {
+            await cooldown.isOver({ interaction, cooldowns: option.cooldowns, id: optionId });
+          }
+
+          // # option can't be executed
+          if (!option.exec) throw new SucroseInteractionError(`option "${optionName}" of group "${groupName}" of chat input "${name}" exec function is not define`, contents.CHAT_INPUT_GROUP_OPTION_MISSING_EXEC({ interaction, ...contentParams }));
+
+          const baseHookParams = { interaction, sucrose };
+          const hookParams = { ...baseHookParams, data: option };
+
+          // # before hooks
+          if (option.hooks?.beforeExecute) await option.hooks.beforeExecute(baseHookParams);
+          if (hooks?.beforeCommandExecute) await hooks.beforeCommandExecute(hookParams);
+          if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+          if (hooks?.beforeChatInputOptionExecute) {
+            await hooks.beforeChatInputOptionExecute(hookParams);
+          }
+
+          // # execute option
+          await option.exec({ ...params, interaction });
+
+          // # after hooks
+          if (option.hooks?.afterExecute) await option.hooks.afterExecute(baseHookParams);
+          if (hooks?.afterChatInputOptionExecute) {
+            await hooks.afterChatInputOptionExecute(hookParams);
+          }
+          if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+          if (hooks?.afterCommandExecute) await hooks.afterCommandExecute(hookParams);
+
+          // # chat input don't have group but have option
+        } else if (optionName) {
+          // # get chat input option
           const option = chatInput.options.get(optionName) as Types.ChatInputSubOptionData;
+          if (!option || option.body.type !== ApplicationCommandOptionType.Subcommand) throw new SucroseInteractionError(`option "${optionName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_OPTION_MISSING({ interaction, name, option: optionName }));
+          const optionId = `${chatInputId}:${option.body.name}`; // define an id
 
-          if (!option || option.body.type !== ApplicationCommandOptionType.Subcommand) throw SInteractionError(`option "${optionName}" of chat input "${name}" is missing`, contents.CHAT_INPUT_OPTION_MISSING({ interaction, name, option: optionName }));
-          if (!option.exec) throw SInteractionError(`option "${optionName}" of "${name}" chat input exec is not define`, contents.CHAT_INPUT_OPTION_MISSING_EXEC({ interaction, name, option: optionName }));
-          return option.exec({ ...params, interaction });
-        } // [end] sub command
+          // # command option conditions
+          if (option.conditions) {
+            const { conditions } = option;
+            const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+            if (!alright) throw new SucroseConditionError(`custom error failed on command option "${optionId}"`, conditions);
+          }
 
-        if (!chatInput.exec) throw SInteractionError(`chat input "${name}" exec function is not define`, contents.CHAT_INPUT_INTERACTION_MISSING_EXEC({ interaction, name }));
-        return chatInput.exec({ ...params, interaction });
-      } // [end] command
+          // # option permissions
+          if (option.permissions) {
+            await permission.isAuthorized({ interaction, permissions: option.permissions });
+          }
 
-      // ? message context menu
-      if (interaction.commandType === ApplicationCommandType.Message) {
-        const context = command as Types.MessageContextCommandData;
-        if (!context.exec) throw SInteractionError(`message context menu "${name}" exec function is not define`, contents.MESSAGE_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
-        return context.exec({ ...params, interaction });
-      } // [end] message context menu
+          // # option cooldowns
+          if (option.cooldowns) {
+            await cooldown.isOver({ interaction, cooldowns: option.cooldowns, id: optionId });
+          }
 
-      // ? user context menu
-      if (interaction.commandType === ApplicationCommandType.User) {
-        const context = command as Types.UserContextCommandData;
-        if (!context.exec) throw SInteractionError(`user context menu "${name}" exec function is not define`, contents.USER_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
-        return context.exec({ ...params, interaction });
-      } // [end] user context menu
-    } // [end] command or context menu
+          // # option can't be executed
+          if (!option.exec) throw new SucroseInteractionError(`option "${optionName}" of "${name}" chat input exec is not define`, contents.CHAT_INPUT_OPTION_MISSING_EXEC({ interaction, name, option: optionName }));
 
-    // ? message component
-    if (interaction.type === InteractionType.MessageComponent) {
-      // ? select menu
-      if (interaction.componentType === ComponentType.SelectMenu) {
+          const baseHookParams = { interaction, sucrose };
+          const hookParams = { ...baseHookParams, data: option };
+
+          // # before hooks
+          if (option.hooks?.beforeExecute) await option.hooks.beforeExecute(baseHookParams);
+          if (hooks?.beforeCommandExecute) await hooks.beforeCommandExecute(hookParams);
+          if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+          if (hooks?.beforeChatInputOptionExecute) {
+            await hooks.beforeChatInputOptionExecute(hookParams);
+          }
+
+          // # execute option
+          await option.exec({ ...params, interaction });
+
+          // # after hooks
+          if (option.hooks?.afterExecute) await option.hooks.afterExecute(baseHookParams);
+          if (hooks?.afterChatInputOptionExecute) {
+            await hooks.afterChatInputOptionExecute(hookParams);
+          }
+          if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+          if (hooks?.afterCommandExecute) await hooks.afterCommandExecute(hookParams);
+
+          // # interaction is just a chat input without any option
+        } else {
+          // # chat input can't be executed
+          if (!chatInput.exec) throw new SucroseInteractionError(`chat input "${name}" exec function is not define`, contents.CHAT_INPUT_INTERACTION_MISSING_EXEC({ interaction, name }));
+
+          const baseHookParams = { interaction, sucrose };
+          const hookParams = { ...baseHookParams, data: chatInput };
+
+          // # before hooks
+          if (chatInput.hooks?.beforeExecute) await chatInput.hooks.beforeExecute(baseHookParams);
+          if (hooks?.beforeCommandExecute) await hooks.beforeCommandExecute(hookParams);
+          if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+          if (hooks?.beforeChatInputExecute) await hooks.beforeChatInputExecute(hookParams);
+
+          // # execute chat input
+          await chatInput.exec({ ...params, interaction });
+
+          // # after hooks
+          if (chatInput.hooks?.afterExecute) await chatInput.hooks.afterExecute(baseHookParams);
+          if (hooks?.afterChatInputExecute) await hooks.afterChatInputExecute(hookParams);
+          if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+          if (hooks?.afterCommandExecute) await hooks.afterCommandExecute(hookParams);
+        }
+
+        // # interaction is message command
+      } else if (interaction.commandType === ApplicationCommandType.Message) {
+        const context = command as Types.MessageContextCommandData; // cast
+        const contextId = command.body.name; // defined an id
+
+        // # message context command conditions
+        if (context.conditions) {
+          const { conditions } = context;
+          const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+          if (!alright) throw new SucroseConditionError(`custom error failed on message context command "${contextId}"`, conditions);
+        }
+
+        // # context permissions
+        if (context.permissions) {
+          await permission.isAuthorized({ interaction, permissions: context.permissions });
+        }
+
+        // # context cooldowns
+        if (context.cooldowns) {
+          await cooldown.isOver({ interaction, cooldowns: context.cooldowns, id: contextId });
+        }
+
+        // # context can't be executed
+        if (!context.exec) throw new SucroseInteractionError(`message context menu "${name}" exec function is not define`, contents.MESSAGE_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
+
+        const baseHookParams = { interaction, sucrose };
+        const hookParams = { ...baseHookParams, data: context };
+
+        // # before hooks
+        if (context.hooks?.beforeExecute) await context.hooks.beforeExecute(baseHookParams);
+        if (hooks?.beforeCommandExecute) await hooks.beforeCommandExecute(hookParams);
+        if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+        if (hooks?.beforeMessageCommandExecute) await hooks.beforeMessageCommandExecute(hookParams);
+
+        // # execute context
+        await context.exec({ ...params, interaction });
+
+        // # after hooks
+        if (context.hooks?.afterExecute) await context.hooks.afterExecute(baseHookParams);
+        if (hooks?.afterMessageCommandExecute) await hooks.afterMessageCommandExecute(hookParams);
+        if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+        if (hooks?.afterCommandExecute) await hooks.afterCommandExecute(hookParams);
+
+        // # interaction is user command
+      } else if (interaction.commandType === ApplicationCommandType.User) {
+        const context = command as Types.UserContextCommandData; // cast
+        const contextId = command.body.name; // defined an id
+
+        // # user context command conditions
+        if (context.conditions) {
+          const { conditions } = context;
+          const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+          if (!alright) throw new SucroseConditionError(`custom error failed on user context command "${contextId}"`, conditions);
+        }
+
+        // # context permissions
+        if (command.permissions) {
+          await permission.isAuthorized({ interaction, permissions: command.permissions });
+        }
+
+        // # context cooldowns
+        if (command.cooldowns) {
+          await cooldown.isOver({ interaction, cooldowns: command.cooldowns, id: contextId });
+        }
+
+        // # context can't be executed
+        if (!context.exec) throw new SucroseInteractionError(`user context menu "${name}" exec function is not define`, contents.USER_CONTEXT_MENU_MISSING_EXEC({ interaction, name }));
+
+        const baseHookParams = { interaction, sucrose };
+        const hookParams = { ...baseHookParams, data: context };
+
+        // # before hooks
+        if (context.hooks?.beforeExecute) await context.hooks.beforeExecute(baseHookParams);
+        if (hooks?.beforeCommandExecute) await hooks.beforeCommandExecute(hookParams);
+        if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+        if (hooks?.beforeUserCommandExecute) await hooks.beforeUserCommandExecute(hookParams);
+
+        // # execute context
+        await context.exec({ ...params, interaction });
+
+        // # after context
+        if (context.hooks?.afterExecute) await context.hooks.afterExecute(baseHookParams);
+        if (hooks?.afterUserCommandExecute) await hooks.afterUserCommandExecute(hookParams);
+        if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+        if (hooks?.afterCommandExecute) await hooks.afterCommandExecute(hookParams);
+      }
+
+      // # interaction is a message component
+    } else if (interaction.type === InteractionType.MessageComponent) {
+      // # interaction is a select menu
+      if ([
+        ComponentType.ChannelSelect,
+        ComponentType.MentionableSelect,
+        ComponentType.RoleSelect,
+        ComponentType.StringSelect,
+        ComponentType.UserSelect,
+      ].includes(interaction.componentType) && interaction.componentType !== ComponentType.Button) {
+        // # get select meny
         const { customId } = interaction;
-        const selectMenu = this.selectMenus.get(customId);
+        const selectMenu = this.selectMenus.cache.get(customId);
         if (!selectMenu) return;
-        await this.permissions(interaction, selectMenu.permissions);
-        if (!selectMenu.exec) throw SInteractionError(`select menu "${customId}" exec function is not define`, contents.SELECT_MENU_INTERACTION_MISSING_EXEC({ interaction, customId }));
-        return selectMenu.exec({ ...params, interaction });
-      } // [end] select menu
 
-      // ? button
-      if (interaction.componentType === ComponentType.Button) {
+        const selectMenuId = selectMenu.body.customId; // define an id
+
+        // # select menu conditions
+        if (selectMenu.conditions) {
+          const { conditions } = selectMenu;
+          const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+          if (!alright) throw new SucroseConditionError(`custom error failed on select menu "${selectMenuId}"`, conditions);
+        }
+
+        // # select menu permissions
+        if (selectMenu.permissions) {
+          await permission.isAuthorized({ interaction, permissions: selectMenu.permissions });
+        }
+
+        // # select menu cooldowns
+        if (selectMenu.cooldowns) {
+          await cooldown.isOver({ interaction, cooldowns: selectMenu.cooldowns, id: selectMenuId });
+        }
+
+        // # select menu can't be executed
+        if (!selectMenu.exec) throw new SucroseInteractionError(`select menu "${customId}" exec function is not define`, contents.SELECT_MENU_INTERACTION_MISSING_EXEC({ interaction, customId }));
+
+        const baseHookParams = { interaction, sucrose };
+        const hookParams = { ...baseHookParams, data: selectMenu };
+
+        // # before hooks
+        if (selectMenu.hooks?.beforeExecute) await selectMenu.hooks.beforeExecute(baseHookParams);
+        if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+        if (hooks?.beforeSelectMenuExecute) await hooks.beforeSelectMenuExecute(hookParams);
+
+        // # execute select menu
+        await selectMenu.exec({ ...params, interaction });
+
+        // # after hooks
+        if (selectMenu.hooks?.afterExecute) await selectMenu.hooks.afterExecute(baseHookParams);
+        if (hooks?.afterSelectMenuExecute) await hooks.afterSelectMenuExecute(hookParams);
+        if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
+
+        // # interaction in a button
+      } else if (interaction.componentType === ComponentType.Button) {
+        // # get button
         const { customId } = interaction;
-        const button = this.buttons.get(customId);
+        const button = this.buttons.cache.get(customId);
         if (!button) return;
-        await this.permissions(interaction, button.permissions);
-        if (!button.exec) throw SInteractionError(`button "${customId}" exec function is not define`, contents.BUTTON_INTERACTION_MISSING_EXEC({ interaction, customId }));
-        return button.exec({ ...params, interaction });
-      } // [end] button
-    }
+        const buttonId = 'url' in button.body ? button.body.url : button.body.customId; // define an id
 
-    throw SInteractionError('interaction is unknown', contents.UNKNOWN_INTERACTION({ interaction }));
-  }
+        // # button conditions
+        if (button.conditions) {
+          const { conditions } = button;
+          const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
+          if (!alright) throw new SucroseConditionError(`custom error failed on button "${buttonId}"`, conditions);
+        }
 
-  /**
-   * handle interaction permissions
-   * @param interaction - current interaction
-   * @param permissions - current interaction permissions
-   */
-  private async permissions(
-    interaction: Interaction,
-    permissions?: Types.Permissions,
-  ): Promise<void> {
-    if (!permissions) return;
+        // # button permissions
+        if (button.permissions) {
+          await permission.isAuthorized({ interaction, permissions: button.permissions });
+        }
 
-    const { features: { autoReply: { contents } } } = this.options;
-    const { user, channel } = interaction;
+        // # button cooldowns
+        if (button.cooldowns) {
+          await cooldown.isOver({ interaction, cooldowns: button.cooldowns, id: buttonId });
+        }
 
-    // ! Guild check
-    if (interaction.guild && interaction.guild.members.me) {
-      const guild = <Discord.Guild>interaction.guild;
-      const member = <Discord.GuildMember>interaction.member;
-      const me = <Discord.GuildMember>guild.members.me;
+        // # button can't be executed
+        if (!button.exec) throw new SucroseInteractionError(`button "${customId}" exec function is not define`, contents.BUTTON_INTERACTION_MISSING_EXEC({ interaction, customId }));
 
-      // ! Client
-      if (permissions.client) {
-        const missing = me.permissions.missing(permissions.client);
-        if (missing.length) throw SInteractionError('client does not have permissions', contents.PERMISSIONS_CLIENT_MISSING({ interaction, permissions: missing }));
+        const baseHookParams = { interaction, sucrose };
+        const hookParams = { ...baseHookParams, data: button };
+
+        // # before hooks
+        if (button.hooks?.beforeExecute) await button.hooks.beforeExecute(baseHookParams);
+        if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
+        if (hooks?.beforeButtonExecute) await hooks.beforeButtonExecute(hookParams);
+
+        // # execute button
+        await button.exec({ ...params, interaction });
+
+        // # after hooks
+        if (button.hooks?.afterExecute) await button.hooks.afterExecute(baseHookParams);
+        if (hooks?.afterButtonExecute) await hooks.afterButtonExecute(hookParams);
+        if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
       }
 
-      // ! Member
-      if (permissions.member) {
-        const missing = member.permissions.missing(permissions.member);
-        if (missing.length) throw SInteractionError('member does not have permissions', contents.PERMISSIONS_CURRENT_MEMBER_MISSING({ interaction, permissions: missing }));
-      }
-
-      // ! Roles
-      if (permissions.roles) {
-        const arr = <string[]>permissions.roles;
-        const has = member.roles.cache.some((r) => arr.includes(r.id));
-        if (!has) throw SInteractionError('member don\'t have allowed member', contents.PERMISSIONS_MEMBER_ALLOW_ROLES_MISSING({ interaction, roleIDs: arr }));
-      }
-
-      // ! Guilds
-      if (permissions.guilds) {
-        const arr = <string[]>permissions.guilds;
-        const has = arr.includes((<Discord.Guild>guild).id);
-        if (!has) throw SInteractionError('current guild is not allowed', contents.PERMISSIONS_CURRENT_GUILD_NOT_ALLOWED({ interaction, guildIDs: arr }));
-      }
-
-      // ! Channels
-      if (permissions.channels) {
-        const arr = <string[]>permissions.channels;
-        const has = arr.includes((<Discord.GuildChannel>channel).id);
-        if (!has) throw SInteractionError('current channel is not allowed', contents.PERMISSIONS_CURRENT_GUILD_CHANNEl_NOT_ALLOWED({ interaction, channelIDs: arr }));
-      }
-
-      // ! Only private
-      if (permissions.private) throw SInteractionError('guild is not allowed', contents.PERMISSIONS_GUILD_NOT_ALLOWED({ interaction }));
-    } // [end] Guild check
-
-    // ! Users
-    if (permissions.users) {
-      const arr = <string[]>permissions.users;
-      const has = arr.includes(user.id);
-      if (!has) throw SInteractionError('current user is not allowed', contents.PERMISSIONS_CURRENT_USER_NOT_ALLOWED({ interaction, userIDs: arr }));
-    }
-
-    // ! Only guild
-    if (!interaction.guild && typeof permissions.private === 'boolean' && !permissions.private) {
-      throw SInteractionError('current private channel is not allowed', contents.PERMISSIONS_PRIVATE_CHANNEL_NOT_ALLOWED({ interaction }));
-    }
+      // # interaction is unknown
+    } else throw new SucroseInteractionError('interaction is unknown', contents.UNKNOWN_INTERACTION({ interaction }));
   }
 }

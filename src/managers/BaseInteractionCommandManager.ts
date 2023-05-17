@@ -1,21 +1,20 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, Collection } from 'discord.js';
-import { existsSync, lstatSync, readdirSync } from 'fs';
+import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
-/* Typings */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-import { SError } from '../errors';
-import { imported } from '../helpers';
+import { SucroseError } from '../errors';
 import Logger from '../services/Logger';
+import FolderService from '../services/FolderService';
 
-export default class BaseInteractionCommandManager
-  extends Collection<string, Types.InteractionCommandData>
-  implements Types.BaseInteractionCommandManager {
-  protected builded = false;
+export default class BaseInteractionCommandManager implements Types.BaseInteractionCommandManager {
+  public cache: Collection<string, Types.InteractionCommandData> = new Collection();
 
-  protected path: string;
+  protected builded = false; // prevent build multiple time
+
+  public directory: Types.DirectoryValue<true>;
 
   protected logger: Logger;
 
@@ -23,99 +22,101 @@ export default class BaseInteractionCommandManager
     protected sucrose: Types.Sucrose,
     protected options: Types.BaseInteractionCommandManagerOptions,
   ) {
-    super();
-
     this.logger = new Logger(options.logging);
-    this.path = options.directory;
+    this.directory = options.directory;
   }
 
   /**
    * Load and set a new command
    * @param file
    */
-  public async add(file: string): Promise<Types.InteractionCommandData> {
+  public async add(command: Types.InteractionCommandData): Promise<Types.InteractionCommandData> {
     const { options } = this;
 
-    const to = path.join(this.path, file);
-    if (!existsSync(to)) throw SError('ERROR', `command file "${file}" does not exist`);
-    if (!lstatSync(to).isFile()) throw SError('ERROR', `command file "${file}" is not a file`);
-    if (!file.endsWith(`.${options.env.ext}`)) throw SError('ERROR', `command file "${file}" extension is not ${options.env.ext}`);
-    const command = await imported(to, 'command') as Types.InteractionCommandData;
-    command.path = to;
+    // # check command name
+    if (this.cache.has(command.body.name)) throw new SucroseError('ERROR', `command "${command.body.name}" already exists in collection`);
 
-    if (this.has(command.body.name)) throw SError('ERROR', `command "${command.body.name}" already exists in collection`);
-
-    // ? chat input
+    // # command is a chat input
     if (!command.body.type || command.body.type === ApplicationCommandType.ChatInput) {
-      const chatInput = command as Types.ChatInputData;
-      const chatInputOptionsPath = path.join(this.path, chatInput.body.name);
+      const chatInput = command as Types.ChatInputData; // cast to chat input
 
-      // ? sub command groups or sub commands
-      if (existsSync(chatInputOptionsPath) && lstatSync(chatInputOptionsPath).isDirectory()) {
-        const chatInputOptions = readdirSync(chatInputOptionsPath).filter((optionFile) => {
-          const lstat = lstatSync(path.join(chatInputOptionsPath, optionFile));
-          return lstat.isFile() && optionFile.endsWith(`.${options.env.ext}`);
-        });
+      // # get path to potential command options folder
+      const chatInputOptionsPath = path.join(path.dirname(command.path), chatInput.body.name);
 
-        if (!chatInputOptions.length) throw SError('WARN', `command "${chatInput.body.name}" has an empty subcommands folder`);
+      // # get all valid option file
+      const chatInputOptions = FolderService.search({
+        path: chatInputOptionsPath,
+        filter: { type: 'file', ext: options.env.ext },
+      });
 
+      // # check if command options folder exist and is valid
+      if (chatInputOptions.length) {
+        // # init options repertory
         chatInput.body.options = [];
         chatInput.options = new Collection();
 
-        // ? loop all group folders or sub command subFiles
-        await Promise.all(chatInputOptions.map(async (optionFile) => {
-          const chatInputOptionPath = path.join(chatInputOptionsPath, optionFile);
-          const chatInputOption = await imported(chatInputOptionPath, 'option').catch((err) => this.logger.handle(err)) as Types.ChatInputOptionData;
+        // # loop all options file
+        await Promise.all(chatInputOptions.map(async (chatInputOptionPath) => {
+          // # import chat input option
+          const chatInputOption = await FolderService.load(chatInputOptionPath, 'option') as Types.ChatInputOptionData;
           if (!chatInputOption) return;
-          chatInputOption.path = chatInputOptionPath;
 
+          chatInputOption.path = chatInputOptionPath; // save option path
+
+          // # if option is a group
           if (chatInputOption.body.type === ApplicationCommandOptionType.SubcommandGroup) {
-            const chatInputGroup = chatInputOption as Types.ChatInputSubGroupOptionData;
+            // # get group folder path
+            const chatInputGroup = chatInputOption as Types.ChatInputSubGroupOptionData; // cast
             const chatInputGroupPath = path.join(chatInputOptionsPath, chatInputGroup.body.name);
 
-            if (!existsSync(chatInputGroupPath)) throw SError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder not exist`);
-            if (!lstatSync(chatInputGroupPath).isDirectory()) throw SError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder is not a folder`);
+            // # check if group folder path is valid
+            if (!existsSync(chatInputGroupPath)) throw new SucroseError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder not exist`);
+            if (!lstatSync(chatInputGroupPath).isDirectory()) throw new SucroseError('ERROR', `sub command group "${`${chatInput.body.name} ${chatInputGroup.body.name}`}" folder is not a folder`);
 
-            const chatInputGroupOptions = readdirSync(chatInputGroupPath)
-              .filter((groupOptionFile) => {
-                const lstat = lstatSync(path.join(chatInputGroupPath, groupOptionFile));
-                return lstat.isFile() && groupOptionFile.endsWith(`.${this.options.env.ext}`);
-              });
+            // # get all option in the group folder
+            const chatInputGroupOptions = FolderService.search({
+              path: chatInputOptionPath,
+              filter: { type: 'file', ext: options.env.ext },
+            });
 
-            if (!chatInputGroupOptions.length) throw SError('ERROR', 'sub command group has no sub command');
+            // # throw an error if group have no option
+            if (!chatInputGroupOptions.length) throw new SucroseError('ERROR', 'sub command group has no sub command');
 
-            // ### defined options objects
+            // # init group options repertory
             chatInputGroup.body.options = [];
             chatInputGroup.options = new Collection();
 
-            // loop all group sub command files
+            // # loop all group sub command files
             await Promise.all(chatInputGroupOptions.map(async (groupOptionFile) => {
+              // # import group option
               const chatInputGroupOptionPath = path.join(chatInputGroupPath, groupOptionFile);
-              const chatInputGroupOption = await imported(chatInputGroupOptionPath, 'option').catch((err) => this.logger.handle(err)) as Types.ChatInputSubOptionData;
+              const chatInputGroupOption = await FolderService.load(chatInputGroupOptionPath, 'option') as Types.ChatInputSubOptionData;
               if (!chatInputGroupOption) return;
-              chatInputGroupOption.path = chatInputGroupOptionPath;
 
-              // ### define sub option on group
+              chatInputGroupOption.path = chatInputGroupOptionPath; // save path
+
+              // # add sub option in group options
               chatInputGroup.body.options?.push(chatInputGroupOption.body);
               chatInputGroup.options.set(chatInputGroupOption.body.name, chatInputGroupOption);
-            }));// [end] loop all group sub command files
+            }));
 
-            // ### define group on parent
+            // # add group in chat input options
             chatInput.body.options?.push(chatInputGroup.body);
             chatInput.options.set(chatInputGroup.body.name, chatInputGroup);
 
-            // [end] sub command group
+            // # if option is a sub command
           } else if (chatInputOption.body.type === ApplicationCommandOptionType.Subcommand) {
-            const chatInputSubOption = chatInputOption as Types.ChatInputSubOptionData;
+            const chatInputSubOption = chatInputOption as Types.ChatInputSubOptionData; // cast
 
+            // # add option in chat input options
             chatInput.body.options?.push(chatInputSubOption.body);
             chatInput.options?.set(chatInputSubOption.body.name, chatInputSubOption);
-          } // [end] sub command
-        })); // [end] loop all group folders or sub command subFiles
-      } // [end] sub command groups or sub commands
-    } // [end] chat input
+          }
+        }));
+      }
+    }
 
-    this.set(command.body.name, command);
+    this.cache.set(command.body.name, command);
 
     return command;
   }
@@ -124,12 +125,14 @@ export default class BaseInteractionCommandManager
    * Send a existing command in discord api
    * @param name
    */
-  public async define(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
+  public async deploy(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
+    // # get guildId if exist
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
 
-    const command = this.get(name);
-    if (!command) throw SError('ERROR', `command "${name}" not exist`);
+    const command = this.cache.get(name); // get command
+    if (!command) throw new SucroseError('ERROR', `command "${name}" not exist`);
 
+    // # send command body to discord API
     return this.sucrose.application?.commands.create(command.body, guildId);
   }
 
@@ -137,10 +140,13 @@ export default class BaseInteractionCommandManager
    * Delete a existing command in discord api
    * @param name
    */
-  public async remove(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
+  public async undeploy(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
+    // # get guildId if exist
     const guildId = 'guildId' in this ? (<{ guildId: string }> this).guildId : undefined;
 
-    if (!this.has(name)) throw SError('ERROR', `command "${name}" not exist`);
+    if (!this.cache.has(name)) throw new SucroseError('ERROR', `command "${name}" not exist`);
+
+    // # delete command body from discord API
     return this.sucrose.application?.commands.delete(name, guildId);
   }
 
@@ -149,10 +155,18 @@ export default class BaseInteractionCommandManager
    * @param name
    */
   public async refresh(name: string): Promise<Types.InteractionCommandData> {
-    const command = this.get(name);
-    if (!command) throw SError('ERROR', `command "${name}" not exist`);
-    this.delete(name);
-    return this.add(path.basename(command.path));
+    const command = this.cache.get(name); // get command
+    if (!command) throw new SucroseError('ERROR', `command "${name}" not exist`);
+
+    this.cache.delete(name); // delete command from collection
+    return this.add(command); // add command to collection
+  }
+
+  /**
+   * Delete a command
+   */
+  public delete(name: string): boolean {
+    return this.cache.delete(name);
   }
 
   /**
@@ -160,7 +174,7 @@ export default class BaseInteractionCommandManager
    * @param name
    */
   public async restore(name: string): Promise<Discord.ApplicationCommand | null | undefined> {
-    await this.remove(name);
-    return this.define(name);
+    await this.undeploy(name);
+    return this.deploy(name);
   }
 }

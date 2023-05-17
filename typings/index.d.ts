@@ -1,65 +1,83 @@
 /* eslint-disable max-classes-per-file */
 
+import type Discord from 'discord.js';
+
 /**
  * @module discord-sucrose
  */
 
-import type Discord from 'discord.js';
-import type EventEmitter from 'events';
-
 /**
  * Base structure for command manager
  * @category managers
- *
  * @public
- * @example Initialize BaseInteractionCommandManager
- * ```js
- * new BaseInteractionCommandManager(sucrose, options);
- * ```
  */
-declare class BaseInteractionCommandManager
-  extends Discord.Collection<string, InteractionCommandData> {
+declare class BaseInteractionCommandManager {
+  public directory: DirectoryValue<true>;
+
   constructor(sucrose: Sucrose, options: BaseInteractionCommandManagerOptions);
+  public cache: Discord.Collection<string, InteractionCommandData>;
 
   /**
    * Load and set a new command
-   * @param file
-   * @example Add a new command
+   * @param file - file name
+   * @example
    * ```js
-   * manager.add('command.js')
+   * await manager.add({
+   *   body: {
+   *    name: 'say',
+   *    description: 'I will say something',
+   *    type: ApplicationCommandType.ChatInput,
+   *  },
+   *
+   *  exec: async ({ interaction }) => {
+   *    const text = interaction.options.getString('text', true);
+   *    await interaction.reply(text);
+   *  },
+   * });
    * ```
    * @returns
    */
-  public async add(file: string): Promise<InteractionCommandData>;
+  public async add(command: InteractionCommandData): Promise<InteractionCommandData>;
 
   /**
-   * Send a existing command in discord api
-   * @param name
-   * @example Send a command
+   * Send a existing command in Discord API
+   * @param name - command name
+   * @example
    * ```js
-   * manager.name('commandName')
+   * await manager.name('avatar');
    * ```
    * @returns
    */
-  public async define(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
+  public async deploy(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
 
   /**
-   * Delete a existing command in discord api
-   * @param name
-   * @example Delete a command
+   * Delete a existing command in Discord API
+   * @param name - command name
+   * @example
    * ```js
-   * manager.remove('commandName')
+   * await manager.remove('avatar');
    * ```
    * @returns
    */
-  public async remove(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
+  public async undeploy(name: string): Promise<Discord.ApplicationCommand | null | undefined>;
+
+  /**
+   * Delete a existing command from the collection
+   * @param name - command name
+   * @example
+   * ```js
+   * manager.delete('avatar');
+   * ```
+   * @returns
+   */
+  public delete(name: string): boolean;
 
   /**
    * Delete and add an existing command
-   * @param name
-   * @example Refresh a command
+   * @param name - command name
+   * @example
    * ```js
-   * manager.refresh('commandName')
+   * await manager.refresh('avatar');
    * ```
    * @returns
    */
@@ -67,10 +85,10 @@ declare class BaseInteractionCommandManager
 
   /**
    * Remove and define an existing command
-   * @param name
+   * @param name - command name
    * @example Restore a command
    * ```js
-   * manager.restore('commandName')
+   * await manager.restore('avatar');
    * ```
    * @returns
    */
@@ -80,102 +98,148 @@ declare class BaseInteractionCommandManager
 /**
  * Base structure for basic discord.js interaction
  * @category managers
- *
  * @public
- * @example Initialize new BaseInteractionManager
- * ```js
- * new BaseInteractionManager(options);
- * ```
  */
-declare class BaseInteractionManager<T extends InteractionData = InteractionData>
-  extends Discord.Collection<string, T> {
+declare class BaseInteractionManager<T extends InteractionData = Types.InteractionData> {
+  public cache: Discord.Collection<string, T>;
+
   /**
-   * Define interactions directory
+   * interactions directory
    */
-  public path: string;
+  public directory: DirectoryValue<true>;
 
   constructor(options: BaseInteractionManagerOptions<T>);
 
   /**
-   * Build this interaction manager
+   * Build interaction manager
    */
   public async build(): Promise<void>;
 
   /**
+   * Add interaction
+   */
+  public add(interaction: T): void;
+
+  /**
    * Delete and set an existing interaction
-   * @param name
-   *
+   * @param name - interaction customId
    * @example
    * ```js
-   * manager.refresh('interaction-name');
+   * await manager.refresh('interaction-name');
    * ```
-   *
    * @returns
    */
   public async refresh(name): Promise<this>;
 }
 
 /**
- * commands manager
+ * Base cooldown service
  * @category managers
- *
  * @public
- * @example Initialize new InteractionCommandManager
+ */
+declare abstract class BaseCooldownManager {
+  /**
+   * Cooldown cache
+   * @defaultValue `Discord.Collection<string, number>`
+   */
+  public cache: Discord.Collection<string, CooldownValue>;
+
+  /**
+   * DO NOT OVERRIDE THIS
+   */
+  public isOver(params: {
+    cooldowns: Types.Cooldown[] | Types.Cooldown;
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    id: string;
+  });
+}
+
+/**
+ * Some utils fonction for async
+ * @category utils
+ * @public
+ */
+declare class AsyncUtil {
+  static every<T = unknown>(arr: T[], callback: Callback<T, boolean>): Promise<boolean>;
+  static some<T = unknown>(arr: T[], callback: Callback<T, boolean>) : Promise<boolean>;
+}
+
+/**
+ * Condition service
+ * @category services
+ * @public
+ */
+declare class ConditionService {
+  static isAlright<P = { [key: string]: any }>(params: P & {
+    sucrose: Types.Sucrose,
+    conditions: Types.Condition<P>[] | Types.Condition<P>,
+  }): Promise<boolean>;
+}
+
+/**
+ * Manage interactions and command cooldown
+ * @category managers
+ * @public
+ * @remarks
+ * By default sucrose cooldown use discord collection, but you can override this service with your
+ * @example
  * ```js
- * new InteractionCommandManager(sucrose, options)
+ * const cache = redis;
+ * const cooldown = new CooldownService(cache);
+ * sucrose.cooldown = cooldown;
+ * ```
+ * @example
+ * ```js
+ * const cooldown = new CooldownService(redis);
+ * new Sucrose({ cooldown });
  * ```
  */
-declare class InteractionCommandManager
-  extends BaseInteractionCommandManager implements Types.InteractionCommandManager {
+declare class CooldownManager extends BaseCooldownManager {
   /**
-   * GuildInteractionCommandManager collection
+   * Check if the cooldown is over or not, its not recommended to override this
+   * @param params
    */
-  public readonly guilds: Discord.Collection<Discord.Snowflake, GuildInteractionCommandManager>;
-
-  constructor(sucrose: Sucrose, options: InteractionCommandManagerOptions);
-
-  /**
-   * load all global command and build potential guild command manager
-   */
-  public async build(): Promise<void>;
+  public isOver(params: {
+    cooldowns: Cooldown[] | Cooldown;
+    interaction: Discord.Interaction;
+    id: string;
+  }): Promise<void>;
 }
 
 /**
  * Structure for manager our event
  * @category managers
- *
  * @public
- * @example Initialize new Event
- * ```js
- * new Event(options);
- * ```
  */
 declare class Event<E extends EventNames = EventNames> {
   /**
    * determines whether the event is running or not
-   * @readonly
-   * @defaultValue false
+   * @defaultValue `false`
    */
   public disabled = false;
 
   /**
     * redirects to the event manager
     * @readonly
-    * @remarks
-    * See {@link EventManager}
+    * {@link EventManager}
     */
   public readonly manager: EventManager;
 
   /**
+   * Each event modules represent a file in the event folder
+   */
+  public modules: Discord.Collection<string, EventModule>;
+
+  /**
    * Path to event folder
    */
-  public path: string;
+  public directory: DirectoryValue<true>;
 
   public constructor(public readonly name: E, options: EventOptions);
 
   /**
    * active this event - search et load event handler in your files and run event listener
-   *
    * @example
    * ```js
    * await event.listen();
@@ -185,7 +249,6 @@ declare class Event<E extends EventNames = EventNames> {
 
   /**
    * disable this event
-   *
    * @example
    * ```js
    * await event.mute();
@@ -195,7 +258,6 @@ declare class Event<E extends EventNames = EventNames> {
 
   /**
    * refresh this event - mute and listen event
-   *
    * @example
    * ```js
    * await event.refresh();
@@ -204,27 +266,23 @@ declare class Event<E extends EventNames = EventNames> {
   public async refresh(): Promise<this>;
 
   /**
- * remove/delete this event - destroy this event
- *
- * @example
- * ```js
- * await event.refresh();
- * ```
- */
+   * remove/delete this event - destroy this event
+   * @example
+   * ```js
+   * await event.remove();
+   * ```
+   */
   public async remove(): Promise<void>;
 }
 
 /**
  * event manager
  * @category managers
- *
  * @public
- * @example Initialize EventManager
- * ```js
- * new EventManager(sucrose, options)
- * ```
  */
-declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
+declare class EventManager {
+  public cache: Discord.Collection<EventNames, Event>;
+
   constructor(sucrose: Sucrose, options: EventManagerOptions);
 
   /**
@@ -234,7 +292,6 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 
   /**
     * load one or multiple events
-    *
     * @example
     * ```js
     * await events.create("ready");
@@ -244,7 +301,6 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 
   /**
     * active one or multiple events
-    *
     * @example
     * ```js
     * await events.listen("ready");
@@ -254,7 +310,6 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 
   /**
     * desactive one or multiple events
-    *
     * @example
     * ```js
     * await events.mute("ready");
@@ -264,7 +319,6 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 
   /**
     * refresh one or multiple events (remove() and add())
-    *
     * @example
     * ```js
     * await events.refresh("ready");
@@ -276,7 +330,6 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 
   /**
     * remove one or multiple events
-    *
     * @example
     * ```js
     * await events.remove("ready");
@@ -286,23 +339,55 @@ declare class EventManager extends Discord.Collection<Types.EventNames, Event> {
 }
 
 /**
+ * folder service
+ * @category services
+ * @public
+ */
+declare class FolderService {
+  static search(options: {
+    path: string,
+    filter: { type: 'folder' | 'file', ext: string },
+    nameOnly?: boolean,
+    fileNameOnly?: boolean,
+    depth?: boolean,
+    autoExcludeFileOnRecursive?: boolean,
+  }): string[];
+
+  static load(path: string, prop?: string): Promise<unknown>;
+}
+
+/**
+ * commands manager
+ * @category managers
+ * @public
+ */
+declare class InteractionCommandManager extends BaseInteractionCommandManager {
+  /**
+   * {@link InteractionGuildCommandManager}
+   */
+  public readonly guilds: Discord.Collection<Discord.Snowflake, InteractionGuildCommandManager>;
+
+  constructor(sucrose: Sucrose, options: InteractionCommandManagerOptions);
+
+  /**
+   * load all global command and build potential guild command manager
+   */
+  public async build(): Promise<void>;
+}
+
+/**
  * guild command manager
  * @category managers
- *
  * @public
- * @example Initialize new GuildInteractionCommandManager
- * ```js
- * new GuildInteractionCommandManager(sucrose, options);
- * ```
  */
-declare class GuildInteractionCommandManager extends BaseInteractionCommandManager {
+declare class InteractionGuildCommandManager extends BaseInteractionCommandManager {
   /**
    * id of the guild the manager is based on
    * @readonly
    */
   public readonly guildId: Discord.Snowflake;
 
-  constructor(sucrose: Types.Sucrose, options: Types.GuildInteractionCommandManagerOptions);
+  constructor(sucrose: Sucrose, options: GuildInteractionCommandManagerOptions);
 
   /**
    * load all guild commands
@@ -313,12 +398,7 @@ declare class GuildInteractionCommandManager extends BaseInteractionCommandManag
 /**
  * Structure for manage all classic interaction
  * @category managers
- *
  * @public
- * @example Initialize new InteractionManager
- * ```js
- * new InteractionManager(sucrose, options);
- * ```
  */
 declare class InteractionManager {
   /**
@@ -330,6 +410,11 @@ declare class InteractionManager {
    * buttons interaction manager
    */
   public buttons: BaseInteractionManager<ButtonData>;
+
+  /**
+   * commands interaction manager
+   */
+  public commands: InteractionCommandManager;
 
   /**
    * form modals interaction manager
@@ -353,74 +438,105 @@ declare class InteractionManager {
  * @public
  * @category services
  */
-declare class Logger extends EventEmitter {
+declare class Logger {
+  /**
+   * Logger console
+   */
   public console: Console;
 
+  /**
+   * Logs directory
+   * @defaultValue `null`
+   */
   public directory: Console | null;
 
   constructor(options: LoggerOptions);
 
   /**
+   * Handle multiple errors
+   * @param errors
+   */
+  static handle(...errors: Error[]): void;
+
+  /**
    * add some style to ur log
+   * @param str - text
+   * @param formats - styles to add
+   * @example
+   * ```js
+   * const text = logger.style("i love ferret", 'rainbow');
+   * console.log(text);
+   * ```
    */
   static style(str: string, ...formats: LoggerLogFormat[]);
 
   /**
-   * Clear the current log line
-   */
-  static clear(): void;
-
-  /**
    * get current date formatted
+   * @param format - convert date to string
    */
   static time(format = true): string | Date;
 
   /**
    * write a error in consoles
+   * @param code
+   * @param content
+   * @param options
    */
-  public error(code: Code, content: string | Error, options?: Types.LoggerErrorOptions): void;
+  public error(code: Code, content: string | Error, options?: LoggerErrorOptions): void;
 
   /**
    * give a code with content message to write
+   * @param code
+   * @param content
    */
   public give(code: Code, content: Error | string): void;
 
   /**
-   * handle errors array
-   */
-  public handle(...errors: Error[]): void;
-
-  /**
-   * Generate loading bar
-   */
-  static* loading(total: number): Generator<void, void, { index: number; message: string; }>;
-
-  /**
    * write a table in consoles
+   * @param content
    */
   public table(content: object | unknown[]): void;
 
   /**
    * write a message in consoles
+   * @param message
+   * @param options
    */
-  public write(message: string, options?: Types.LoggerWriteOptions): void;
+  public write(message: string, options?: LoggerWriteOptions): void;
+}
+
+/**
+ * @public
+ * @category managers
+ */
+declare class PermissionManager {
+  public contents: PermissionContents;
+
+  constructor(contents: PermissionContents);
+
+  public isAuthorized(params: {
+    interaction?: Discord.Interaction,
+    message?: Discord.Message,
+    permissions: Permission[] | Permission,
+  }): Promise<void>;
 }
 
 /**
  * Sucrose client
- *
  * @public
+ * @category client
  * @example Initialize new Sucrose client
  * ```js
- * const client = await Sucrose.build(options);
+ * Sucrose.build({
+ *   env: { ext: "ts", source: "src" },
+ * });
  * ```
  */
 declare class Sucrose extends Discord.Client {
   /**
-   * commands manager
-   * @readonly
+   * cooldown service
    */
-  public readonly commands: InteractionCommandManager;
+  public cooldown: CooldownManager;
 
   /**
     * events manager
@@ -435,11 +551,20 @@ declare class Sucrose extends Discord.Client {
   public readonly interactions: InteractionManager;
 
   /**
+   * client logger
+   * @readonly
+   */
+  public readonly logger: Logger;
+
+  /**
+   * permission service
+   */
+  public permission: PermissionManager;
+
+  /**
    * build your Sucrose client
-   *
    * @param options - Sucrose options
-   * @returns Sucrose
-   *
+   * @returns
    * @example
    * ```js
    * const client = await Sucrose.build(options);
@@ -451,7 +576,6 @@ declare class Sucrose extends Discord.Client {
 /**
  * Autocomplete interaction object
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -467,7 +591,9 @@ declare class Sucrose extends Discord.Client {
  * };
  * ```
  */
-export interface Autocomplete {
+export interface Autocomplete extends BaseInteraction<{
+  interaction: Discord.AutocompleteInteraction
+}> {
   /**
    * Interaction body
    */
@@ -487,11 +613,6 @@ export interface Autocomplete {
      */
     option?: string;
   };
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.AutocompleteInteraction }>;
 }
 
 /**
@@ -509,14 +630,66 @@ export interface AutocompleteData extends Autocomplete {
  */
 export interface BaseInteractionCommandManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  directory: string;
+  directory: DirectoryValue<true>;
 }
 
 /**
- * Base interaction
+ * Base of all object (eventModule, Interaction)
+ * @category bases
  * @public
  */
-export interface BaseInteraction { path: string; }
+export interface BaseInteraction<P = { [key: string]: any }> extends GlobalBase<P> {
+  /**
+   * Manage cooldowns
+   * @example
+   * ```js
+   * {
+   *   type: "EVERYONE",
+   *   value: 3 * 1000,
+   * }
+   * ```
+   * @example
+   * ```js
+   * [
+   *   {
+   *     type: "ROLE",
+   *     excluded: ["570642674151981135"],
+   *     value: 5 * 1000,
+   *   },
+   *   {
+   *     type: "GUILD_MEMBER",
+   *     value: 1 * 1000,
+   *   },
+   * ]
+   * ```
+   */
+  cooldowns?: Cooldown[] | Cooldown;
+
+  /**
+   * Manage interaction required permissions
+   * @example
+   * ```js
+   * {
+   *   type: "MEMBER",
+   *   permissions: ["ADMINISTRATOR"],
+   * }
+   * ```
+   * @example
+   * ```js
+   * [
+   *   {
+   *     type: "SELF",
+   *     permissions: ["MANAGE_SERVER"],
+   *   },
+   *   {
+   *     type: "CHANNEL",
+   *     allowed: ["713309212855238707"],
+   *   }
+   * ]
+   * ```
+   */
+  permissions?: Permission[] | Permission;
+}
 
 /**
  * BaseInteractionManager options
@@ -525,14 +698,13 @@ export interface BaseInteraction { path: string; }
  */
 export interface BaseInteractionManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  name: string;
-  directory: string;
+  name: 'button' | 'select-menu' | 'autocomplete' | 'form';
+  directory: DirectoryValue<true>;
 }
 
 /**
  * Button interaction object
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -552,18 +724,11 @@ export interface BaseInteractionManagerOptions extends GlobalOptions {
  * };
  * ```
  */
-export interface Button {
+export interface Button extends BaseInteraction<{ interaction: Discord.ButtonInteraction }> {
   /**
    * Interaction body
    */
   body: Discord.ButtonComponentData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.ButtonInteraction }>;
-
-  permissions?: Permissions;
 }
 
 /**
@@ -575,7 +740,6 @@ export interface ButtonData extends Button { path: string; }
 /**
  * ChatInput interaction
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -601,18 +765,13 @@ export interface ButtonData extends Button { path: string; }
  * };
  * ```
  */
-export interface ChatInput {
+export interface ChatInput extends BaseInteraction<{
+  interaction: Discord.ChatInputCommandInteraction
+}> {
   /**
    * Interaction chat input body
    */
   body: Discord.ChatInputApplicationCommandData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.ChatInputCommandInteraction }>;
-
-  permissions?: Permissions;
 }
 
 /**
@@ -627,7 +786,6 @@ export interface ChatInputData extends ChatInput {
 /**
  * ChatInputSubGroupOption interaction
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -642,12 +800,11 @@ export interface ChatInputData extends ChatInput {
  * };
  * ```
  */
-export interface ChatInputSubGroupOption {
+export interface ChatInputSubGroupOption extends BaseInteraction {
   /**
    * Interaction body
    */
   body: Discord.ApplicationCommandSubGroupData;
-  permissions?: Permissions;
 }
 
 /**
@@ -662,7 +819,6 @@ export interface ChatInputSubGroupOptionData extends ChatInputSubGroupOption {
 /**
  * ChatInputSubOption
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -687,17 +843,13 @@ export interface ChatInputSubGroupOptionData extends ChatInputSubGroupOption {
  * };
  * ```
  */
-export interface ChatInputSubOption {
+export interface ChatInputSubOption extends BaseInteraction<{
+  interaction: Discord.ChatInputCommandInteraction
+}> {
   /**
    * interaction body
    */
   body: Discord.ApplicationCommandSubCommandData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.ChatInputCommandInteraction }>;
-  permissions?: Permissions;
 }
 
 /**
@@ -707,21 +859,102 @@ export interface ChatInputSubOption {
 export interface ChatInputSubOptionData extends ChatInputSubOption { path: string; }
 
 /**
- * Configure directories for commands managers
  * @public
  */
-export interface CommandDirectories {
+export interface CooldownMethodParams {
+  key: string;
+  cooldown: Cooldown;
+  interaction?: Discord.Interaction;
+  message?: Discord.Message;
+}
+
+/**
+ * Configure directories for commands managers
+ * @category options
+ * @public
+ */
+export interface CommandDirectories<S extends boolean = false> {
   /**
    * Configure directory for globals commands
-   * @defaultValue 'commands/globals'
+   * @defaultValue 'interactions/commands/globals'
    */
-  globals: string,
+  globals: DirectoryValue<S>;
 
   /**
    * Configure directory for guilds commands
-   * @defaultValue 'commands/guilds'
+   * @defaultValue 'interactions/commands/guilds'
    */
-  guilds: string,
+  guilds: DirectoryValue<S>;
+}
+
+/**
+ * @category bases
+ * @public
+ */
+export interface GlobalBase<P = { [key: string]: any }> {
+  /**
+   * Manage custom conditions
+   * @remarks
+   * It's used for custom conditions,
+   * you must manage the reply because is not handled by Sucrose.
+   * You can do these example with just Permission
+   * @example
+   * ```js
+   * { callback: ({ interaction }) => interaction.guild.id === '713172382042423352' }
+   * ```
+   * @example
+   * ```js
+   * [
+   *   { callback: ({ interaction }) => interaction.guild.id === '713172382042423352' },
+   *   { callback: ({ interaction }) => interaction.user.id === '1068866278321831987' },
+   * ]
+   * ```
+   */
+  conditions?: Condition<P>[] | Condition<P>;
+
+  /**
+   * Whatever you want, you can add it here
+   */
+  custom?: { [key: any]: any };
+
+  /**
+   * A field to add description
+   */
+  description?: string;
+
+  /**
+   * Add hooks to this
+   */
+  hooks?: {
+    /**
+     * this hook is executed after the execution of this
+     * @param params
+     * @returns
+     */
+    afterExecute?: (params: P & BaseParams) => Discord.Awaitable<unknown>;
+
+    /**
+     * this hook is executed before the execution of this
+     * @param params
+     * @returns
+     */
+    beforeExecute?: (params: P & BaseParams) => Discord.Awaitable<unknown>;
+  }
+
+  /**
+   * customize with some tags
+   * @example
+   * ```js
+   * ["moderation", "admin", "management"]
+   * ```
+   */
+  tags?: string[];
+
+  /**
+   * callback executed when this is called
+   * @param params
+   */
+  exec?: (params: P & BaseParams) => Discord.Awaitable<unknown>
 }
 
 /**
@@ -730,24 +963,27 @@ export interface CommandDirectories {
  * @public
  */
 export interface InteractionCommandManagerOptions extends BaseInteractionCommandManagerOptions {
-  directories: CommandDirectories;
+  directories: CommandDirectories<true>;
 }
 
 /**
  * Configure directories for interactions manager
+ * @category options
  * @public
  */
-export interface Directories<P extends boolean = false> {
+export interface Directories<P extends boolean = false, S extends boolean = false> {
   /**
    * Configure directory for events manager
    * @defaultValue 'events'
    */
-  events: string;
+  events: DirectoryValue<S>;
 
   /**
    * Configure directories form interactions manager
    */
-  interactions: P extends true ? Partial<InteractionDirectories<P>> : InteractionDirectories<P>;
+  interactions: P extends true
+    ? Partial<InteractionDirectories<P, S>>
+    : InteractionDirectories<P, S>;
 }
 
 /**
@@ -776,7 +1012,25 @@ export interface EnvironmentOptions {
  */
 export interface EventManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  directory: string;
+  directory: DirectoryValue<true>;
+}
+
+/**
+ * EventModule
+ * @category events
+ * @public
+ */
+export interface EventModule<E extends EventNames>
+  extends GlobalBase<{ args: Discord.ClientEvents[E] }> {
+  /**
+   * disable or not this module
+   */
+  disabled?: boolean;
+
+  /**
+   * name of this module
+   */
+  label: string;
 }
 
 /**
@@ -787,7 +1041,7 @@ export interface EventManagerOptions extends GlobalOptions {
 export interface EventOptions extends GlobalOptions {
   env: EnvironmentOptions;
   sucrose: Sucrose;
-  path: string;
+  directory: DirectoryValue<true>;
 }
 
 /**
@@ -828,6 +1082,7 @@ export interface LoggerLogOptions {
 export interface LoggerErrorOptions extends LoggerLogOptions {
   verbose?: boolean;
 }
+
 /**
  * @internal
  */
@@ -864,7 +1119,7 @@ export interface LoggerWriteOptions extends LoggerLogOptions {
 
 /**
  * Sucrose features
- * @features
+ * @category features
  * @public
  */
 export interface Features<P extends boolean = false> {
@@ -874,7 +1129,6 @@ export interface Features<P extends boolean = false> {
 /**
  * Form interaction
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -903,17 +1157,11 @@ export interface Features<P extends boolean = false> {
  * };
  * ```
  */
-export interface Form {
+export interface Form extends BaseInteraction<{ interaction: Discord.ModalSubmitInteraction }> {
   /**
    * Interaction form
    */
   body: Discord.ModalComponentData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.ModalSubmitInteraction }>;
-  permissions?: Permissions;
 }
 
 /**
@@ -932,7 +1180,7 @@ export interface GlobalOptions<P extends boolean = false> {
 }
 
 /**
- * GuildInteractionCommandManager options
+ * InteractionGuildCommandManager options
  * @category options
  * @public
  */
@@ -942,55 +1190,39 @@ export interface GuildInteractionCommandManagerOptions
 }
 
 /**
- * AutoReply to interaction (error message)
- * @category features
- * @public
- */
-export interface InteractionAutoReplyFeature<P extends boolean = false> {
-  /**
-   * @defaultValue true
-   */
-  active: boolean;
-
-  /**
-   * Custom reply message
-   */
-  contents: P extends true ? Partial<InteractionAutoReplyContents> : InteractionAutoReplyContents;
-}
-
-/**
  * Interaction directories
+ * @category options
  * @public
  */
-export interface InteractionDirectories<P extends boolean = false> {
+export interface InteractionDirectories<P extends boolean = false, S extends boolean = false> {
   /**
    * Directory for autocompletes manager
    * @defaultValue 'interactions/autocompletes'
    */
-  autocompletes: string;
+  autocompletes: DirectoryValue<S>;
 
   /**
    * Directory for buttons manager
    * @defaultValue 'interactions/buttons'
    */
-  buttons: string;
+  buttons: DirectoryValue<S>;
 
   /**
    * Directory for forms manager
    * @defaultValue 'interactions/forms'
    */
-  forms: string;
+  forms: DirectoryValue<S>;
 
   /**
    * Directory for selectMenus manager
    * @defaultValue 'interactions/select-menus'
    */
-  selectMenus: string;
+  selectMenus: DirectoryValue<S>;
 
   /**
    * Directory for commands manager
    */
-  commands: P extends true ? Partial<CommandDirectories> : CommandDirectories;
+  commands: P extends true ? Partial<CommandDirectories<S>> : CommandDirectories<S>;
 }
 
 /**
@@ -998,9 +1230,95 @@ export interface InteractionDirectories<P extends boolean = false> {
  * @category features
  * @public
  */
-export interface InteractionFeatures<P extends boolean = false> {
-  autoReply: P extends true ?
-    Partial<InteractionAutoReplyFeature<true>> : InteractionAutoReplyFeature;
+export interface InteractionFeatures /* <P extends boolean = false> */ {
+  hooks?: InteractionHooks;
+}
+
+/**
+ * @category hooks
+ * @public
+ */
+export interface InteractionHooks {
+  afterInteractionExecute?: (params: {
+    interaction: Discord.Interaction,
+    data: Interaction | InteractionCommand | ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterButtonExecute?: (params: {
+    interaction: Discord.ButtonInteraction,
+    data: Button,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterSelectMenuExecute?: (params: {
+    interaction: Discord.AnySelectMenuInteraction,
+    data: SelectMenu,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterFormExecute?: (params: {
+    interaction: Discord.ModalSubmitInteraction,
+    data: Form,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterUserCommandExecute?: (params: {
+    interaction: Discord.UserContextMenuCommandInteraction,
+    data: UserContextCommand,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterMessageCommandExecute?: (params: {
+    interaction: Discord.MessageContextMenuCommandInteraction,
+    data: MessageContextCommand,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterChatInputExecute?: (params: {
+    interaction: Discord.ChatInputCommandInteraction,
+    data: ChatInput,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterCommandExecute?: (params: {
+    interaction: Discord.CommandInteraction,
+    data: InteractionCommand | ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterChatInputOptionExecute?: (params: {
+    interaction: Discord.ChatInputCommandInteraction,
+    data: ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  afterAutocompleteExecute?: (params: {
+    interaction: Discord.AutocompleteInteraction,
+    data: Autocomplete,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeInteractionExecute?: (params: {
+    interaction: Discord.Interaction,
+    data: Interaction | InteractionCommand | ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeButtonExecute?: (params: {
+    interaction: Discord.ButtonInteraction,
+    data: Button,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeSelectMenuExecute?: (params: {
+    interaction: Discord.AnySelectMenuInteraction,
+    data: SelectMenu,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeFormExecute?: (params: {
+    interaction: Discord.ModalSubmitInteraction,
+    data: Form,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeUserCommandExecute?: (params: {
+    interaction: Discord.UserContextMenuCommandInteraction,
+    data: UserContextCommand,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeMessageCommandExecute?: (params: {
+    interaction: Discord.MessageContextMenuCommandInteraction,
+    data: MessageContextCommand,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeChatInputExecute?: (params: {
+    interaction: Discord.ChatInputCommandInteraction,
+    data: ChatInput,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeCommandExecute?: (params: {
+    interaction: Discord.CommandInteraction,
+    data: InteractionCommand | ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeChatInputOptionExecute?: (params: {
+    interaction: Discord.ChatInputCommandInteraction,
+    data: ChatInputOption,
+  } & BaseParams) => Discord.Awaitable<unknown>;
+  beforeAutocompleteExecute?: (params: {
+    interaction: Discord.AutocompleteInteraction,
+    data: Autocomplete,
+  } & BaseParams) => Discord.Awaitable<unknown>;
 }
 
 /**
@@ -1009,9 +1327,10 @@ export interface InteractionFeatures<P extends boolean = false> {
  * @public
  */
 export interface InteractionManagerOptions extends GlobalOptions {
-  directories: InteractionDirectories;
-  features: InteractionFeatures;
+  contents: InteractionManagerContents;
+  directories: InteractionDirectories<false, true>;
   env: EnvironmentOptions;
+  features: InteractionFeatures;
 }
 
 /**
@@ -1027,7 +1346,6 @@ export interface LoggerOptions {
 /**
  * MessageContextCommand
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -1046,17 +1364,13 @@ export interface LoggerOptions {
  * };
  * ```
  */
-export interface MessageContextCommand {
+export interface MessageContextCommand extends BaseInteraction<{
+  interaction: Discord.MessageContextMenuCommandInteraction
+}> {
   /**
    * Interaction body
    */
   body: Discord.MessageApplicationCommandData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.MessageContextCommandCommandInteraction }>
-  permissions?: Permissions;
 }
 
 /**
@@ -1066,51 +1380,8 @@ export interface MessageContextCommand {
 export interface MessageContextCommandData extends MessageContextCommand { path: string; }
 
 /**
- * permissions object
- * @category interactions
- * @public
- */
-export interface Permissions {
-  /**
-   * allows only authorized channels
-   */
-  channels?: Discord.Snowflake[];
-
-  /**
-   * request specific permissions from the client
-   */
-  client?: Discord.PermissionResolvable;
-
-  /**
-   * allows only authorized guilds
-   */
-  guilds?: Discord.Snowflake[];
-
-  /**
-   * allows only authorized users
-   */
-  users?: Discord.Snowflake[];
-
-  /**
-   * request member permissions
-   */
-  member?: Discord.PermissionResolvable;
-
-  /**
-   * allows only authorized roles
-   */
-  roles?: Discord.Snowflake[];
-
-  /**
-   * defined if the command is usable in private or not
-   */
-  private?: boolean;
-}
-
-/**
  * UserMenu interaction
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -1133,17 +1404,11 @@ export interface Permissions {
  * };
  * ```
  */
-export interface SelectMenu {
+export interface SelectMenu extends BaseInteraction<{ interaction: SelectMenuInteraction }> {
   /**
    * Interaction body
    */
   body: SelectMenuComponent;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: SelectMenuInteraction }>;
-  permissions?: Permissions;
 }
 
 /**
@@ -1165,7 +1430,6 @@ export interface SucroseLoggerOptions extends Required<LoggerOptions> {
 /**
  * UserContextCommand
  * @category interactions
- *
  * @public
  * @example
  * ```js
@@ -1184,17 +1448,13 @@ export interface SucroseLoggerOptions extends Required<LoggerOptions> {
  * };
  * ```
  */
-export interface UserContextCommand {
+export interface UserContextCommand extends BaseInteraction<{
+  interaction: Discord.UserContextMenuCommandInteraction
+}> {
   /**
    * Interaction body
    */
   body: Discord.UserApplicationCommandData;
-
-  /**
-   * Trigger when this interaction is called
-   */
-  exec?: BaseInteractionExec<{ interaction: Discord.UserContextCommandCommandInteraction }>;
-  permissions?: Permissions;
 }
 
 /**
@@ -1204,11 +1464,26 @@ export interface UserContextCommand {
 export interface UserContextCommandData extends UserContextCommand { path: string; }
 
 /**
+ * Sucrose options
+ * @category options
+ * @public
+ */
+export interface SucroseOptions<P extends boolean = false, S extends boolean = false>
+  extends Discord.ClientOptions, Partial<GlobalOptions<P>> {
+  cooldown?: CooldownService;
+  contents?: P extends true ? Partial<Contents> : Contents;
+  directories?: P extends true ? Partial<Directories<true, S>> : Directories<false, S>;
+  env?: P extends true ? Partial<EnvironmentOptions> : EnvironmentOptions;
+  features?: P extends true ? Partial<Features<true>> : Features;
+  token?: string;
+}
+
+/**
  * Interaction auto reply feature contents
  * @category contents
  * @public
  */
-export interface InteractionAutoReplyContents {
+export interface InteractionContents {
   /**
    * when the interaction encounters a global error
    */
@@ -1323,62 +1598,6 @@ export interface InteractionAutoReplyContents {
   ) => ContentReturn;
 
   /**
-   * when the client missing permissions
-   */
-  PERMISSIONS_CLIENT_MISSING: (
-    params: { interaction: Discord.Interaction; permissions: Discord.PermissionsString[]; }
-  ) => ContentReturn;
-
-  /**
-   * when the current guild is not allowed
-   */
-  PERMISSIONS_CURRENT_GUILD_NOT_ALLOWED: (
-    params: { interaction: Discord.Interaction; guildIDs: Discord.Snowflake[]; }
-  ) => ContentReturn;
-
-  /**
-   * when the guild channel is not allowed
-   */
-  PERMISSIONS_CURRENT_GUILD_CHANNEl_NOT_ALLOWED: (
-    params: { interaction: Discord.Interaction; channelIDs: Discord.Snowflake[]; }
-  ) => ContentReturn;
-
-  /**
-   * when guid is not allowed
-   */
-  PERMISSIONS_GUILD_NOT_ALLOWED: (
-    params: { interaction: Discord.Interaction; }
-  ) => ContentReturn;
-
-  /**
-   * when the member missing permissions
-   */
-  PERMISSIONS_CURRENT_MEMBER_MISSING: (
-    params: { interaction: Discord.Interaction; permissions: Discord.PermissionsString[]; }
-  ) => ContentReturn;
-
-  /**
-   * when one of allowed roles is missing in member
-   */
-  PERMISSIONS_MEMBER_ALLOW_ROLES_MISSING: (
-    params: { interaction: Discord.Interaction; roleIDs: Discord.Snowflake[]; }
-  ) => ContentReturn;
-
-  /**
-   * when the user is not allowed
-   */
-  PERMISSIONS_CURRENT_USER_NOT_ALLOWED: (
-    params: { interaction: Discord.Interaction; userIDs: Discord.Snowflake[]; }
-  ) => ContentReturn;
-
-  /**
-   * when private channel is not allowed
-   */
-  PERMISSIONS_PRIVATE_CHANNEL_NOT_ALLOWED: (
-    params: { interaction: Discord.Interaction; }
-  ) => ContentReturn;
-
-  /**
    * when the select menu exec function is not define
    */
   SELECT_MENU_INTERACTION_MISSING_EXEC: (
@@ -1387,23 +1606,116 @@ export interface InteractionAutoReplyContents {
 }
 
 /**
- * Sucrose options
- * @category options
+ * Condition contents
+ * @category contents
  * @public
  */
-export interface SucroseOptions<P extends boolean = false>
-  extends Discord.ClientOptions, Partial<GlobalOptions<P>> {
-  directories?: P extends true ? Partial<Directories<true>> : Directories;
-  env?: P extends true ? Partial<EnvironmentOptions> : EnvironmentOptions;
-  features?: P extends true ? Partial<Features<true>> : Features;
-  token?: string;
+export interface ConditionContents {
+  /**
+   * When a custom condition failed
+   */
+  CONDITION_FAILED: (params: {
+    conditions: Condition | Condition[];
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+  }) => ContentReturn;
 }
 
 /**
- * Base interaction exec
+ * Cooldown contents
+ * @category contents
  * @public
  */
-export type BaseInteractionExec<T> = (params: BaseParams & T) => Return;
+export interface CooldownContents {
+  /**
+   * when an user hit an interaction cooldown
+   */
+  COOLDOWN_HIT: (params: {
+    cooldown: Cooldown;
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    key: string;
+  }) => ContentReturn;
+}
+
+/**
+ * Permission
+ * @category contents
+ * @public
+ */
+export interface PermissionContents {
+  /**
+   * channel id is not allowed for this
+   */
+  CHANNEL_NOT_ALLOWED: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * when interaction can only be used in private channel
+   */
+  GUILD_ONLY: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * guild id is not allowed for this
+   */
+  GUILD_NOT_ALLOWED: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * member don't have required permissions
+   */
+  MEMBER_PERMISSION_MISSING: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * user id is not allowed to use this
+   */
+  USER_NOT_ALLOWED: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * role id is not allowed to use this
+   */
+  ROLE_NOT_ALLOWED: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   *  when interaction can only be used in private message
+   */
+  PRIVATE_ONLY: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+
+  /**
+   * client don't have required permissions
+   */
+  SELF_PERMISSION_MISSING: (params: {
+    interaction?: Discord.Interaction;
+    message?: Discord.Message;
+    permission: Permission;
+  }) => ContentReturn;
+}
 
 /**
  * @public
@@ -1423,6 +1735,101 @@ export type ChatInputOptionData = ChatInputSubGroupOptionData | ChatInputSubOpti
 /**
  * @public
  */
+export type Condition<P = { [key: string]: any }> = {
+  callback: (params: P & BaseParams) => Discord.Awaitable<boolean>,
+  label?: string;
+  disabled?: boolean;
+};
+
+/**
+ * @public
+ */
+export type Contents = InteractionContents
+& CooldownContents
+& PermissionContents
+& ConditionContents;
+
+/**
+ * @public
+ */
+export type ContentReturn = Discord.Awaitable<
+Discord.InteractionReplyOptions
+| Discord.MessageReplyOptions
+>;
+
+/**
+ * @public
+ */
+export type Cooldown = ({
+  /**
+   * @example
+   * ```js
+   * "ROLE" // based on role id
+   * "CHANNEL" // based on channel id
+   * "USER" // based on user id
+   * "GUILD" // based on guild id
+   * ```
+   */
+  type: 'ROLE' | 'CHANNEL' | 'USER' | 'GUILD';
+
+  /**
+   * Cooldown for id in included
+   */
+  included?: string[] | string;
+
+  /**
+   * Cooldown for id not in excluded
+   */
+  excluded?: string[] | string;
+} | {
+  /**
+   * @example
+   * ```js
+   * "EVERYONE" // basic and global cooldown
+   * "SHARED" // cooldown shared with everyone
+   * "GUILD_MEMBER" // basic cooldown per member per guild
+   * "CHANNEL_MEMBER" // cooldown per member per channel
+   * ```
+   */
+  type: 'EVERYONE' | 'SHARED' | 'GUILD_MEMBER' | 'CHANNEL_MEMBER';
+}) & {
+  /**
+   * Ms value
+   */
+  value: number;
+
+  /**
+   * Limit of cooldown stack. Cooldown stack can wait x time before the user get a warning
+   */
+  stack?: number;
+
+  /**
+   * Add a custom label to your cooldown
+   * @defaultValue `undefined`
+   * @example
+   * ```js
+   * interaction.cooldowns.find(p => p.label === "base cooldown");
+   * ```
+   */
+  label?: string;
+
+  /**
+   * Let you disable any cooldown
+   * @defaultValue `false`
+   */
+  disabled?: boolean;
+};
+
+/**
+ * @public
+ */
+export type DirectoryValue<S extends boolean = false> = S extends true
+  ? { path: string, depth: number | null }
+  : { path: string, depth: number | null } | string;
+
+/**
+ * @public
+ */
 export type InteractionCommand = ChatInput | MessageContextCommand | UserContextCommand;
 
 /**
@@ -1435,16 +1842,10 @@ export type InteractionCommandData = ChatInputData
 /**
  * @public
  */
-export type EventHandler<E extends EventNames> = (
-  params: EventHandlerParams<E>
-) => Return;
-
-/**
- * @public
- */
-export type EventHandlerParams<E extends EventNames> = BaseParams & {
-  args: Discord.ClientEvents[E];
-};
+export type InteractionManagerContents = InteractionContents
+& PermissionContents
+& CooldownContents
+& ConditionContents;
 
 /**
 * @internal
@@ -1477,19 +1878,84 @@ export type SelectMenuComponent = (Discord.RoleSelectMenuComponent & {
 export type SelectMenuInteraction = Discord.AnySelectMenuInteraction;
 
 /**
+ * @public
+ */
+export type Permission = ({
+  /**
+   * @example
+   * ```js
+   * "ROLE" // based on role id
+   * "CHANNEL" // based on channel id
+   * "USER" // based on user id
+   * "GUILD" // based on guild id
+   * ```
+   */
+  type: 'CHANNEL' | 'ROLE' | 'USER' | 'GUILD';
+
+  /**
+   * allowed ids
+   */
+  allowed?: string[] | string;
+
+  /**
+   * id denied
+   */
+  denied?: string[] | string;
+} | {
+  /**
+   * @example
+   * ```js
+   * "SELF" // client permissions
+   * "MEMBER" // member permissions
+   * ```
+   */
+  type: 'SELF' | 'MEMBER'
+
+  /**
+   * list of permissions required
+   */
+  permissions: Discord.PermissionResolvable;
+} | {
+  /**
+   * @example
+   * ```js
+   * "PRIVATE_ONLY" // only usable in private message
+   * "GUILD_ONLY" // only usable in guild
+   * ```
+   */
+  type: 'PRIVATE_ONLY' | 'GUILD_ONLY'
+}) & {
+  /**
+   * Add a custom label to your permission
+   * @defaultValue `undefined`
+   * @example
+   * ```js
+   * interaction.permissions.find(p => p.label === "base permission");
+   * ```
+   */
+  label?: string;
+
+  /**
+   * Let you disable any permission
+   * @defaultValue `false`
+   */
+  disabled?: boolean;
+};
+
+/**
  * @internal
  */
-type ContentReturn = Discord.InteractionReplyOptions | Promise<Discord.InteractionReplyOptions >;
+type Code = keyof typeof Codes;
+
+/**
+ * @internal
+ */
+type CooldownValue = { value: number; stack?: number };
 
 /**
  * @internal
  */
 type EventNames = keyof Discord.ClientEvents;
-
-/**
- * @internal
- */
-type MessageReturn = Promise<Discord.MessageOptions> | Discord.MessageOptions;
 
 /**
  * @internal
@@ -1506,8 +1972,3 @@ enum Codes {
   'INFO' = '\x1b[1m\x1b[36m🔎 INFO\x1b[0m',
   'SUCCESS' = '\x1b[1m\x1b[32m✔ SUCCESS\x1b[0m',
 }
-
-/**
- * @internal
- */
-type Code = keyof typeof Codes;

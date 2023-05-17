@@ -1,17 +1,16 @@
-import { existsSync, lstatSync, readdirSync } from 'fs';
-import path from 'path';
+import { existsSync, lstatSync } from 'fs';
 
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-import { SError } from '../errors';
+import { SucroseError } from '../errors';
 import BaseInteractionCommandManager from './BaseInteractionCommandManager';
-import Logger from '../services/Logger';
+import FolderService from '../services/FolderService';
 
-export default class GuildInteractionCommandManager
+export default class InteractionGuildCommandManager
   extends BaseInteractionCommandManager
-  implements Types.GuildInteractionCommandManager {
+  implements Types.InteractionGuildCommandManager {
   public readonly guildId: Discord.Snowflake;
 
   public constructor(sucrose: Types.Sucrose, options: Types.GuildInteractionCommandManagerOptions) {
@@ -23,30 +22,40 @@ export default class GuildInteractionCommandManager
     * load all guild commands
     */
   public async build(): Promise<void> {
-    if (this.builded) throw SError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);
+    // # prevent multiple build
+    if (this.builded) throw new SucroseError('ERROR', `GuildCommandManager "${this.guildId}" is already build`);
     this.builded = true;
 
-    const to = this.path;
+    // # check if path is valid
+    const to = this.directory.path; // get path
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
-    const { env } = this.options;
-    this.clear();
 
-    const files = readdirSync(to).filter((file) => {
-      const lstat = lstatSync(path.join(to, file));
-      return lstat.isFile() && file.endsWith(`.${env.ext}`);
+    // # get all files from guild folder
+    const files = FolderService.search({
+      path: to,
+      filter: { type: 'file', ext: this.options.env.ext },
+      depth: this.options.directory.depth,
+      autoExcludeFileOnRecursive: true,
     });
 
     if (files.length) {
-      const loading = Logger.loading(files.length);
-      loading.next();
-
-      let index = 0;
-      await Promise.all(files.map(async (file) => {
-        await this.add(file).catch((err) => this.logger.handle(err));
-        if (loading) loading.next({ index: index += 1, message: `load ./${this.guildId}/${file}` });
+      // # loop all files from guild folder
+      const errors = [] as Error[];
+      const promises = await Promise.allSettled(files.map(async (file) => {
+        const command = await FolderService.load(file, 'interaction') as Types.InteractionCommandData;
+        command.path = file;
+        await this.add(command);
       }));
 
-      if (loading) Logger.clear();
+      // # get potentials errors
+      promises.forEach((promise) => {
+        if (promise.status !== 'rejected') return;
+        if (promise.reason instanceof Error) errors.push(promise.reason);
+        else errors.push(new Error('unknown error'));
+      });
+
+      // # handle errors
+      if (errors.length) this.logger.handle(...errors);
     }
   }
 }

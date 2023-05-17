@@ -1,4 +1,16 @@
-[6.4.12](#6412), [6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+[7.0.0](700), [6.4.12](#6412), [6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
+
+### # `7.0.0`
+
+> ```diff
+> # SORRY FOR ALL DEV VERSION !! It'll be more clean from now
+>
+> + Fix type of select menu and modal
+> + Rework permissions system - permissions are now more customizable and understandable
+> + Add cooldown system - add configurable cooldown for each interaction
+> + Rework event module with an configurable object
+> +
+> ```
 
 ### # `6.4.12`
 

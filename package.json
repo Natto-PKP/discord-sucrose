@@ -1,6 +1,10 @@
 {
   "name": "discord-sucrose",
-  "version": "6.4.12",
+  "//": [
+    "Lors de la publication d'une version de dev, ajout d'une chaine random du genre gRg8VE6r",
+    "Unpublish l'ancienne version avant de changer la version et de publish"
+  ],
+  "version": "7.0.0-dev.6bCkp9gt",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "types": "typings/index.d.ts",
@@ -10,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc typings/index.d.ts --out docs",
+    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --plugin typedoc-plugin-markdown --plugin typedoc-github-wiki-theme",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -41,7 +45,9 @@
     "prettier": "^2.4.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
-    "typedoc": "^0.23.8",
+    "typedoc": "^0.24.7",
+    "typedoc-github-wiki-theme": "^1.1.0",
+    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "^4.5.2"
   },
   "dependencies": {

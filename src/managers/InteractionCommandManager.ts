@@ -1,19 +1,19 @@
 import { Collection } from 'discord.js';
-import { existsSync, lstatSync, readdirSync } from 'fs';
+import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
 import type Discord from 'discord.js';
 import GuildCommandManager from './InteractionGuildCommandManager';
 import BaseInteractionCommandManager from './BaseInteractionCommandManager';
-import { SError } from '../errors';
-import Logger from '../services/Logger';
+import { SucroseError } from '../errors';
 
 import type Types from '../../typings';
+import FolderService from '../services/FolderService';
 
 export default class InteractionCommandManager
   extends BaseInteractionCommandManager
   implements Types.InteractionCommandManager {
-  public guilds = new Collection<Discord.Snowflake, Types.GuildInteractionCommandManager>();
+  public guilds = new Collection<Discord.Snowflake, Types.InteractionGuildCommandManager>();
 
   public constructor(
     sucrose: Types.Sucrose,
@@ -26,52 +26,99 @@ export default class InteractionCommandManager
    * load all global command and build potential guild command manager
    */
   public async build() {
-    if (this.builded) throw SError('ERROR', 'CommandManager is already build');
+    // # prevent multiple build
+    if (this.builded) throw new SucroseError('ERROR', 'CommandManager is already build');
     this.builded = true;
 
-    const { env } = this.options;
-
-    if (existsSync(this.path) && lstatSync(this.path).isDirectory()) {
-      this.clear();
-
-      const files = readdirSync(this.path).filter((file) => {
-        const lstat = lstatSync(path.join(this.path, file));
-        const extFile = file.endsWith(`.${env.ext}`);
-        return lstat.isFile() && extFile;
+    // # if command path is valid
+    if (existsSync(this.directory.path) && lstatSync(this.directory.path).isDirectory()) {
+      // # loop all file in command folder
+      const files = FolderService.search({
+        path: this.directory.path,
+        filter: { type: 'file', ext: this.options.env.ext },
+        depth: this.directory.depth,
+        autoExcludeFileOnRecursive: true,
       });
 
+      // # if commands exist
       if (files.length) {
-        const loading = Logger.loading(files.length);
-        loading.next();
-
-        let index = 0;
-        await Promise.all(files.map(async (file) => {
-          await this.add(file).catch((err) => this.logger.handle(err));
-          if (loading) loading.next({ index: index += 1, message: `./${file} loaded` });
+        // # loop all file
+        const errors = [] as Error[];
+        const promises = await Promise.allSettled(files.map(async (file) => {
+          const command = await FolderService.load(file, 'interaction') as Types.InteractionCommandData;
+          command.path = file;
+          await this.add(command);
         }));
 
-        if (loading) Logger.clear();
-        if (this.size) this.logger.give('SUCCESS', `${files.length} global commands loaded`);
+        // # get potentials errors
+        promises.forEach((promise) => {
+          if (promise.status !== 'rejected') return;
+          if (promise.reason instanceof Error) errors.push(promise.reason);
+          else errors.push(new Error('unknown error'));
+        });
+
+        // # handle errors
+        if (errors.length) this.logger.handle(...errors);
+
+        // # log
+        if (this.cache.size) {
+          this.logger.give('SUCCESS', `${files.length} global commands loaded`);
+          if (this.options.logging.details) {
+            const commands = this.cache.map((v, k) => ({ name: k, path: v.path }));
+            this.logger.table(commands);
+          }
+        }
       }
     }
 
-    const guildsCommandsPath = this.options.directories.guilds;
+    // # same for guild commands
+    const guildsCommandsPath = this.options.directories.guilds.path;
     if (existsSync(guildsCommandsPath) && lstatSync(guildsCommandsPath).isDirectory()) {
-      this.guilds.clear();
+      // # get guilds folder
+      const folders = FolderService.search({ path: guildsCommandsPath, filter: { type: 'folder', ext: this.options.env.ext }, nameOnly: true });
 
-      const guildDirectories = readdirSync(guildsCommandsPath).filter((directory) => {
-        const lstat = lstatSync(path.join(guildsCommandsPath, directory));
-        return lstat.isDirectory();
-      });
+      // # loop all guild folder
+      const errors = [] as Error[];
+      const promises = await Promise.allSettled(folders.map((folder) => {
+        // eslint-disable-next-line no-async-promise-executor
+        const promise = new Promise(async (resolve, reject) => {
+          try {
+            // # build new manager for each guild
+            const params = {
+              guildId: folder,
+              directory: {
+                path: path.join(guildsCommandsPath, folder),
+                depth: this.options.directories.guilds.depth,
+              },
+            };
 
-      await Promise.all(guildDirectories.map(async (directory) => {
-        const params = { guildId: directory, directory: path.join(guildsCommandsPath, directory) };
-        const manager = new GuildCommandManager(this.sucrose, { ...this.options, ...params });
-        await manager.build().catch((err) => this.logger.handle(err));
-        this.guilds.set(directory, manager);
+            const manager = new GuildCommandManager(this.sucrose, { ...this.options, ...params });
+            await manager.build();
+            this.guilds.set(folder, manager); // add guild to guilds collection
+            resolve(true);
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        return promise;
       }));
 
-      if (this.guilds.size) this.logger.give('SUCCESS', `guilds commands loaded (${this.guilds.size} guilds)`);
+      // # get potentials errors
+      promises.forEach((promise) => {
+        if (promise.status !== 'rejected') return;
+        if (promise.reason instanceof Error) errors.push(promise.reason);
+        else errors.push(new Error('unknown error'));
+      });
+
+      // # handle errors
+      if (errors.length) this.logger.handle(...errors);
+
+      // # log
+      if (this.guilds.size) {
+        const guildCommandSize = this.guilds.reduce((acc, val) => acc + val.cache.size, 0);
+        if (guildCommandSize) this.logger.give('SUCCESS', `${guildCommandSize} guild commands loaded (${this.guilds.size} guilds)`);
+      }
     }
   }
 }

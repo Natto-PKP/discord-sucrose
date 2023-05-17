@@ -5,61 +5,82 @@ import type Types from '../typings';
 
 import Logger from './services/Logger';
 import EventManager from './managers/EventManager';
-import InteractionCommandManager from './managers/InteractionCommandManager';
 import InteractionManager from './managers/InteractionManager';
+import CooldownManager from './managers/CooldownManager';
+import PermissionManager from './managers/PermissionManager';
 import * as defaults from './options';
 
+/**
+ * Sucrose client
+ */
 export default class Sucrose extends Client {
-  public readonly commands: InteractionCommandManager;
+  /**
+   * Can be override
+   */
+  public cooldown: CooldownManager;
 
   public readonly events: EventManager;
 
   public readonly interactions: InteractionManager;
 
+  public readonly logger: Logger;
+
+  public readonly permission: PermissionManager;
+
   private constructor(options: Types.SucroseOptions) {
     super(options);
 
-    const opts = options as Required<Types.SucroseOptions>;
-    opts.directories = defaults.getDirectoriesOptions(options);
+    // # init sucrose options
+    const opts = options as unknown as Required<Types.SucroseOptions<false, true>>;
     opts.env = defaults.getEnvironmentOptions(options);
+    opts.directories = defaults.getDirectoriesOptions(options);
     opts.features = defaults.getFeaturesOptions(options);
     opts.logging = defaults.getLoggingOptions(options);
 
-    const commandManagerOptions = defaults.getCommandManagerOptions(opts);
+    // # complete sucrose options
+    opts.contents = defaults.getContentsOptions(opts);
+
+    // # define cooldown service
+    const hasCustomCooldown = options.cooldown && options.cooldown instanceof CooldownManager;
+    this.cooldown = hasCustomCooldown ? options.cooldown as CooldownManager : new CooldownManager();
+
+    // # define permission service
+    const permissionContents = defaults.getPermissionContentsOptions(opts);
+    this.permission = new PermissionManager(permissionContents);
+
+    // # define sucrose managers
     const eventManagerOptions = defaults.getEventManagerOptions(opts);
     const interactionManagerOptions = defaults.getInteractionManagerOptions(opts);
 
-    this.commands = new InteractionCommandManager(this, commandManagerOptions);
     this.events = new EventManager(this, eventManagerOptions);
     this.interactions = new InteractionManager(this, interactionManagerOptions);
+    this.logger = new Logger(opts.logging);
   }
 
   static async build(options: Types.SucroseOptions): Promise<Sucrose> {
     const client = new Sucrose(options);
-    const now = Date.now();
+    const now = Date.now(); // get start date
 
-    client.on('error', () => {}); // Fix "node:events:491; throw er; // Unhandled 'error' event" error
+    client.on('error', () => {}); // fix "node:events:491; throw er; // Unhandled 'error' event" error
 
-    // application log
+    // # application login
     await client.login(process.env.TOKEN || process.env.DISCORD_TOKEN || options.token);
     if (!client.isReady()) {
       await new Promise<void>((res) => { client.on('ready', () => res()); });
       client.removeAllListeners('ready');
     }
 
-    const logger = new Logger(defaults.getLoggingOptions(options));
+    // # build sucrose managers
+    await client.interactions.build().catch((err: Error) => client.logger.handle(err));
+    await client.events.build().catch((err: Error) => client.logger.handle(err));
 
-    // managers
-    await client.commands.build().catch((err) => logger.handle(err));
-    await client.interactions.build().catch((err) => logger.handle(err));
-    await client.events.build().catch((err) => logger.handle(err));
+    // # sucrose logs
+    client.logger.write('', { time: false });
+    client.logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
+    client.logger.give('INFO', `Launched in ${Date.now() - now}ms`);
+    client.logger.write('\n', { time: false });
 
-    logger.write('', { time: false });
-    logger.give('INFO', 'https://github.com/Natto-PKP/discord-sucrose');
-    logger.give('INFO', `Launched in ${Date.now() - now}ms`);
-    logger.write('\n', { time: false });
-
-    if (client.events.has('ready')) client.emit('ready', client as Client);
+    if (client.events.cache.has('ready')) client.emit('ready', client as Client);
 
     return client;
   }

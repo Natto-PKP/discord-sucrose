@@ -1,12 +1,10 @@
 /* eslint-disable max-classes-per-file */
-import EventEmitter from 'events';
 import path from 'path';
 import {
   createWriteStream, existsSync, lstatSync, mkdirSync,
 } from 'fs';
 import { Console } from 'console';
 import { Code, Codes } from '../errors/codes';
-import { SucroseError } from '../errors';
 
 import type * as Types from '../../typings';
 
@@ -45,25 +43,30 @@ const colorKeys = Object.keys(styles.colors);
 const styleKeys = Object.keys(styles);
 styleKeys.pop();
 
-export default class Logger extends EventEmitter implements Types.Logger {
+export default class Logger implements Types.Logger {
   public console = console;
 
   public directory: Console | null = null;
 
   constructor(private options: Types.LoggerOptions) {
-    super();
-
     if (options.directory) {
       const to = path.join(process.cwd(), 'logs');
       if (!existsSync(to) || !lstatSync(to).isDirectory()) mkdirSync(to);
-
-      this.on('error', () => {}); // Fix "node:events:491; throw er; // Unhandled 'error' event" error
 
       this.directory = new Console({
         stdout: createWriteStream(path.join(to, `${now}-output.log`)),
         stderr: createWriteStream(path.join(to, `${now}-error.log`)),
       });
     }
+  }
+
+  public handle(...errors: Error[]) {
+    errors.forEach((err) => {
+      if (err instanceof Error) {
+        if ('code' in err) this.give(err.code as Types.Code, err);
+        else this.give('ERROR', err);
+      } else this.give('ERROR', 'unknown error');
+    });
   }
 
   static style(str: string, ...formats: Types.LoggerLogFormat[]) {
@@ -90,11 +93,6 @@ export default class Logger extends EventEmitter implements Types.Logger {
     return pre + base + styles.reset;
   }
 
-  static clear() {
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
-  }
-
   /**
    * get current date formatted
    *
@@ -116,9 +114,10 @@ export default class Logger extends EventEmitter implements Types.Logger {
   public error(code: Code, content: string | Error, options?: Types.LoggerErrorOptions): void {
     const useColor = typeof options?.color === 'boolean' ? options.color : true;
     const addTime = typeof options?.time === 'boolean' ? options.time : true;
-    const verbose = typeof options?.verbose === 'boolean' || this.options.verbose ? options?.verbose || this.options.verbose : true;
-    let withoutColor = <string | Error>'';
-    let withColor = <string | Error>'';
+    const verbose = typeof options?.verbose === 'boolean' || this.options.verbose ? options?.verbose || this.options.verbose : false;
+    const message = content instanceof Error ? content.message : content;
+    let withoutColor = '';
+    let withColor = '';
 
     if (addTime) {
       let time = Logger.time(true);
@@ -134,40 +133,18 @@ export default class Logger extends EventEmitter implements Types.Logger {
       withoutColor += `${code} `;
     }
 
-    if (content instanceof Error) {
-      const withColorError = new Error(content.message);
-      withColorError.message = withColor + content.message as string;
-      withColor = withColorError;
-      const withoutColorError = new Error(content.message);
-      withoutColorError.message = withoutColor + content.message as string;
-      withoutColor = withoutColorError;
-    } else {
-      withColor += content;
-      withoutColor += content;
-    }
-
+    withoutColor += message;
     this.directory?.error(withoutColor);
-    this.console.error((!verbose && withColor instanceof Error && withColor.message) || withColor);
-    this.emit('error', content);
-    this.emit('raw', content);
-  }
 
-  /**
-   * Generate loading bar
-   *
-   * @param total
-   */
-  static* loading(total: number): Generator<void, void, { index: number; message: string; }> {
-    while (true) {
-      const { index, message } = yield;
-      const percent = Math.ceil((index / total) * 100 * 0.20);
-      Logger.clear();
-      process.stdout.write(`[${'.'.repeat(percent).padEnd(20)}] ${message}`);
-    }
+    withColor += message;
+    // eslint-disable-next-line no-param-reassign
+    if (content instanceof Error) content.message = withColor;
+    const response = content instanceof Error && (verbose ? content : content.message);
+    this.console.log(content instanceof Error ? response : withColor);
   }
 
   public give(code: Code, content: Error | string) {
-    if (code === 'FATAL' || code === 'ERROR' || code === 'WARN') {
+    if (code === 'FATAL' || code === 'ERROR') {
       this.error(code, content);
     } else {
       const message = content instanceof Error ? content.message : content;
@@ -176,26 +153,11 @@ export default class Logger extends EventEmitter implements Types.Logger {
   }
 
   /**
-   * handle errors array
-   *
-   * @param errors - array or errors to log
-   */
-  public handle(...errors: Error[]): void {
-    errors.forEach((err) => {
-      if (err instanceof SucroseError) this.give(err.code, err);
-      else this.give('ERROR', err);
-    });
-  }
-
-  /**
    * write a table in consoles
    */
   public table(content: object | unknown[]): void {
-    Logger.clear();
     this.console.table(content);
     this.directory?.table(content);
-    this.emit('log', content);
-    this.emit('raw', content);
   }
 
   /**
@@ -228,7 +190,5 @@ export default class Logger extends EventEmitter implements Types.Logger {
 
     this.directory?.log(withoutColor);
     this.console.log(withColor);
-    this.emit('log', message);
-    this.emit('raw', message);
   }
 }

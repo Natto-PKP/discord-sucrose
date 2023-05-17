@@ -9,9 +9,3 @@ export class SucroseTypeError extends SucroseError {
     super('ERROR', `"${prop}" must be type: ${type} (received: ${received})`);
   }
 }
-
-export const STypeError = (
-  prop: string,
-  type: string,
-  received: unknown,
-) => new SucroseTypeError(prop, type, received);

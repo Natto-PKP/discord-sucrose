@@ -7,5 +7,3 @@ export class SucroseError extends Error {
     super(message);
   }
 }
-
-export const SError = (code: ErrorCode, message: string) => new SucroseError(code, message);

@@ -1,25 +1,24 @@
 import { Collection } from 'discord.js';
-import { existsSync, lstatSync, readdirSync } from 'fs';
-import path from 'path';
+import { existsSync, lstatSync } from 'fs';
 
 import type Types from '../../typings';
 
-import { SError } from '../errors';
-import { imported } from '../helpers';
+import { SucroseError } from '../errors';
 import Logger from '../services/Logger';
+import FolderService from '../services/FolderService';
 
 export default class BaseInteractionManager<T extends Types.InteractionData = Types.InteractionData>
-  extends Collection<string, T> implements Types.BaseInteractionManager {
+implements Types.BaseInteractionManager<T> {
+  public cache: Collection<string, T> = new Collection();
+
   private builded = false;
 
   private logger: Logger;
 
-  public path: string;
+  public directory: Types.DirectoryValue<true>;
 
   constructor(private options: Types.BaseInteractionManagerOptions) {
-    super();
-
-    this.path = options.directory;
+    this.directory = options.directory;
     this.logger = new Logger(options.logging);
   }
 
@@ -27,48 +26,65 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
    * Build this interaction manager
    */
   public async build() {
-    const { env, name } = this.options;
-
-    if (this.builded) throw SError('ERROR', `${this.options.name} is already builded`);
+    // # prevent multiple builds
+    if (this.builded) throw new SucroseError('ERROR', `${this.options.name} is already builded`);
     this.builded = true;
 
-    if (!existsSync(this.path) || !lstatSync(this.path).isDirectory()) return;
+    const { name, directory } = this.options;
+    const to = directory.path;
 
-    const files = readdirSync(this.path).filter((file) => {
-      const isFile = lstatSync(path.join(this.path, file)).isFile();
-      const extFile = file.endsWith(`.${env.ext}`);
-      return isFile && extFile;
-    });
+    // # don't go further if path is not valid
+    if (!existsSync(this.directory.path) || !lstatSync(to).isDirectory()) return;
 
-    this.clear();
+    // # get all interaction file
+    const files = FolderService.search({ path: to, filter: { type: 'file', ext: this.options.env.ext }, depth: directory.depth });
 
-    if (!files.length) throw SError('WARN', `${name} interaction directory is empty`);
-    const loading = Logger.loading(files.length);
-    if (loading) loading.next();
+    // # throw a warn if folder is empty
+    if (!files.length) throw new SucroseError('WARN', `${name} interactions directory is empty`);
 
-    await Promise.all(files.map(async (file) => {
-      const to = path.join(this.path, file);
-      const interaction = await imported(to, name).catch((err) => this.logger.handle(err)) as T;
-      if (!interaction) return;
-      interaction.path = to;
-
-      if ('url' in interaction.body) this.set(interaction.body.url, interaction);
-      else if ('customId' in interaction.body) this.set(interaction.body.customId, interaction);
-      else if ('command' in interaction.body) {
-        let key = interaction.body.command;
-        if (interaction.body.group) key += `-${interaction.body.group}`;
-        if (interaction.body.option) key += `-${interaction.body.option}`;
-        this.set(key, interaction);
-      }
-
-      const index = files.indexOf(file) + 1;
-      if (loading) loading.next({ index, message: `load /interactions/${name}s/${file}` });
+    // # loop all file
+    const errors = [] as Error[];
+    const promises = await Promise.allSettled(files.map(async (file) => {
+      // # import interaction
+      const interaction = await FolderService.load(file, name) as T;
+      interaction.path = file; // save path
+      this.add(interaction);
     }));
 
-    if (loading) Logger.clear();
-    if (this.size) this.logger.give('SUCCESS', `${files.length} ${name}s loaded`);
-    if (this.options.logging?.details) {
-      this.logger.table(this.map((v, k) => ({ name: k, path: v.path })));
+    // # get potentials errors
+    promises.forEach((promise) => {
+      if (promise.status !== 'rejected') return;
+      if (promise.reason instanceof Error) errors.push(promise.reason);
+      else errors.push(new Error('unknown error'));
+    });
+
+    // # handle errors
+    if (errors.length) this.logger.handle(...errors);
+
+    // # log
+    if (this.cache.size) {
+      this.logger.give('SUCCESS', `${files.length} ${name}s loaded`);
+      if (this.options.logging?.details) {
+        this.logger.table(this.cache.map((v, k) => ({ name: k, path: v.path })));
+      }
+    }
+  }
+
+  public add(interaction: T): void {
+    // # if primary key is an url (ex: url button)
+    if ('url' in interaction.body) {
+      this.cache.set(interaction.body.url, interaction);
+
+      // # if primary key is customId (ex: message component)
+    } else if ('customId' in interaction.body) {
+      this.cache.set(interaction.body.customId, interaction);
+
+      // # if primary key is command
+    } else if ('command' in interaction.body) {
+      let key = interaction.body.command;
+      if (interaction.body.group) key += `-${interaction.body.group}`;
+      if (interaction.body.option) key += `-${interaction.body.option}`;
+      this.cache.set(key, interaction);
     }
   }
 
@@ -78,13 +94,15 @@ export default class BaseInteractionManager<T extends Types.InteractionData = Ty
    */
   public async refresh(name: string): Promise<this> {
     const { options } = this;
-    const interaction = this.get(name);
-    if (!interaction) throw SError('ERROR', `"${name}" ${options.name} interaction not exist in collection`);
-    if (!existsSync(interaction.path)) throw SError('ERROR', `"${name}" ${options.name} interaction file no longer exist`);
-    const newInteraction = await imported(interaction.path, options.name) as T;
+    const interaction = this.cache.get(name); // get interaction
+    if (!interaction) throw new SucroseError('ERROR', `"${name}" ${options.name} interaction not exist in collection`);
 
-    this.delete(name);
-    this.set(name, newInteraction);
+    // # check if interaction file exist
+    if (!existsSync(interaction.path)) throw new SucroseError('ERROR', `"${name}" ${options.name} interaction file no longer exist`);
+    const newInteraction = await FolderService.load(interaction.path, options.name) as T; // import
+
+    this.cache.delete(name); // remove interaction from collection
+    this.cache.set(name, newInteraction); // set again interaction
 
     return this;
   }

@@ -1,28 +1,28 @@
 import { Collection } from 'discord.js';
-import { existsSync, lstatSync, readdirSync } from 'fs';
+import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
 /* Types */
 import type Discord from 'discord.js';
 import type Types from '../../typings';
 
-import { SError } from '../errors';
+import { SucroseError } from '../errors';
 import Logger from '../services/Logger';
 import Event from './Event';
+import FolderService from '../services/FolderService';
 
-export default class EventManager
-  extends Collection<Types.EventNames, Event>
-  implements Types.EventManager {
+export default class EventManager implements Types.EventManager {
+  public cache: Collection<Types.EventNames, Event>;
+
   private builded = false;
 
-  private path: string;
+  private directory: Types.DirectoryValue<true>;
 
   private logger: Logger;
 
   public constructor(private sucrose: Types.Sucrose, private options: Types.EventManagerOptions) {
-    super();
-
-    this.path = options.directory;
+    this.cache = new Collection();
+    this.directory = options.directory;
     this.logger = new Logger(this.options.logging);
   }
 
@@ -30,30 +30,39 @@ export default class EventManager
    * load and build each event
    */
   public async build(): Promise<void> {
-    if (this.builded) throw SError('ERROR', 'EventManager is already build');
+    // # prevent multiple build
+    if (this.builded) throw new SucroseError('ERROR', 'EventManager is already build');
     this.builded = true;
 
-    if (this.size) await Promise.all(this.map((event) => event.remove()));
-    this.clear();
-
-    const to = this.path;
+    // # get events folders
+    const to = this.directory.path; // get path
     if (!existsSync(to) || !lstatSync(to).isDirectory()) return;
-    const events = readdirSync(to).filter((file) => lstatSync(path.join(to, file)).isDirectory());
+    const names = FolderService.search({ path: to, filter: { type: 'folder', ext: this.options.env.ext }, nameOnly: true });
+
     const { logging } = this.options;
+    const errors = [] as Error[];
 
-    if (events.length) {
-      const loading = Logger.loading(events.length);
-      loading.next();
+    // # loop all events folder
+    const promises = await Promise.allSettled(names.map(async (name) => {
+      await this.add(name as Types.EventNames);
+    }));
 
-      await Promise.all(events.map(async (event) => {
-        await this.add(event as Types.EventNames).catch((err) => this.logger.handle(err));
-        const index = events.indexOf(event) + 1;
-        if (loading) loading.next({ index, message: `load /events/${event}` });
-      }));
+    // # get potentials errors
+    promises.forEach((promise) => {
+      if (promise.status !== 'rejected') return;
+      if (promise.reason instanceof Error) errors.push(promise.reason);
+      else errors.push(new Error('unknown error'));
+    });
 
-      if (loading) Logger.clear();
-      if (this.size) this.logger.give('SUCCESS', `${events.length} events loaded`);
-      if (logging.details) this.logger.table(this.map((v, k) => ({ name: k, path: v.path })));
+    // # handle errors
+    if (errors.length) this.logger.handle(...errors);
+
+    // # log
+    if (this.cache.size) {
+      this.logger.give('SUCCESS', `${names.length} events loaded`);
+      if (logging.details) {
+        this.logger.table(this.cache.map((v, k) => ({ name: k, path: v.directory.path })));
+      }
     }
   }
 
@@ -63,33 +72,29 @@ export default class EventManager
   public async add(name: Types.EventNames): Promise<Types.Event> {
     const { env, logging } = this.options;
 
-    if (this.has(name)) throw SError('ERROR', `event "${name}" already exists (use refresh)`);
-    const to = path.join(this.path, name);
-    if (!existsSync(to) || !lstatSync(to).isDirectory()) throw SError('ERROR', `event directory of "${name}" does not exist`);
+    // # don't accept duplicate
+    if (this.cache.has(name)) throw new SucroseError('ERROR', `event "${name}" already exists (use refresh)`);
 
-    const params = { env, logging };
-    const event = new Event(name, { path: to, sucrose: this.sucrose, ...params });
+    // # check if event folder is valid
+    const to = path.join(this.directory.path, name); // get folder path
+    if (!existsSync(to) || !lstatSync(to).isDirectory()) throw new SucroseError('ERROR', `event directory of "${name}" does not exist`);
+
+    // # init new event and listen it
+    const params = { env, logging, directory: { path: to, depth: this.directory.depth } };
+    const event = new Event(name, { sucrose: this.sucrose, ...params });
     await event.listen();
 
-    this.set(name, event);
+    this.cache.set(name, event); // add event to collection
 
     return event;
-  }
-
-  /**
-   * Delete one or multiple events
-   */
-  public override delete(key: Types.EventNames): boolean {
-    this.remove(key);
-    return true;
   }
 
   /**
    * active one or multiple events
    */
   public async listen(name: Types.EventNames): Promise<Event> {
-    const event = this.get(name);
-    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    const event = this.cache.get(name);
+    if (!event) throw new SucroseError('ERROR', `event ${name} does not exist`);
     if (name === 'ready') this.sucrose.emit('ready', <Discord.Client> this.sucrose);
 
     return event;
@@ -99,8 +104,8 @@ export default class EventManager
    * desactive one or multiple events
    */
   public async mute(name: Types.EventNames): Promise<Event> {
-    const event = this.get(name);
-    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    const event = this.cache.get(name);
+    if (!event) throw new SucroseError('ERROR', `event ${name} does not exist`);
     return event.mute();
   }
 
@@ -108,8 +113,8 @@ export default class EventManager
    * refresh one or multiple events (remove() and add())
    */
   public async refresh(name: Types.EventNames): Promise<Event> {
-    const event = this.get(name);
-    if (!event) throw SError('ERROR', `event ${name} does not exist`);
+    const event = this.cache.get(name);
+    if (!event) throw new SucroseError('ERROR', `event ${name} does not exist`);
     return event.refresh();
   }
 
@@ -117,7 +122,9 @@ export default class EventManager
    * remove one or multiple events
    */
   public remove(name: Types.EventNames) {
-    const event = this.get(name);
-    if (event) event.remove();
+    const event = this.cache.get(name);
+    if (!event) return;
+    this.cache.delete(name);
+    event.remove();
   }
 }

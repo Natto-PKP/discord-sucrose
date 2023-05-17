@@ -1,27 +1,24 @@
-import path from 'path';
 import type Types from '../../typings';
+import getInteractionManagerContentsOptions from './getInteractionManagerContentsOptions';
 
-export default (options: Types.SucroseOptions): Types.InteractionManagerOptions => {
+export default (options: Types.SucroseOptions<false, true>): Types.InteractionManagerOptions => {
   const env = options.env as Types.EnvironmentOptions;
   const logging = options.logging as Types.SucroseLoggerOptions;
-  const directories = options.directories?.interactions as Types.InteractionDirectories;
+  const directories = options.directories
+    ?.interactions as Types.InteractionDirectories<false, true>;
   const features = options.features?.interactions as Types.InteractionFeatures;
 
-  const source = path.join(process.cwd(), env.source);
-  const autocompletePath = path.join(source, directories.autocompletes);
-  const buttonPath = path.join(source, directories.buttons);
-  const formPath = path.join(source, directories.forms);
-  const selectMenuPath = path.join(source, directories.selectMenus);
-  const globalCommandPath = path.join(source, directories.commands.globals);
-  const guildCommandPath = path.join(source, directories.commands.guilds);
-
   return {
+    contents: getInteractionManagerContentsOptions(options),
     directories: {
-      commands: { globals: globalCommandPath, guilds: guildCommandPath },
-      autocompletes: autocompletePath,
-      buttons: buttonPath,
-      forms: formPath,
-      selectMenus: selectMenuPath,
+      commands: {
+        globals: directories.commands.globals,
+        guilds: directories.commands.guilds,
+      },
+      autocompletes: directories.autocompletes,
+      buttons: directories.buttons,
+      forms: directories.forms,
+      selectMenus: directories.selectMenus,
     },
     env,
     features,
