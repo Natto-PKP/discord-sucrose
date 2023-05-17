@@ -6,7 +6,7 @@
 
 - [Getting started 🐤](#getting-started)
 - [Some examples 🖼️](#some-examples)
-- [Changelog 🌐](/CHANGELOG.md)
+- [Changelog 🌐](https://github.com/Natto-PKP/discord-sucrose/blob/main/CHANGELOG.md)
 - [F.A.Q](#faq)
 
 #### [🥥 Join our server Discord](https://discord.com/invite/Cd9y3vhWxE)
@@ -15,12 +15,12 @@
 
 ## **Getting started**
 
-- [With template](#with-template)
+- [With template (recommended)](#with-template-recommended)
 - [Without template](#without-template)
 
 <br>
 
-### **With template**
+### **With template (recommended)**
 
 These templates give you an even faster deployment of your Discord bot structure. They also give you the architecture that your Discord bot should have.
 
@@ -46,20 +46,6 @@ or [Typescript template](https://github.com/Natto-PKP/discord-sucrose-typescript
 <br>
 
 > Use `npm start` command to start ur discord bot ! ✨
-
-<br>
-
-#### **# Dynamically manage bot interaction commands and more**
-
-When the bot start, the eval command will be added.  
-U can use this command to manage the bot commands, interactions, events and more  
-Example of uses:
-
-- /eval "commands.get('eval')" (get eval command object)
-- /eval "commands.define('avatar')" (send avatar command body to discord api)
-- /eval "commands.guilds.get(guild.id).refresh('info')" (refresh info command object)
-- /eval "events.mute("guildMemberRemove")" (mute guildMemberRemove event)
-- /eval "sucrose.user.username" (get bot user username)
 
 <br>
 
@@ -101,23 +87,9 @@ Sucrose.build({
 
 #### **# Create structure**
 
-Your project structure should look like this:
+Your project structure should look like this by default:
 
 ```
-- commands
-  - global
-    - eval.js
-    - avatar.js
-  - guilds
-    - 713172382042423352
-      - ferret.js
-      - otter.js
-    - 874374108912173077
-      - random (command group)
-        - letter.js
-        - number.js
-        - user.js
-      - random.js
 - events
   - guildMemberAdd
     - sendWelcomeMessage.js
@@ -125,6 +97,20 @@ Your project structure should look like this:
   - ready
     - log.js
 - interactions
+  - commands
+    - global
+      - eval.js
+      - avatar.js
+    - guilds
+      - 713172382042423352
+        - ferret.js
+        - otter.js
+      - 874374108912173077
+        - random (command group)
+          - letter.js
+          - number.js
+          - user.js
+        - random.js
   - autocompletes
     - animals.js
   - buttons
@@ -141,7 +127,8 @@ Your project structure should look like this:
 ```
 
 ⚠️ Add these files/folders in ur src folder for Typescript user  
-This structure may seem impressive, but it allows for good organization and visibility.
+This structure may seem impressive, but it allows for good organization and visibility.  
+You can also configure the path of each folder
 
 <br>
 
@@ -212,18 +199,18 @@ const { ApplicationCommandType } = require('discord.js');
  * @type { import('discord-sucrose').ChatInput }
  */
 module.exports = {
-  permissions: {
-    users: ['502480353328496640'], // allowed users
-    roles: ['881759838424662107'], // allowed roles
-    channels: ['713309212855238707'], // allowed channels
-    guilds: ['713172382042423352'], // allowed guilds
-    client: ['READ_MESSAGES'], // required permissions for bot
-    member: ['ADMINISTRATOR'], // required permissions for member
-
-    // private: true,
-    // true > usable only in pm
-    // false > usable only in guilds
-  },
+  permissions: [
+    {
+      // # only usable this channel
+      type: 'CHANNEL',
+      allowed: ['874380549144338432'],
+    },
+    {
+      // # only usable if the bot have MANAGE_SERVER permission
+      type: 'SELF',
+      permissions: ['MANAGE_SERVER'],
+    },
+  ],
 
   body: {
     name: 'info',
@@ -430,18 +417,18 @@ module.exports = {
 ### **Register a command to Discord API**
 
 ```js
-await sucrose.commands.define('eval');
+await sucrose.commands.deploy('eval');
 
 const guild = sucrose.commands.guilds.get('874374108912173077');
-await guild.define('random');
+await guild.deploy('random');
 ```
 
 ### **Get a command from CommandManager**
 
 ```js
-await sucrose.commands.get('eval');
+await sucrose.commands.cache.get('eval');
 
-const guild = sucrose.commands.guilds.get('874374108912173077');
+const guild = sucrose.commands.guilds.cache.get('874374108912173077');
 await guild.get('random');
 ```
 
@@ -454,14 +441,16 @@ await guild.get('random');
 
 ```js
 /**
- * @type { import('discord-sucrose').EventHandler<'ready'> }
+ * @type { import('discord-sucrose').EventModule<'ready'> }
  */
-module.exports = async ({ sucrose }) => {
-  console.log("I'm connected");
+module.exports = {
+  label: 'ready-log',
+
+  exec: ({ sucrose }) => console.log("I'm here!", sucrose.user.username),
 };
 ```
 
-> If u create multiple file in the event folder, each file will be loaded and used in one and unique event. U can add folder in, and add ur js/ts files in. File in folder in event folder will be loaded too, folder starting with an underscore (ex: \_sources) will be ignored.
+> If u create multiple file in the event folder, each file will be loaded and used in one and unique event. U can add folder in, and add ur js/ts files in. Folders or files starting with an underscore (ex: \_sources) will be ignored.
 
 ### **Create a new autocomplete**
 
@@ -607,7 +596,7 @@ const { ComponentType } = require('discord.js');
  */
 module.exports = {
   body: {
-    type: ComponentType.SelectMenu,
+    type: ComponentType.StringSelect,
     customId: 'select-me',
     placeholder: 'Select me !',
     options: [
@@ -669,16 +658,9 @@ const { ComponentType, ButtonStyle } = require('discord.js');
  */
 module.exports = {
   permissions: {
-    users: ['502480353328496640'], // allowed users
-    roles: ['881759838424662107'], // allowed roles
-    channels: ['713309212855238707'], // allowed channels
-    guilds: ['713172382042423352'], // allowed guilds
-    client: ['READ_MESSAGES'], // required permissions for bot
-    member: ['ADMINISTRATOR'], // required permissions for member
-
-    // private: true,
-    // true > usable only in pm
-    // false > usable only in guilds
+    // This guild is excluded to use the button
+    type: 'GUILD',
+    denied: ['713172382042423352'],
   },
 
   body: {
@@ -700,6 +682,25 @@ module.exports = {
 > When u throw a error in an interaction or event, it'll be catched by Sucrose Logger  
 > So... U don't need to worry about that
 
+### **How can I change errors messages?**
+
+> In sucrose build options, you can change the "contents"
+>
+> ```js
+> Sucrose.build({
+>   intents: [GatewayIntentBits.Guilds],
+>   partials: [Partials.Channel],
+>   contents: {
+>     AUTOCOMPLETE_INTERACTION_MISSING: ({ interaction, key }) => {
+>       return {
+>         content: "I don't want to log",
+>         ephemeral: true,
+>       };
+>     },
+>   },
+> });
+> ```
+
 ### **Can I use message command?**
 
-> It's not actually supported by the package, but u always can build ur own message command manager with discord.js
+> It's not actually supported by the package, but u always can build your own message command manager with discord.js

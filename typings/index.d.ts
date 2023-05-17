@@ -182,16 +182,16 @@ declare class ConditionService {
  * @category managers
  * @public
  * @remarks
- * By default sucrose cooldown use discord collection, but you can override this service with your
+ * By default sucrose cooldown use discord collection, but you can override this manager with your
  * @example
  * ```js
  * const cache = redis;
- * const cooldown = new CooldownService(cache);
+ * const cooldown = new CooldownManager(cache);
  * sucrose.cooldown = cooldown;
  * ```
  * @example
  * ```js
- * const cooldown = new CooldownService(redis);
+ * const cooldown = new CooldownManager(redis);
  * new Sucrose({ cooldown });
  * ```
  */

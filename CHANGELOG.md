@@ -8,8 +8,23 @@
 > + Fix type of select menu and modal
 > + Rework permissions system - permissions are now more customizable and understandable
 > + Add cooldown system - add configurable cooldown for each interaction
-> + Rework event module with an configurable object
-> +
+> + Rework event - module with an configurable object
+> + Move commands manager to interactions managers
+> + Change extends Discord.Collection to cache property
+> + Rework logger - he catch well now
+> + Rename commands manager methods - define > deploy and delete > undeploy
+> + Add configurable recursive on file search on specific folder
+> + Add pre-condition in interactions and events
+> + Add hooks to interactions and events
+>
+> - Remove loading animation (useless)
+> ```
+>
+> ```md
+> ### In coming
+>
+> - beautiful documentation in react (it'll take some time)
+> - support for message command with prefix (not my priority)
 > ```
 
 ### # `6.4.12`
