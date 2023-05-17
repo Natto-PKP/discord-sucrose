@@ -21,6 +21,13 @@
         "linebreak-style": ["error", "windows"],
         "import/prefer-default-export": "off"
       }
+    },
+    {
+      "files": ["**/*.js"],
+      "extends": ["airbnb-base"],
+      "rules": {
+        "linebreak-style": ["error", "windows"]
+      }
     }
   ]
 }

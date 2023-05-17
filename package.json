@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --plugin typedoc-plugin-markdown --plugin typedoc-github-wiki-theme --theme github-wiki",
+    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --plugin ./plugins/forceLightTheme.js --theme default",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -46,8 +46,6 @@
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typedoc": "^0.24.7",
-    "typedoc-github-wiki-theme": "^1.1.0",
-    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "^4.5.2"
   },
   "dependencies": {
