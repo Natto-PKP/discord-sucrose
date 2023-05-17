@@ -50,7 +50,7 @@ Structure for manager our event
 
 #### Defined in
 
-[typings/index.d.ts:239](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L239)
+[typings/index.d.ts:239](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L239)
 
 ## Properties
 
@@ -69,7 +69,7 @@ Path to event folder
 
 #### Defined in
 
-[typings/index.d.ts:237](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L237)
+[typings/index.d.ts:237](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L237)
 
 ___
 
@@ -85,7 +85,7 @@ determines whether the event is running or not
 
 #### Defined in
 
-[typings/index.d.ts:220](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L220)
+[typings/index.d.ts:220](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L220)
 
 ___
 
@@ -99,7 +99,7 @@ redirects to the event manager
 
 #### Defined in
 
-[typings/index.d.ts:227](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L227)
+[typings/index.d.ts:227](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L227)
 
 ___
 
@@ -111,7 +111,7 @@ Each event modules represent a file in the event folder
 
 #### Defined in
 
-[typings/index.d.ts:232](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L232)
+[typings/index.d.ts:232](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L232)
 
 ___
 
@@ -121,7 +121,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:239](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L239)
+[typings/index.d.ts:239](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L239)
 
 ## Methods
 
@@ -143,7 +143,7 @@ await event.listen();
 
 #### Defined in
 
-[typings/index.d.ts:248](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L248)
+[typings/index.d.ts:248](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L248)
 
 ___
 
@@ -165,7 +165,7 @@ await event.mute();
 
 #### Defined in
 
-[typings/index.d.ts:257](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L257)
+[typings/index.d.ts:257](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L257)
 
 ___
 
@@ -187,7 +187,7 @@ await event.refresh();
 
 #### Defined in
 
-[typings/index.d.ts:266](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L266)
+[typings/index.d.ts:266](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L266)
 
 ___
 
@@ -209,4 +209,4 @@ await event.remove();
 
 #### Defined in
 
-[typings/index.d.ts:275](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L275)
+[typings/index.d.ts:275](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L275)

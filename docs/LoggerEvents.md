@@ -18,7 +18,7 @@ all logger events
 
 #### Defined in
 
-[typings/index.d.ts:1063](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1063)
+[typings/index.d.ts:1063](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1063)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1062](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1062)
+[typings/index.d.ts:1062](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1062)
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1064](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1064)
+[typings/index.d.ts:1064](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1064)

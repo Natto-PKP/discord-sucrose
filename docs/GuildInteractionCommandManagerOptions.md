@@ -36,7 +36,7 @@ InteractionGuildCommandManager options
 
 #### Defined in
 
-[typings/index.d.ts:633](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L633)
+[typings/index.d.ts:633](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L633)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:632](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L632)
+[typings/index.d.ts:632](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L632)
 
 ___
 
@@ -60,7 +60,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1189](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1189)
+[typings/index.d.ts:1189](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1189)
 
 ___
 
@@ -74,4 +74,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1179)
+[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1179)

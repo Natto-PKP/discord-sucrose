@@ -28,7 +28,7 @@
 
 #### Defined in
 
-[typings/index.d.ts:515](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L515)
+[typings/index.d.ts:515](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L515)
 
 ## Properties
 
@@ -38,7 +38,7 @@
 
 #### Defined in
 
-[typings/index.d.ts:513](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L513)
+[typings/index.d.ts:513](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L513)
 
 ## Methods
 
@@ -61,4 +61,4 @@
 
 #### Defined in
 
-[typings/index.d.ts:517](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L517)
+[typings/index.d.ts:517](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L517)

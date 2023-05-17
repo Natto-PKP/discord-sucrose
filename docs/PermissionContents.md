@@ -42,7 +42,7 @@ channel id is not allowed for this
 
 #### Defined in
 
-[typings/index.d.ts:1650](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1650)
+[typings/index.d.ts:1650](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1650)
 
 ___
 
@@ -71,7 +71,7 @@ guild id is not allowed for this
 
 #### Defined in
 
-[typings/index.d.ts:1668](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1668)
+[typings/index.d.ts:1668](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1668)
 
 ___
 
@@ -100,7 +100,7 @@ when interaction can only be used in private channel
 
 #### Defined in
 
-[typings/index.d.ts:1659](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1659)
+[typings/index.d.ts:1659](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1659)
 
 ___
 
@@ -129,7 +129,7 @@ member don't have required permissions
 
 #### Defined in
 
-[typings/index.d.ts:1677](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1677)
+[typings/index.d.ts:1677](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1677)
 
 ___
 
@@ -158,7 +158,7 @@ when interaction can only be used in private message
 
 #### Defined in
 
-[typings/index.d.ts:1704](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1704)
+[typings/index.d.ts:1704](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1704)
 
 ___
 
@@ -187,7 +187,7 @@ role id is not allowed to use this
 
 #### Defined in
 
-[typings/index.d.ts:1695](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1695)
+[typings/index.d.ts:1695](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1695)
 
 ___
 
@@ -216,7 +216,7 @@ client don't have required permissions
 
 #### Defined in
 
-[typings/index.d.ts:1713](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1713)
+[typings/index.d.ts:1713](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1713)
 
 ___
 
@@ -245,4 +245,4 @@ user id is not allowed to use this
 
 #### Defined in
 
-[typings/index.d.ts:1686](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1686)
+[typings/index.d.ts:1686](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1686)

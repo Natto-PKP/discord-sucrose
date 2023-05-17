@@ -33,7 +33,7 @@ Directory for autocompletes manager
 
 #### Defined in
 
-[typings/index.d.ts:1202](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1202)
+[typings/index.d.ts:1202](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1202)
 
 ___
 
@@ -49,7 +49,7 @@ Directory for buttons manager
 
 #### Defined in
 
-[typings/index.d.ts:1208](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1208)
+[typings/index.d.ts:1208](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1208)
 
 ___
 
@@ -61,7 +61,7 @@ Directory for commands manager
 
 #### Defined in
 
-[typings/index.d.ts:1225](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1225)
+[typings/index.d.ts:1225](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1225)
 
 ___
 
@@ -77,7 +77,7 @@ Directory for forms manager
 
 #### Defined in
 
-[typings/index.d.ts:1214](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1214)
+[typings/index.d.ts:1214](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1214)
 
 ___
 
@@ -93,4 +93,4 @@ Directory for selectMenus manager
 
 #### Defined in
 
-[typings/index.d.ts:1220](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1220)
+[typings/index.d.ts:1220](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1220)

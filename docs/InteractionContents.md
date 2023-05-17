@@ -49,7 +49,7 @@ when the autocomplete interaction is missing
 
 #### Defined in
 
-[typings/index.d.ts:1497](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1497)
+[typings/index.d.ts:1497](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1497)
 
 ___
 
@@ -77,7 +77,7 @@ when the autocomplete interaction exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1504](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1504)
+[typings/index.d.ts:1504](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1504)
 
 ___
 
@@ -105,7 +105,7 @@ when the button interaction exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1511](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1511)
+[typings/index.d.ts:1511](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1511)
 
 ___
 
@@ -134,7 +134,7 @@ when the chat input group is missing
 
 #### Defined in
 
-[typings/index.d.ts:1532](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1532)
+[typings/index.d.ts:1532](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1532)
 
 ___
 
@@ -164,7 +164,7 @@ when the chat input group option is missing
 
 #### Defined in
 
-[typings/index.d.ts:1539](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1539)
+[typings/index.d.ts:1539](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1539)
 
 ___
 
@@ -194,7 +194,7 @@ when the chat input group option exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1551](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1551)
+[typings/index.d.ts:1551](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1551)
 
 ___
 
@@ -222,7 +222,7 @@ when the chat input interaction is missing
 
 #### Defined in
 
-[typings/index.d.ts:1518](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1518)
+[typings/index.d.ts:1518](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1518)
 
 ___
 
@@ -250,7 +250,7 @@ when the chat input interaction exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1525](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1525)
+[typings/index.d.ts:1525](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1525)
 
 ___
 
@@ -279,7 +279,7 @@ when the chat input option is missing
 
 #### Defined in
 
-[typings/index.d.ts:1563](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1563)
+[typings/index.d.ts:1563](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1563)
 
 ___
 
@@ -308,7 +308,7 @@ when the chat input option exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1570](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1570)
+[typings/index.d.ts:1570](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1570)
 
 ___
 
@@ -336,7 +336,7 @@ when the interaction encounters a global error
 
 #### Defined in
 
-[typings/index.d.ts:1490](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1490)
+[typings/index.d.ts:1490](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1490)
 
 ___
 
@@ -364,7 +364,7 @@ when the form interaction exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1577](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1577)
+[typings/index.d.ts:1577](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1577)
 
 ___
 
@@ -392,7 +392,7 @@ when the message context menu exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1584](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1584)
+[typings/index.d.ts:1584](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1584)
 
 ___
 
@@ -420,7 +420,7 @@ when the select menu exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1603](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1603)
+[typings/index.d.ts:1603](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1603)
 
 ___
 
@@ -447,7 +447,7 @@ when no other interaction has been taken
 
 #### Defined in
 
-[typings/index.d.ts:1591](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1591)
+[typings/index.d.ts:1591](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1591)
 
 ___
 
@@ -475,4 +475,4 @@ when the user context menu exec function is not define
 
 #### Defined in
 
-[typings/index.d.ts:1596](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1596)
+[typings/index.d.ts:1596](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1596)

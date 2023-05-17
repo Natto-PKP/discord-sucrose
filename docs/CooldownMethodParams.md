@@ -17,7 +17,7 @@
 
 #### Defined in
 
-[typings/index.d.ts:866](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L866)
+[typings/index.d.ts:866](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L866)
 
 ___
 
@@ -27,7 +27,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:867](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L867)
+[typings/index.d.ts:867](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L867)
 
 ___
 
@@ -37,7 +37,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:865](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L865)
+[typings/index.d.ts:865](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L865)
 
 ___
 
@@ -47,4 +47,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:868](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L868)
+[typings/index.d.ts:868](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L868)

@@ -45,7 +45,7 @@ Base structure for command manager
 
 #### Defined in
 
-[typings/index.d.ts:17](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L17)
+[typings/index.d.ts:17](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L17)
 
 ## Properties
 
@@ -55,7 +55,7 @@ Base structure for command manager
 
 #### Defined in
 
-[typings/index.d.ts:18](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L18)
+[typings/index.d.ts:18](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L18)
 
 ___
 
@@ -72,7 +72,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:15](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L15)
+[typings/index.d.ts:15](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L15)
 
 ## Methods
 
@@ -111,7 +111,7 @@ await manager.add({
 
 #### Defined in
 
-[typings/index.d.ts:40](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L40)
+[typings/index.d.ts:40](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L40)
 
 ___
 
@@ -139,7 +139,7 @@ manager.delete('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:73](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L73)
+[typings/index.d.ts:73](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L73)
 
 ___
 
@@ -167,7 +167,7 @@ await manager.name('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:51](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L51)
+[typings/index.d.ts:51](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L51)
 
 ___
 
@@ -195,7 +195,7 @@ await manager.refresh('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:84](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L84)
+[typings/index.d.ts:84](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L84)
 
 ___
 
@@ -224,7 +224,7 @@ await manager.restore('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:95](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L95)
+[typings/index.d.ts:95](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L95)
 
 ___
 
@@ -252,4 +252,4 @@ await manager.remove('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:62](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L62)
+[typings/index.d.ts:62](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L62)

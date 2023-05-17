@@ -32,7 +32,7 @@ Event options
 
 #### Defined in
 
-[typings/index.d.ts:1044](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1044)
+[typings/index.d.ts:1044](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1044)
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1042](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1042)
+[typings/index.d.ts:1042](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1042)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1179)
+[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1179)
 
 ___
 
@@ -66,4 +66,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1043](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1043)
+[typings/index.d.ts:1043](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1043)

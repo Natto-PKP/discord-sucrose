@@ -26,7 +26,7 @@ Interaction manager options
 
 #### Defined in
 
-[typings/index.d.ts:1330](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1330)
+[typings/index.d.ts:1330](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1330)
 
 ___
 
@@ -36,7 +36,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1331](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1331)
+[typings/index.d.ts:1331](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1331)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1332](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1332)
+[typings/index.d.ts:1332](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1332)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1333](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1333)
+[typings/index.d.ts:1333](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1333)
 
 ___
 
@@ -70,4 +70,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1179)
+[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1179)

@@ -35,7 +35,7 @@ Structure for manage all classic interaction
 
 #### Defined in
 
-[typings/index.d.ts:429](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L429)
+[typings/index.d.ts:429](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L429)
 
 ## Properties
 
@@ -47,7 +47,7 @@ autocomplete interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:407](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L407)
+[typings/index.d.ts:407](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L407)
 
 ___
 
@@ -59,7 +59,7 @@ buttons interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:412](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L412)
+[typings/index.d.ts:412](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L412)
 
 ___
 
@@ -71,7 +71,7 @@ commands interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:417](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L417)
+[typings/index.d.ts:417](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L417)
 
 ___
 
@@ -83,7 +83,7 @@ form modals interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:422](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L422)
+[typings/index.d.ts:422](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L422)
 
 ___
 
@@ -95,7 +95,7 @@ select menus interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:427](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L427)
+[typings/index.d.ts:427](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L427)
 
 ## Methods
 
@@ -111,4 +111,4 @@ build this manager and all interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:434](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L434)
+[typings/index.d.ts:434](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L434)

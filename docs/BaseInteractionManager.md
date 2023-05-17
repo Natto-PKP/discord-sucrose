@@ -45,7 +45,7 @@ Base structure for basic discord.js interaction
 
 #### Defined in
 
-[typings/index.d.ts:111](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L111)
+[typings/index.d.ts:111](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L111)
 
 ## Properties
 
@@ -55,7 +55,7 @@ Base structure for basic discord.js interaction
 
 #### Defined in
 
-[typings/index.d.ts:104](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L104)
+[typings/index.d.ts:104](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L104)
 
 ___
 
@@ -74,7 +74,7 @@ interactions directory
 
 #### Defined in
 
-[typings/index.d.ts:109](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L109)
+[typings/index.d.ts:109](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L109)
 
 ## Methods
 
@@ -96,7 +96,7 @@ Add interaction
 
 #### Defined in
 
-[typings/index.d.ts:121](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L121)
+[typings/index.d.ts:121](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L121)
 
 ___
 
@@ -112,7 +112,7 @@ Build interaction manager
 
 #### Defined in
 
-[typings/index.d.ts:116](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L116)
+[typings/index.d.ts:116](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L116)
 
 ___
 
@@ -140,4 +140,4 @@ await manager.refresh('interaction-name');
 
 #### Defined in
 
-[typings/index.d.ts:132](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L132)
+[typings/index.d.ts:132](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L132)

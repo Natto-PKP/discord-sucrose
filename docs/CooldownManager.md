@@ -69,7 +69,7 @@ Cooldown cache
 
 #### Defined in
 
-[typings/index.d.ts:145](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L145)
+[typings/index.d.ts:145](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L145)
 
 ## Methods
 
@@ -98,4 +98,4 @@ Check if the cooldown is over or not, its not recommended to override this
 
 #### Defined in
 
-[typings/index.d.ts:203](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L203)
+[typings/index.d.ts:203](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L203)

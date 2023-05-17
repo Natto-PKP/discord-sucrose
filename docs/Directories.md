@@ -30,7 +30,7 @@ Configure directory for events manager
 
 #### Defined in
 
-[typings/index.d.ts:979](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L979)
+[typings/index.d.ts:979](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L979)
 
 ___
 
@@ -42,4 +42,4 @@ Configure directories form interactions manager
 
 #### Defined in
 
-[typings/index.d.ts:984](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L984)
+[typings/index.d.ts:984](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L984)

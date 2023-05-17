@@ -62,7 +62,7 @@ You can do these example with just Permission
 
 #### Defined in
 
-[typings/index.d.ts:913](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L913)
+[typings/index.d.ts:913](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L913)
 
 ___
 
@@ -82,7 +82,7 @@ Whatever you want, you can add it here
 
 #### Defined in
 
-[typings/index.d.ts:918](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L918)
+[typings/index.d.ts:918](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L918)
 
 ___
 
@@ -98,7 +98,7 @@ A field to add description
 
 #### Defined in
 
-[typings/index.d.ts:923](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L923)
+[typings/index.d.ts:923](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L923)
 
 ___
 
@@ -110,7 +110,7 @@ disable or not this module
 
 #### Defined in
 
-[typings/index.d.ts:1028](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1028)
+[typings/index.d.ts:1028](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1028)
 
 ___
 
@@ -140,7 +140,7 @@ callback executed when this is called
 
 #### Defined in
 
-[typings/index.d.ts:957](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L957)
+[typings/index.d.ts:957](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L957)
 
 ___
 
@@ -163,7 +163,7 @@ Add hooks to this
 
 #### Defined in
 
-[typings/index.d.ts:928](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L928)
+[typings/index.d.ts:928](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L928)
 
 ___
 
@@ -175,7 +175,7 @@ name of this module
 
 #### Defined in
 
-[typings/index.d.ts:1033](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1033)
+[typings/index.d.ts:1033](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1033)
 
 ___
 
@@ -197,4 +197,4 @@ customize with some tags
 
 #### Defined in
 
-[typings/index.d.ts:951](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L951)
+[typings/index.d.ts:951](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L951)

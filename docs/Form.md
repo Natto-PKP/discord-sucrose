@@ -62,7 +62,7 @@ Interaction form
 
 #### Defined in
 
-[typings/index.d.ts:1164](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1164)
+[typings/index.d.ts:1164](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1164)
 
 ___
 
@@ -99,7 +99,7 @@ You can do these example with just Permission
 
 #### Defined in
 
-[typings/index.d.ts:913](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L913)
+[typings/index.d.ts:913](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L913)
 
 ___
 
@@ -140,7 +140,7 @@ Manage cooldowns
 
 #### Defined in
 
-[typings/index.d.ts:666](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L666)
+[typings/index.d.ts:666](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L666)
 
 ___
 
@@ -160,7 +160,7 @@ Whatever you want, you can add it here
 
 #### Defined in
 
-[typings/index.d.ts:918](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L918)
+[typings/index.d.ts:918](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L918)
 
 ___
 
@@ -176,7 +176,7 @@ A field to add description
 
 #### Defined in
 
-[typings/index.d.ts:923](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L923)
+[typings/index.d.ts:923](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L923)
 
 ___
 
@@ -206,7 +206,7 @@ callback executed when this is called
 
 #### Defined in
 
-[typings/index.d.ts:957](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L957)
+[typings/index.d.ts:957](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L957)
 
 ___
 
@@ -229,7 +229,7 @@ Add hooks to this
 
 #### Defined in
 
-[typings/index.d.ts:928](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L928)
+[typings/index.d.ts:928](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L928)
 
 ___
 
@@ -269,7 +269,7 @@ Manage interaction required permissions
 
 #### Defined in
 
-[typings/index.d.ts:691](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L691)
+[typings/index.d.ts:691](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L691)
 
 ___
 
@@ -291,4 +291,4 @@ customize with some tags
 
 #### Defined in
 
-[typings/index.d.ts:951](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L951)
+[typings/index.d.ts:951](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L951)

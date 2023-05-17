@@ -35,7 +35,7 @@
 
 #### Defined in
 
-[typings/index.d.ts:453](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L453)
+[typings/index.d.ts:453](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L453)
 
 ## Properties
 
@@ -47,7 +47,7 @@ Logger console
 
 #### Defined in
 
-[typings/index.d.ts:445](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L445)
+[typings/index.d.ts:445](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L445)
 
 ___
 
@@ -63,7 +63,7 @@ Logs directory
 
 #### Defined in
 
-[typings/index.d.ts:451](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L451)
+[typings/index.d.ts:451](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L451)
 
 ## Methods
 
@@ -87,7 +87,7 @@ write a error in consoles
 
 #### Defined in
 
-[typings/index.d.ts:485](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L485)
+[typings/index.d.ts:485](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L485)
 
 ___
 
@@ -110,7 +110,7 @@ give a code with content message to write
 
 #### Defined in
 
-[typings/index.d.ts:492](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L492)
+[typings/index.d.ts:492](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L492)
 
 ___
 
@@ -132,7 +132,7 @@ write a table in consoles
 
 #### Defined in
 
-[typings/index.d.ts:498](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L498)
+[typings/index.d.ts:498](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L498)
 
 ___
 
@@ -155,7 +155,7 @@ write a message in consoles
 
 #### Defined in
 
-[typings/index.d.ts:505](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L505)
+[typings/index.d.ts:505](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L505)
 
 ___
 
@@ -177,7 +177,7 @@ Handle multiple errors
 
 #### Defined in
 
-[typings/index.d.ts:459](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L459)
+[typings/index.d.ts:459](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L459)
 
 ___
 
@@ -207,7 +207,7 @@ console.log(text);
 
 #### Defined in
 
-[typings/index.d.ts:471](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L471)
+[typings/index.d.ts:471](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L471)
 
 ___
 
@@ -229,4 +229,4 @@ get current date formatted
 
 #### Defined in
 
-[typings/index.d.ts:477](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L477)
+[typings/index.d.ts:477](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L477)

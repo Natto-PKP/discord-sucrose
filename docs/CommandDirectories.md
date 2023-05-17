@@ -29,7 +29,7 @@ Configure directory for globals commands
 
 #### Defined in
 
-[typings/index.d.ts:881](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L881)
+[typings/index.d.ts:881](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L881)
 
 ___
 
@@ -45,4 +45,4 @@ Configure directory for guilds commands
 
 #### Defined in
 
-[typings/index.d.ts:887](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L887)
+[typings/index.d.ts:887](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L887)

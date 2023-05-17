@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --plugin typedoc-plugin-markdown --plugin typedoc-github-wiki-theme",
+    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --plugin typedoc-plugin-markdown --plugin typedoc-github-wiki-theme --theme github-wiki",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"

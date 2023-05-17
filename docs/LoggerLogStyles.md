@@ -21,7 +21,7 @@
 
 #### Defined in
 
-[typings/index.d.ts:1094](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1094)
+[typings/index.d.ts:1094](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1094)
 
 ___
 
@@ -31,7 +31,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1091](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1091)
+[typings/index.d.ts:1091](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1091)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1098](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1098)
+[typings/index.d.ts:1098](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1098)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1092](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1092)
+[typings/index.d.ts:1092](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1092)
 
 ___
 
@@ -93,7 +93,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1096](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1096)
+[typings/index.d.ts:1096](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1096)
 
 ___
 
@@ -103,7 +103,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1090](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1090)
+[typings/index.d.ts:1090](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1090)
 
 ___
 
@@ -113,7 +113,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1095](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1095)
+[typings/index.d.ts:1095](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1095)
 
 ___
 
@@ -123,4 +123,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1093](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1093)
+[typings/index.d.ts:1093](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1093)

@@ -150,7 +150,7 @@ cooldown service
 
 #### Defined in
 
-[typings/index.d.ts:539](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L539)
+[typings/index.d.ts:539](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L539)
 
 ___
 
@@ -162,7 +162,7 @@ events manager
 
 #### Defined in
 
-[typings/index.d.ts:545](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L545)
+[typings/index.d.ts:545](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L545)
 
 ___
 
@@ -188,7 +188,7 @@ interactions managers
 
 #### Defined in
 
-[typings/index.d.ts:551](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L551)
+[typings/index.d.ts:551](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L551)
 
 ___
 
@@ -200,7 +200,7 @@ client logger
 
 #### Defined in
 
-[typings/index.d.ts:557](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L557)
+[typings/index.d.ts:557](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L557)
 
 ___
 
@@ -226,7 +226,7 @@ permission service
 
 #### Defined in
 
-[typings/index.d.ts:562](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L562)
+[typings/index.d.ts:562](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L562)
 
 ___
 
@@ -1530,7 +1530,7 @@ const client = await Sucrose.build(options);
 
 #### Defined in
 
-[typings/index.d.ts:573](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L573)
+[typings/index.d.ts:573](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L573)
 
 ___
 

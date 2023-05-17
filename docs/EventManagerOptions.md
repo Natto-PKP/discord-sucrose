@@ -31,7 +31,7 @@ EventManager options
 
 #### Defined in
 
-[typings/index.d.ts:1015](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1015)
+[typings/index.d.ts:1015](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1015)
 
 ___
 
@@ -41,7 +41,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1014](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1014)
+[typings/index.d.ts:1014](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1014)
 
 ___
 
@@ -55,4 +55,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1179)
+[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1179)

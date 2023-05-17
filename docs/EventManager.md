@@ -36,7 +36,7 @@ event manager
 
 #### Defined in
 
-[typings/index.d.ts:286](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L286)
+[typings/index.d.ts:286](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L286)
 
 ## Properties
 
@@ -46,7 +46,7 @@ event manager
 
 #### Defined in
 
-[typings/index.d.ts:284](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L284)
+[typings/index.d.ts:284](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L284)
 
 ## Methods
 
@@ -74,7 +74,7 @@ await events.create("ready");
 
 #### Defined in
 
-[typings/index.d.ts:300](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L300)
+[typings/index.d.ts:300](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L300)
 
 ___
 
@@ -90,7 +90,7 @@ load and build each event
 
 #### Defined in
 
-[typings/index.d.ts:291](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L291)
+[typings/index.d.ts:291](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L291)
 
 ___
 
@@ -118,7 +118,7 @@ await events.listen("ready");
 
 #### Defined in
 
-[typings/index.d.ts:309](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L309)
+[typings/index.d.ts:309](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L309)
 
 ___
 
@@ -146,7 +146,7 @@ await events.mute("ready");
 
 #### Defined in
 
-[typings/index.d.ts:318](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L318)
+[typings/index.d.ts:318](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L318)
 
 ___
 
@@ -174,7 +174,7 @@ await events.refresh("ready");
 
 #### Defined in
 
-[typings/index.d.ts:327](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L327)
+[typings/index.d.ts:327](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L327)
 
 ___
 
@@ -202,4 +202,4 @@ await events.remove("ready");
 
 #### Defined in
 
-[typings/index.d.ts:338](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L338)
+[typings/index.d.ts:338](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L338)

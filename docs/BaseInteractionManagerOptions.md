@@ -32,7 +32,7 @@ BaseInteractionManager options
 
 #### Defined in
 
-[typings/index.d.ts:702](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L702)
+[typings/index.d.ts:702](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L702)
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:700](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L700)
+[typings/index.d.ts:700](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L700)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1179)
+[typings/index.d.ts:1179](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1179)
 
 ___
 
@@ -66,4 +66,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:701](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L701)
+[typings/index.d.ts:701](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L701)

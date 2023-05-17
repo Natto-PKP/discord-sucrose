@@ -16,4 +16,4 @@ Interactions feature options
 
 #### Defined in
 
-[typings/index.d.ts:1234](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1234)
+[typings/index.d.ts:1234](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1234)

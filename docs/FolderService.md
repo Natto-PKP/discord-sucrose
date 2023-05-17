@@ -38,7 +38,7 @@ folder service
 
 #### Defined in
 
-[typings/index.d.ts:356](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L356)
+[typings/index.d.ts:356](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L356)
 
 ___
 
@@ -66,4 +66,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:347](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L347)
+[typings/index.d.ts:347](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L347)

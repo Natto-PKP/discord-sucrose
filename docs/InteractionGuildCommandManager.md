@@ -49,7 +49,7 @@ guild command manager
 
 #### Defined in
 
-[typings/index.d.ts:390](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L390)
+[typings/index.d.ts:390](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L390)
 
 ## Properties
 
@@ -63,7 +63,7 @@ guild command manager
 
 #### Defined in
 
-[typings/index.d.ts:18](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L18)
+[typings/index.d.ts:18](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L18)
 
 ___
 
@@ -84,7 +84,7 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:15](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L15)
+[typings/index.d.ts:15](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L15)
 
 ___
 
@@ -96,7 +96,7 @@ id of the guild the manager is based on
 
 #### Defined in
 
-[typings/index.d.ts:388](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L388)
+[typings/index.d.ts:388](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L388)
 
 ## Methods
 
@@ -139,7 +139,7 @@ await manager.add({
 
 #### Defined in
 
-[typings/index.d.ts:40](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L40)
+[typings/index.d.ts:40](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L40)
 
 ___
 
@@ -155,7 +155,7 @@ load all guild commands
 
 #### Defined in
 
-[typings/index.d.ts:395](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L395)
+[typings/index.d.ts:395](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L395)
 
 ___
 
@@ -187,7 +187,7 @@ manager.delete('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:73](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L73)
+[typings/index.d.ts:73](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L73)
 
 ___
 
@@ -219,7 +219,7 @@ await manager.name('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:51](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L51)
+[typings/index.d.ts:51](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L51)
 
 ___
 
@@ -251,7 +251,7 @@ await manager.refresh('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:84](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L84)
+[typings/index.d.ts:84](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L84)
 
 ___
 
@@ -284,7 +284,7 @@ await manager.restore('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:95](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L95)
+[typings/index.d.ts:95](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L95)
 
 ___
 
@@ -316,4 +316,4 @@ await manager.remove('avatar');
 
 #### Defined in
 
-[typings/index.d.ts:62](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L62)
+[typings/index.d.ts:62](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L62)

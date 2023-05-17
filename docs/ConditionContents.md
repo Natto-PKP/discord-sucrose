@@ -35,4 +35,4 @@ When a custom condition failed
 
 #### Defined in
 
-[typings/index.d.ts:1617](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1617)
+[typings/index.d.ts:1617](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1617)

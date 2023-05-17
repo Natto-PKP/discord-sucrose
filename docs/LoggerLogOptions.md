@@ -25,7 +25,7 @@ LoggerLogOptions
 
 #### Defined in
 
-[typings/index.d.ts:1073](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1073)
+[typings/index.d.ts:1073](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1073)
 
 ___
 
@@ -35,4 +35,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:1074](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L1074)
+[typings/index.d.ts:1074](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L1074)

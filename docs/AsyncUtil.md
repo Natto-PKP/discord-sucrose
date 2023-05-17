@@ -44,7 +44,7 @@ Some utils fonction for async
 
 #### Defined in
 
-[typings/index.d.ts:164](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L164)
+[typings/index.d.ts:164](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L164)
 
 ___
 
@@ -71,4 +71,4 @@ ___
 
 #### Defined in
 
-[typings/index.d.ts:165](https://github.com/Natto-PKP/discord-sucrose/blob/a2c6566/typings/index.d.ts#L165)
+[typings/index.d.ts:165](https://github.com/Natto-PKP/discord-sucrose/blob/9e8624c/typings/index.d.ts#L165)
