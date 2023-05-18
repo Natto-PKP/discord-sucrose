@@ -6,7 +6,7 @@ import type Types from '../typings';
 import Logger from './services/Logger';
 import EventManager from './managers/EventManager';
 import InteractionManager from './managers/InteractionManager';
-import CooldownManager from './managers/CooldownManager';
+import BaseCooldownManager from './managers/BaseCooldownManager';
 import PermissionManager from './managers/PermissionManager';
 import * as defaults from './options';
 
@@ -17,7 +17,7 @@ export default class Sucrose extends Client {
   /**
    * Can be override
    */
-  public cooldown: CooldownManager;
+  public cooldown: BaseCooldownManager<unknown>;
 
   public readonly events: EventManager;
 
@@ -41,8 +41,7 @@ export default class Sucrose extends Client {
     opts.contents = defaults.getContentsOptions(opts);
 
     // # define cooldown service
-    const hasCustomCooldown = options.cooldown && options.cooldown instanceof CooldownManager;
-    this.cooldown = hasCustomCooldown ? options.cooldown as CooldownManager : new CooldownManager();
+    this.cooldown = options.cooldown || new BaseCooldownManager();
 
     // # define permission service
     const permissionContents = defaults.getPermissionContentsOptions(opts);

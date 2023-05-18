@@ -16,7 +16,6 @@ import InteractionCommandManager from './managers/InteractionCommandManager';
 import InteractionGuildCommandManager from './managers/InteractionGuildCommandManager';
 import InteractionManager from './managers/InteractionManager';
 import BaseCooldownManager from './managers/BaseCooldownManager';
-import CooldownManager from './managers/CooldownManager';
 import PermissionManager from './managers/PermissionManager';
 
 import Sucrose from './Sucrose';
@@ -39,7 +38,6 @@ export {
   InteractionGuildCommandManager,
   InteractionManager,
   BaseCooldownManager,
-  CooldownManager,
   PermissionManager,
 
   Sucrose,

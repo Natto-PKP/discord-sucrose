@@ -1,9 +1,16 @@
 import Discord from 'discord.js';
-import type Types from '../../typings';
+import Types from '../../typings';
 import { SucroseCooldownError } from '../errors';
 
-export default abstract class BaseCooldownManager implements Types.BaseCooldownManager {
-  public cache = new Discord.Collection() as Discord.Collection<string, Types.CooldownValue>;
+// ! CORRIGER LE CACHE ET L'HISTOIRE DE L'OVERLOAD
+
+export default class BaseCooldownManager<C> implements Types.BaseCooldownManager<C> {
+  public cache: C;
+
+  constructor(cache?: C) {
+    if (cache) this.cache = cache;
+    else this.cache = new Discord.Collection() as C;
+  }
 
   /**
    * DO NOT OVERRIDE THIS

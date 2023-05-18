@@ -137,22 +137,28 @@ declare class BaseInteractionManager<T extends InteractionData = Types.Interacti
  * @category managers
  * @public
  */
-declare abstract class BaseCooldownManager {
+declare class BaseCooldownManager<C> {
   /**
    * Cooldown cache
    * @defaultValue `Discord.Collection<string, number>`
    */
-  public cache: Discord.Collection<string, CooldownValue>;
+  public cache: C;
+
+  constructor(cache?: C);
 
   /**
    * DO NOT OVERRIDE THIS
    */
   public isOver(params: {
-    cooldowns: Types.Cooldown[] | Types.Cooldown;
+    cooldowns: Cooldown[] | Cooldown;
     interaction?: Discord.Interaction;
     message?: Discord.Message;
     id: string;
   });
+
+  public get(params: CooldownMethodParams): Promise<CooldownValue | undefined>;
+
+  public set(params: CooldownMethodParams & CooldownValue): Promise<void>;
 }
 
 /**
@@ -175,36 +181,6 @@ declare class ConditionService {
     sucrose: Types.Sucrose,
     conditions: Types.Condition<P>[] | Types.Condition<P>,
   }): Promise<boolean>;
-}
-
-/**
- * Manage interactions and command cooldown
- * @category managers
- * @public
- * @remarks
- * By default sucrose cooldown use discord collection, but you can override this manager with your
- * @example
- * ```js
- * const cache = redis;
- * const cooldown = new CooldownManager(cache);
- * sucrose.cooldown = cooldown;
- * ```
- * @example
- * ```js
- * const cooldown = new CooldownManager(redis);
- * new Sucrose({ cooldown });
- * ```
- */
-declare class CooldownManager extends BaseCooldownManager {
-  /**
-   * Check if the cooldown is over or not, its not recommended to override this
-   * @param params
-   */
-  public isOver(params: {
-    cooldowns: Cooldown[] | Cooldown;
-    interaction: Discord.Interaction;
-    id: string;
-  }): Promise<void>;
 }
 
 /**
@@ -536,7 +512,7 @@ declare class Sucrose extends Discord.Client {
   /**
    * cooldown service
    */
-  public cooldown: CooldownManager;
+  public cooldown: BaseCooldownManager;
 
   /**
     * events manager
@@ -1470,7 +1446,7 @@ export interface UserContextCommandData extends UserContextCommand { path: strin
  */
 export interface SucroseOptions<P extends boolean = false, S extends boolean = false>
   extends Discord.ClientOptions, Partial<GlobalOptions<P>> {
-  cooldown?: CooldownService;
+  cooldown?: BaseCooldownManager<unknown>;
   contents?: P extends true ? Partial<Contents> : Contents;
   directories?: P extends true ? Partial<Directories<true, S>> : Directories<false, S>;
   env?: P extends true ? Partial<EnvironmentOptions> : EnvironmentOptions;
