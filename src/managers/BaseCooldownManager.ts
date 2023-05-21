@@ -125,7 +125,7 @@ export default class BaseCooldownManager<C> implements Types.BaseCooldownManager
     }));
   }
 
-  public async get(params: Types.CooldownMethodParams) {
+  public async get(params: Types.CooldownMethodParams): Promise<Types.CooldownValue | undefined> {
     const cache = this.cache as Discord.Collection<string, Types.CooldownValue>;
     const cooldown = cache.get(params.key);
     return cooldown;
