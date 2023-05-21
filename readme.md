@@ -677,6 +677,10 @@ module.exports = {
 
 ## **F.A.Q**
 
+- [What about error handling?](#what-about-error-handling)
+- [How can I change errors messages?](#how-can-i-change-errors-messages)
+- [Can I use message command?](#can-i-use-message-command)
+
 ### **What about error handling?**
 
 > When u throw a error in an interaction or event, it'll be catched by Sucrose Logger  
@@ -704,3 +708,7 @@ module.exports = {
 ### **Can I use message command?**
 
 > It's not actually supported by the package, but u always can build your own message command manager with discord.js
+
+### **How can I manager bot shards?**
+
+> It's the same [from discord.js](https://discordjs.guide/sharding/#getting-started-1). Rename your index file to bot file and create a index file with the shardings manager. The process is exactly the same as the guide, expect for Discord Client class is replaced be Sucrose class
