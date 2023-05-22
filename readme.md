@@ -711,4 +711,4 @@ module.exports = {
 
 ### **How can I manager bot shards?**
 
-> It's the same [from discord.js](https://discordjs.guide/sharding/#getting-started-1). Rename your index file to bot file and create a index file with the shardings manager. The process is exactly the same as the guide, expect for Discord Client class is replaced be Sucrose class
+> It's the same [from discord.js](https://discordjs.guide/sharding/#getting-started-1). Rename your index file to bot file and create a index file with the shardings manager. The process is exactly the same as the guide, expect for Discord Client class is replaced be Sucrose class.
