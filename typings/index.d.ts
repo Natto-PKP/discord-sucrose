@@ -137,7 +137,7 @@ declare class BaseInteractionManager<T extends InteractionData = Types.Interacti
  * @category managers
  * @public
  */
-declare class BaseCooldownManager<C> {
+declare class BaseCooldownManager<C = unknown> {
   /**
    * Cooldown cache
    * @defaultValue `Discord.Collection<string, number>`
@@ -546,7 +546,7 @@ declare class Sucrose extends Discord.Client {
    * const client = await Sucrose.build(options);
    * ```
    */
-  static async build(options: SucroseOptions<true>): Promise<Sucrose>;
+  static build(options: SucroseOptions<true>): Promise<Sucrose>;
 }
 
 /**
