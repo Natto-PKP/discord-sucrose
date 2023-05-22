@@ -27,6 +27,7 @@ export default class SelectMenuInteractionManager
       };
     } else if (interaction.body instanceof Discord.StringSelectMenuBuilder) {
       const body = interaction.body.data as Discord.APIStringSelectComponent;
+      const options = [...body.options, ...interaction.body.options.map((option) => option.data)];
 
       selectMenu.body = {
         disabled: Boolean(body.disabled),
@@ -35,7 +36,7 @@ export default class SelectMenuInteractionManager
         minValues: body.min_values,
         placeholder: body.placeholder,
         type: body.type,
-        options: body.options,
+        options: options as Discord.SelectMenuComponentOptionData[],
       };
     } else if (interaction.body instanceof Discord.ChannelSelectMenuBuilder) {
       const body = interaction.body.data as Discord.APIChannelSelectComponent;
