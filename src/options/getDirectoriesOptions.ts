@@ -6,7 +6,7 @@ const defaults = {
   buttons: 'interactions/buttons',
   globalsCommands: 'interactions/commands/global',
   guildsCommands: 'interactions/commands/guilds',
-  forms: 'interactions/forms',
+  modals: 'interactions/modals',
   selectMenus: 'interactions/select-menus',
   events: 'events',
 };
@@ -36,7 +36,7 @@ export default (options: Types.SucroseOptions): Types.Directories<false, true> =
         globals: getDirectoryValue('globalsCommands', options.directories?.interactions.commands.globals),
         guilds: getDirectoryValue('guildsCommands', options.directories?.interactions.commands.guilds),
       },
-      forms: getDirectoryValue('forms', options.directories?.interactions.forms),
+      modals: getDirectoryValue('modals', options.directories?.interactions.modals),
       selectMenus: getDirectoryValue('selectMenus', options.directories?.interactions.selectMenus),
     },
   };

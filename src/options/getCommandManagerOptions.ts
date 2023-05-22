@@ -2,7 +2,7 @@ import type Types from '../../typings';
 
 export default (
   options: Types.InteractionManagerOptions,
-): Types.InteractionCommandManagerOptions => {
+): Types.CommandInteractionManagerOptions => {
   const { logging, env } = options;
   const directories = options.directories.commands;
 

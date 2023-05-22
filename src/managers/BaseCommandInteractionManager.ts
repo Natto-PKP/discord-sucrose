@@ -9,8 +9,9 @@ import { SucroseError } from '../errors';
 import Logger from '../services/Logger';
 import FolderService from '../services/FolderService';
 
-export default class BaseInteractionCommandManager implements Types.BaseInteractionCommandManager {
-  public cache: Collection<string, Types.InteractionCommandData> = new Collection();
+export default abstract class BaseCommandInteractionManager
+implements Types.BaseCommandInteractionManager {
+  public cache: Collection<string, Types.CommandInteractionData> = new Collection();
 
   protected builded = false; // prevent build multiple time
 
@@ -20,7 +21,7 @@ export default class BaseInteractionCommandManager implements Types.BaseInteract
 
   public constructor(
     protected sucrose: Types.Sucrose,
-    protected options: Types.BaseInteractionCommandManagerOptions,
+    protected options: Types.BaseCommandInteractionManagerOptions,
   ) {
     this.logger = new Logger(options.logging);
     this.directory = options.directory;
@@ -30,7 +31,7 @@ export default class BaseInteractionCommandManager implements Types.BaseInteract
    * Load and set a new command
    * @param file
    */
-  public async add(command: Types.InteractionCommandData): Promise<Types.InteractionCommandData> {
+  public async add(command: Types.CommandInteractionData): Promise<Types.CommandInteractionData> {
     const { options } = this;
 
     // # check command name
@@ -154,7 +155,7 @@ export default class BaseInteractionCommandManager implements Types.BaseInteract
    * Delete and add an existing command
    * @param name
    */
-  public async refresh(name: string): Promise<Types.InteractionCommandData> {
+  public async refresh(name: string): Promise<Types.CommandInteractionData> {
     const command = this.cache.get(name); // get command
     if (!command) throw new SucroseError('ERROR', `command "${name}" not exist`);
 

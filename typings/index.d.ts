@@ -11,11 +11,11 @@ import type Discord from 'discord.js';
  * @category managers
  * @public
  */
-declare class BaseInteractionCommandManager {
+declare abstract class BaseCommandInteractionManager {
   public directory: DirectoryValue<true>;
 
-  constructor(sucrose: Sucrose, options: BaseInteractionCommandManagerOptions);
-  public cache: Discord.Collection<string, InteractionCommandData>;
+  constructor(sucrose: Sucrose, options: BaseCommandInteractionManagerOptions);
+  public cache: Discord.Collection<string, CommandInteractionData>;
 
   /**
    * Load and set a new command
@@ -37,7 +37,7 @@ declare class BaseInteractionCommandManager {
    * ```
    * @returns
    */
-  public async add(command: InteractionCommandData): Promise<InteractionCommandData>;
+  public async add(command: CommandInteractionData): Promise<CommandInteractionData>;
 
   /**
    * Send a existing command in Discord API
@@ -81,7 +81,7 @@ declare class BaseInteractionCommandManager {
    * ```
    * @returns
    */
-  public async refresh(name: string): Promise<InteractionCommandData>;
+  public async refresh(name: string): Promise<CommandInteractionData>;
 
   /**
    * Remove and define an existing command
@@ -100,7 +100,7 @@ declare class BaseInteractionCommandManager {
  * @category managers
  * @public
  */
-declare class BaseInteractionManager<T extends InteractionData = Types.InteractionData> {
+declare abstract class BaseInteractionManager<T extends InteractionData = Types.InteractionData> {
   public cache: Discord.Collection<string, T>;
 
   /**
@@ -118,7 +118,7 @@ declare class BaseInteractionManager<T extends InteractionData = Types.Interacti
   /**
    * Add interaction
    */
-  public add(interaction: T): void;
+  public abstract add(interaction: T): void;
 
   /**
    * Delete and set an existing interaction
@@ -162,6 +162,15 @@ declare class BaseCooldownManager<C = unknown> {
 }
 
 /**
+ * Autocomplete interaction manager
+ * @category managers
+ * @public
+ */
+declare class AutocompleteInteractionManager extends BaseInteractionManager<AutocompleteData> {
+  public override add(interaction: AutocompleteData | Autocomplete): void;
+}
+
+/**
  * Some utils fonction for async
  * @category utils
  * @public
@@ -169,6 +178,15 @@ declare class BaseCooldownManager<C = unknown> {
 declare class AsyncUtil {
   static every<T = unknown>(arr: T[], callback: Callback<T, boolean>): Promise<boolean>;
   static some<T = unknown>(arr: T[], callback: Callback<T, boolean>) : Promise<boolean>;
+}
+
+/**
+ * Button interaction manager
+ * @category managers
+ * @public
+ */
+declare class ButtonInteractionManager extends BaseInteractionManager<ButtonData> {
+  public override add(interaction: ButtonData | Button): void;
 }
 
 /**
@@ -337,13 +355,13 @@ declare class FolderService {
  * @category managers
  * @public
  */
-declare class InteractionCommandManager extends BaseInteractionCommandManager {
+declare class CommandInteractionManager extends BaseCommandInteractionManager {
   /**
-   * {@link InteractionGuildCommandManager}
+   * {@link GuildCommandInteractionManager}
    */
-  public readonly guilds: Discord.Collection<Discord.Snowflake, InteractionGuildCommandManager>;
+  public readonly guilds: Discord.Collection<Discord.Snowflake, GuildCommandInteractionManager>;
 
-  constructor(sucrose: Sucrose, options: InteractionCommandManagerOptions);
+  constructor(sucrose: Sucrose, options: CommandInteractionManagerOptions);
 
   /**
    * load all global command and build potential guild command manager
@@ -356,14 +374,14 @@ declare class InteractionCommandManager extends BaseInteractionCommandManager {
  * @category managers
  * @public
  */
-declare class InteractionGuildCommandManager extends BaseInteractionCommandManager {
+declare class GuildCommandInteractionManager extends BaseCommandInteractionManager {
   /**
    * id of the guild the manager is based on
    * @readonly
    */
   public readonly guildId: Discord.Snowflake;
 
-  constructor(sucrose: Sucrose, options: GuildInteractionCommandManagerOptions);
+  constructor(sucrose: Sucrose, options: GuildCommandInteractionManagerOptions);
 
   /**
    * load all guild commands
@@ -380,27 +398,27 @@ declare class InteractionManager {
   /**
    * autocomplete interaction manager
    */
-  public autocompletes: BaseInteractionManager<AutocompleteData>;
+  public autocompletes: AutocompleteInteractionManager;
 
   /**
    * buttons interaction manager
    */
-  public buttons: BaseInteractionManager<ButtonData>;
+  public buttons: ButtonInteractionManager;
 
   /**
    * commands interaction manager
    */
-  public commands: InteractionCommandManager;
+  public commands: CommandInteractionManager;
 
   /**
-   * form modals interaction manager
+   * modal interaction manager
    */
-  public forms: BaseInteractionManager<FormData>;
+  public modals: ModalInteractionManager;
 
   /**
    * select menus interaction manager
    */
-  public selectMenus: BaseInteractionManager<SelectMenuData>;
+  public selectMenus: SelectMenuInteractionManager;
 
   constructor(sucrose: Sucrose, options: BaseInteractionManagerOptions);
 
@@ -482,6 +500,15 @@ declare class Logger {
 }
 
 /**
+ * Modal interaction manager
+ * @category managers
+ * @public
+ */
+declare class ModalInteractionManager extends BaseInteractionManager<ModalData> {
+  public override add(interaction: ModalData | Modal): void;
+}
+
+/**
  * @public
  * @category managers
  */
@@ -495,6 +522,15 @@ declare class PermissionManager {
     message?: Discord.Message,
     permissions: Permission[] | Permission,
   }): Promise<void>;
+}
+
+/**
+ * select menu interaction managers
+ * @category managers
+ * @public
+ */
+declare class SelectMenuInteractionManager extends BaseInteractionManager<SelectMenuData> {
+  public override add(interaction: SelectMenuData | SelectMenu): void;
 }
 
 /**
@@ -573,22 +609,28 @@ export interface Autocomplete extends BaseInteraction<{
   /**
    * Interaction body
    */
-  body: {
-    /**
-     * Command name
-     */
-    command: string;
+  body: AutocompleteBody | AutocompleteBody[];
+}
 
-    /**
-     * Sub command group where is focus option
-     */
-    group?: string;
+/**
+ * Autocomplete interaction body
+ * @public
+ */
+export interface AutocompleteBody {
+  /**
+   * Command name
+   */
+  command: string;
 
-    /**
-     * Sub command option and focus option
-     */
-    option?: string;
-  };
+  /**
+   * Sub command group where is focus option
+   */
+  group?: string;
+
+  /**
+   * Sub command option and focus option
+   */
+  option?: string;
 }
 
 /**
@@ -596,15 +638,16 @@ export interface Autocomplete extends BaseInteraction<{
  * @public
  */
 export interface AutocompleteData extends Autocomplete {
+  body: AutocompleteBody;
   path: string;
 }
 
 /**
- * BaseInteractionCommandManagerOptions
+ * BaseCommandInteractionManagerOptions
  * @category options
  * @public
  */
-export interface BaseInteractionCommandManagerOptions extends GlobalOptions {
+export interface BaseCommandInteractionManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
   directory: DirectoryValue<true>;
 }
@@ -674,7 +717,7 @@ export interface BaseInteraction<P = { [key: string]: any }> extends GlobalBase<
  */
 export interface BaseInteractionManagerOptions extends GlobalOptions {
   env: EnvironmentOptions;
-  name: 'button' | 'select-menu' | 'autocomplete' | 'form';
+  name: 'button' | 'select-menu' | 'autocomplete' | 'modal';
   directory: DirectoryValue<true>;
 }
 
@@ -704,14 +747,17 @@ export interface Button extends BaseInteraction<{ interaction: Discord.ButtonInt
   /**
    * Interaction body
    */
-  body: Discord.ButtonComponentData;
+  body: Discord.ButtonComponentData | Discord.ButtonBuilder;
 }
 
 /**
  * Button interaction data
  * @public
  */
-export interface ButtonData extends Button { path: string; }
+export interface ButtonData extends Button {
+  body: Discord.ButtonComponentData;
+  path: string;
+}
 
 /**
  * ChatInput interaction
@@ -934,11 +980,11 @@ export interface GlobalBase<P = { [key: string]: any }> {
 }
 
 /**
- * InteractionCommandManager options
+ * CommandInteractionManager options
  * @category options
  * @public
  */
-export interface InteractionCommandManagerOptions extends BaseInteractionCommandManagerOptions {
+export interface CommandInteractionManagerOptions extends BaseCommandInteractionManagerOptions {
   directories: CommandDirectories<true>;
 }
 
@@ -955,7 +1001,7 @@ export interface Directories<P extends boolean = false, S extends boolean = fals
   events: DirectoryValue<S>;
 
   /**
-   * Configure directories form interactions manager
+   * Configure directories modal interactions manager
    */
   interactions: P extends true
     ? Partial<InteractionDirectories<P, S>>
@@ -1103,7 +1149,7 @@ export interface Features<P extends boolean = false> {
 }
 
 /**
- * Form interaction
+ * Modal interaction
  * @category interactions
  * @public
  * @example
@@ -1113,7 +1159,7 @@ export interface Features<P extends boolean = false> {
  * module.exports = {
  *  body: {
  *    customId: 'report',
- *    title: 'Report form',
+ *    title: 'Report modal',
  *    components: [{
  *      type: ComponentType.ActionRow,
  *      components: [{
@@ -1133,18 +1179,18 @@ export interface Features<P extends boolean = false> {
  * };
  * ```
  */
-export interface Form extends BaseInteraction<{ interaction: Discord.ModalSubmitInteraction }> {
-  /**
-   * Interaction form
-   */
-  body: Discord.ModalComponentData;
+export interface Modal extends BaseInteraction<{ interaction: Discord.ModalSubmitInteraction }> {
+  body: Discord.ModalComponentData | Discord.ModalBuilder;
 }
 
 /**
- * FormInteraction data
+ * ModalInteraction data
  * @public
  */
-export interface FormData extends Form { path: string; }
+export interface ModalData extends Modal {
+  body: Discord.ModalComponentData;
+  path: string;
+}
 
 /**
  * Global options
@@ -1156,12 +1202,12 @@ export interface GlobalOptions<P extends boolean = false> {
 }
 
 /**
- * InteractionGuildCommandManager options
+ * GuildCommandInteractionManager options
  * @category options
  * @public
  */
-export interface GuildInteractionCommandManagerOptions
-  extends BaseInteractionCommandManagerOptions {
+export interface GuildCommandInteractionManagerOptions
+  extends BaseCommandInteractionManagerOptions {
   guildId: Discord.Snowflake;
 }
 
@@ -1184,10 +1230,10 @@ export interface InteractionDirectories<P extends boolean = false, S extends boo
   buttons: DirectoryValue<S>;
 
   /**
-   * Directory for forms manager
-   * @defaultValue 'interactions/forms'
+   * Directory for modals manager
+   * @defaultValue 'interactions/modals'
    */
-  forms: DirectoryValue<S>;
+  modals: DirectoryValue<S>;
 
   /**
    * Directory for selectMenus manager
@@ -1217,7 +1263,7 @@ export interface InteractionFeatures /* <P extends boolean = false> */ {
 export interface InteractionHooks {
   afterInteractionExecute?: (params: {
     interaction: Discord.Interaction,
-    data: Interaction | InteractionCommand | ChatInputOption,
+    data: Interaction | CommandInteraction | ChatInputOption,
   } & BaseParams) => Discord.Awaitable<unknown>;
   afterButtonExecute?: (params: {
     interaction: Discord.ButtonInteraction,
@@ -1227,9 +1273,9 @@ export interface InteractionHooks {
     interaction: Discord.AnySelectMenuInteraction,
     data: SelectMenu,
   } & BaseParams) => Discord.Awaitable<unknown>;
-  afterFormExecute?: (params: {
+  afterModalExecute?: (params: {
     interaction: Discord.ModalSubmitInteraction,
-    data: Form,
+    data: Modal,
   } & BaseParams) => Discord.Awaitable<unknown>;
   afterUserCommandExecute?: (params: {
     interaction: Discord.UserContextMenuCommandInteraction,
@@ -1245,7 +1291,7 @@ export interface InteractionHooks {
   } & BaseParams) => Discord.Awaitable<unknown>;
   afterCommandExecute?: (params: {
     interaction: Discord.CommandInteraction,
-    data: InteractionCommand | ChatInputOption,
+    data: CommandInteraction | ChatInputOption,
   } & BaseParams) => Discord.Awaitable<unknown>;
   afterChatInputOptionExecute?: (params: {
     interaction: Discord.ChatInputCommandInteraction,
@@ -1257,7 +1303,7 @@ export interface InteractionHooks {
   } & BaseParams) => Discord.Awaitable<unknown>;
   beforeInteractionExecute?: (params: {
     interaction: Discord.Interaction,
-    data: Interaction | InteractionCommand | ChatInputOption,
+    data: Interaction | CommandInteraction | ChatInputOption,
   } & BaseParams) => Discord.Awaitable<unknown>;
   beforeButtonExecute?: (params: {
     interaction: Discord.ButtonInteraction,
@@ -1267,9 +1313,9 @@ export interface InteractionHooks {
     interaction: Discord.AnySelectMenuInteraction,
     data: SelectMenu,
   } & BaseParams) => Discord.Awaitable<unknown>;
-  beforeFormExecute?: (params: {
+  beforeModalExecute?: (params: {
     interaction: Discord.ModalSubmitInteraction,
-    data: Form,
+    data: Modal,
   } & BaseParams) => Discord.Awaitable<unknown>;
   beforeUserCommandExecute?: (params: {
     interaction: Discord.UserContextMenuCommandInteraction,
@@ -1285,7 +1331,7 @@ export interface InteractionHooks {
   } & BaseParams) => Discord.Awaitable<unknown>;
   beforeCommandExecute?: (params: {
     interaction: Discord.CommandInteraction,
-    data: InteractionCommand | ChatInputOption,
+    data: CommandInteraction | ChatInputOption,
   } & BaseParams) => Discord.Awaitable<unknown>;
   beforeChatInputOptionExecute?: (params: {
     interaction: Discord.ChatInputCommandInteraction,
@@ -1381,17 +1427,22 @@ export interface MessageContextCommandData extends MessageContextCommand { path:
  * ```
  */
 export interface SelectMenu extends BaseInteraction<{ interaction: SelectMenuInteraction }> {
-  /**
-   * Interaction body
-   */
-  body: SelectMenuComponent;
+  body: SelectMenuComponentData
+  | Discord.RoleSelectMenuBuilder
+  | Discord.UserSelectMenuBuilder
+  | Discord.StringSelectMenuBuilder
+  | Discord.ChannelSelectMenuBuilder
+  | Discord.MentionableSelectMenuBuilder;
 }
 
 /**
  * @public
  * SelectMenuInteraction data
  */
-export interface SelectMenuData extends SelectMenu { path: string; }
+export interface SelectMenuData extends SelectMenu {
+  body: SelectMenuComponentData;
+  path: string;
+}
 
 /**
  * Sucrose logger options
@@ -1548,7 +1599,7 @@ export interface InteractionContents {
   ) => ContentReturn;
 
   /**
-   * when the form interaction exec function is not define
+   * when the Modal interaction exec function is not define
    */
   FORM_INTERACTION_MISSING_EXEC: (
     params: { interaction: Discord.ModalSubmitInteraction; customId: string; }
@@ -1558,7 +1609,7 @@ export interface InteractionContents {
    * when the message context menu exec function is not define
    */
   MESSAGE_CONTEXT_MENU_MISSING_EXEC: (
-    params: { interaction: Discord.MessageContextCommandCommandInteraction; name: string; }
+    params: { interaction: Discord.MessageContextMenuCommandInteraction; name: string; }
   ) => ContentReturn;
 
   /**
@@ -1570,7 +1621,7 @@ export interface InteractionContents {
    * when the user context menu exec function is not define
    */
   USER_CONTEXT_MENU_MISSING_EXEC: (
-    params: { interaction: Discord.UserContextCommandCommandInteraction; name: string; }
+    params: { interaction: Discord.UserContextMenuCommandInteraction; name: string; }
   ) => ContentReturn;
 
   /**
@@ -1806,12 +1857,12 @@ export type DirectoryValue<S extends boolean = false> = S extends true
 /**
  * @public
  */
-export type InteractionCommand = ChatInput | MessageContextCommand | UserContextCommand;
+export type CommandInteraction = ChatInput | MessageContextCommand | UserContextCommand;
 
 /**
  * @public
  */
-export type InteractionCommandData = ChatInputData
+export type CommandInteractionData = ChatInputData
 | MessageContextCommandData
 | UserContextCommandData;
 
@@ -1832,24 +1883,24 @@ export type LoggerLogFormat = 'rainbow' | keyof Omit<LoggerLogStyles, 'colors'> 
  * All interaction
  * @public
  */
-export type Interaction = Autocomplete | Button | Form | SelectMenu;
+export type Interaction = Autocomplete | Button | Modal | SelectMenu;
 
 /**
  * All interaction data
  * @public
  */
-export type InteractionData = AutocompleteData | ButtonData | FormData | SelectMenuData;
+export type InteractionData = AutocompleteData | ButtonData | ModalData | SelectMenuData;
 
 /**
  * All select menu
  * @public
  */
-export type SelectMenuComponent = (Discord.RoleSelectMenuComponent & {
+export type SelectMenuComponentData = (Discord.RoleSelectMenuComponentData & {
   type: Discord.ComponentType.RoleSelect
-}) | (Discord.UserSelectMenuComponent & { type: Discord.ComponentType.UserSelect })
-| (Discord.MentionableSelectMenuComponent & { type: Discord.ComponentType.MentionableSelect })
-| (Discord.StringSelectMenuComponent & { type: Discord.ComponentType.StringSelect })
-| (Discord.ChannelSelectMenuComponent & { type: Discord.ComponentType.ChannelSelect });
+}) | (Discord.UserSelectMenuComponentData & { type: Discord.ComponentType.UserSelect })
+| (Discord.MentionableSelectMenuComponentData & { type: Discord.ComponentType.MentionableSelect })
+| (Discord.StringSelectMenuComponentData & { type: Discord.ComponentType.StringSelect })
+| (Discord.ChannelSelectMenuComponentData & { type: Discord.ComponentType.ChannelSelect });
 
 export type SelectMenuInteraction = Discord.AnySelectMenuInteraction;
 

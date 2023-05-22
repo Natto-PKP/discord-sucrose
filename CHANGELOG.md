@@ -1,5 +1,14 @@
 [7.0.0](700), [6.4.12](#6412), [6.4.6](#646), [6.4.4](#644), [6.3.14](#6314), [6.3.2](#632), [6.2.1](#621), [6.1.6](#616), [6.1.5](#615)
 
+### # `???`
+
+> ```diff
+> + Add separate managers for button, selectMenu, autocomplete and modal
+> + Rename all managers, interface and type who is related to command interaction
+> + Rename form to modal
+> + Add interaction builder support to managers
+> ```
+
 ### # `7.0.0`
 
 > ```diff

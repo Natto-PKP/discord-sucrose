@@ -7,7 +7,7 @@ export { default as getFeaturesOptions } from './getFeaturesOptions';
 export { default as getInteractionManagerOptions } from './getInteractionManagerOptions';
 export { default as getAutocompleteInteractionManagerOptions } from './getAutocompleteInteractionManagerOptions';
 export { default as getButtonInteractionManagerOptions } from './getButtonInteractionManagerOptions';
-export { default as getFormInteractionManagerOptions } from './getFormInteractionManagerOptions';
+export { default as getModalInteractionManagerOptions } from './getModalInteractionManagerOptions';
 export { default as getSelectMenuInteractionManagerOptions } from './getSelectMenuInteractionManagerOptions';
 export { default as getContentsOptions } from './getContentsOptions';
 export { default as getCooldownContentsOptions } from './getCooldownContentsOptions';

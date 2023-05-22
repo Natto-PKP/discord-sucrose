@@ -16,27 +16,30 @@ import Sucrose from '../Sucrose';
 import {
   SucroseError, SucroseCooldownError, SucroseInteractionError, SucrosePermissionError,
 } from '../errors';
-import BaseInteractionManager from './BaseInteractionManager';
-import InteractionCommandManager from './InteractionCommandManager';
+import CommandInteractionManager from './CommandInteractionManager';
 import Logger from '../services/Logger';
 import * as defaults from '../options';
 import ConditionService from '../services/ConditionService';
 import { SucroseConditionError } from '../errors/SConditionError';
+import AutocompleteInteractionManager from './AutocompleteInteractionManager';
+import ButtonInteractionManager from './ButtonInteractionManager';
+import ModalInteractionManager from './ModalInteractionManager';
+import SelectMenuInteractionManager from './SelectMenuInteractionManager';
 
 export default class InteractionManager implements Types.InteractionManager {
   private builded = false;
 
   private logger: Logger;
 
-  public autocompletes: BaseInteractionManager<Types.AutocompleteData>;
+  public autocompletes: AutocompleteInteractionManager;
 
-  public buttons: BaseInteractionManager<Types.ButtonData>;
+  public buttons: ButtonInteractionManager;
 
-  public commands: InteractionCommandManager;
+  public commands: CommandInteractionManager;
 
-  public forms: BaseInteractionManager<Types.FormData>;
+  public modals: ModalInteractionManager;
 
-  public selectMenus: BaseInteractionManager<Types.SelectMenuData>;
+  public selectMenus: SelectMenuInteractionManager;
 
   public constructor(private sucrose: Sucrose, private options: Types.InteractionManagerOptions) {
     this.logger = new Logger(options.logging);
@@ -45,14 +48,14 @@ export default class InteractionManager implements Types.InteractionManager {
     const autocompleteOptions = defaults.getAutocompleteInteractionManagerOptions(options);
     const buttonOptions = defaults.getButtonInteractionManagerOptions(options);
     const commandOptions = defaults.getCommandManagerOptions(options);
-    const formOptions = defaults.getFormInteractionManagerOptions(options);
+    const modalOptions = defaults.getModalInteractionManagerOptions(options);
     const selectMenuOptions = defaults.getSelectMenuInteractionManagerOptions(options);
 
-    this.autocompletes = new BaseInteractionManager<Types.AutocompleteData>(autocompleteOptions);
-    this.buttons = new BaseInteractionManager<Types.ButtonData>(buttonOptions);
-    this.commands = new InteractionCommandManager(sucrose, commandOptions);
-    this.forms = new BaseInteractionManager<Types.FormData>(formOptions);
-    this.selectMenus = new BaseInteractionManager<Types.SelectMenuData>(selectMenuOptions);
+    this.autocompletes = new AutocompleteInteractionManager(autocompleteOptions);
+    this.buttons = new ButtonInteractionManager(buttonOptions);
+    this.commands = new CommandInteractionManager(sucrose, commandOptions);
+    this.modals = new ModalInteractionManager(modalOptions);
+    this.selectMenus = new SelectMenuInteractionManager(selectMenuOptions);
   }
 
   /**
@@ -67,7 +70,7 @@ export default class InteractionManager implements Types.InteractionManager {
     await this.autocompletes.build().catch((err: Error) => this.logger.handle(err));
     await this.buttons.build().catch((err: Error) => this.logger.handle(err));
     await this.commands.build().catch((err: Error) => this.logger.handle(err));
-    await this.forms.build().catch((err: Error) => this.logger.handle(err));
+    await this.modals.build().catch((err: Error) => this.logger.handle(err));
     await this.selectMenus.build().catch((err: Error) => this.logger.handle(err));
 
     // # listen to interactionCreate event
@@ -122,48 +125,48 @@ export default class InteractionManager implements Types.InteractionManager {
     const params = { sucrose };
     const { guild } = interaction;
 
-    // # interaction is a form
+    // # interaction is a modal
     if (interaction.type === InteractionType.ModalSubmit) {
-      // # get form
-      const { customId } = interaction; // get form id
-      const form = this.forms.cache.get(customId);
-      if (!form) return;
-      const formId = form.body.customId; // define id
+      // # get modal
+      const { customId } = interaction; // get modal id
+      const modal = this.modals.cache.get(customId);
+      if (!modal) return;
+      const modalId = modal.body.customId; // define id
 
-      // # form conditions
-      if (form.conditions) {
-        const { conditions } = form;
+      // # modal conditions
+      if (modal.conditions) {
+        const { conditions } = modal;
         const alright = await ConditionService.isAlright({ interaction, sucrose, conditions });
-        if (!alright) throw new SucroseConditionError(`custom error failed on form "${customId}"`, conditions);
+        if (!alright) throw new SucroseConditionError(`custom error failed on modal "${customId}"`, conditions);
       }
 
-      // # form permissions
-      if (form.permissions) {
-        await permission.isAuthorized({ interaction, permissions: form.permissions });
+      // # modal permissions
+      if (modal.permissions) {
+        await permission.isAuthorized({ interaction, permissions: modal.permissions });
       }
 
-      // # form cooldowns
-      if (form.cooldowns) {
-        await cooldown.isOver({ interaction, cooldowns: form.cooldowns, id: formId });
+      // # modal cooldowns
+      if (modal.cooldowns) {
+        await cooldown.isOver({ interaction, cooldowns: modal.cooldowns, id: modalId });
       }
 
-      // # form can't be executed
-      if (!form.exec) throw new SucroseInteractionError(`form "${customId}" exec function not define`, contents.FORM_INTERACTION_MISSING_EXEC({ interaction, customId }));
+      // # modal can't be executed
+      if (!modal.exec) throw new SucroseInteractionError(`modal "${customId}" exec function not define`, contents.FORM_INTERACTION_MISSING_EXEC({ interaction, customId }));
 
       const baseHookParams = { interaction, sucrose };
-      const hookParams = { ...baseHookParams, data: form };
+      const hookParams = { ...baseHookParams, data: modal };
 
       // # before hooks
-      if (form.hooks?.beforeExecute) await form.hooks.beforeExecute(baseHookParams);
+      if (modal.hooks?.beforeExecute) await modal.hooks.beforeExecute(baseHookParams);
       if (hooks?.beforeInteractionExecute) await hooks.beforeInteractionExecute(hookParams);
-      if (hooks?.beforeFormExecute) await hooks.beforeFormExecute(hookParams);
+      if (hooks?.beforeModalExecute) await hooks.beforeModalExecute(hookParams);
 
-      // # execute form
-      await form.exec({ ...params, interaction });
+      // # execute modal
+      await modal.exec({ ...params, interaction });
 
-      // # after form
-      if (form.hooks?.afterExecute) await form.hooks.afterExecute(baseHookParams);
-      if (hooks?.afterFormExecute) await hooks.afterFormExecute(hookParams);
+      // # after modal
+      if (modal.hooks?.afterExecute) await modal.hooks.afterExecute(baseHookParams);
+      if (hooks?.afterModalExecute) await hooks.afterModalExecute(hookParams);
       if (hooks?.afterInteractionExecute) await hooks.afterInteractionExecute(hookParams);
 
       // # interaction is autocomplete

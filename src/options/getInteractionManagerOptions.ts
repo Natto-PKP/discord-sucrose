@@ -17,7 +17,7 @@ export default (options: Types.SucroseOptions<false, true>): Types.InteractionMa
       },
       autocompletes: directories.autocompletes,
       buttons: directories.buttons,
-      forms: directories.forms,
+      modals: directories.modals,
       selectMenus: directories.selectMenus,
     },
     env,

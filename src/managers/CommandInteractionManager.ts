@@ -3,21 +3,21 @@ import { existsSync, lstatSync } from 'fs';
 import path from 'path';
 
 import type Discord from 'discord.js';
-import GuildCommandManager from './InteractionGuildCommandManager';
-import BaseInteractionCommandManager from './BaseInteractionCommandManager';
+import GuildCommandManager from './GuildCommandInteractionManager';
+import BaseCommandInteractionManager from './BaseCommandInteractionManager';
 import { SucroseError } from '../errors';
 
 import type Types from '../../typings';
 import FolderService from '../services/FolderService';
 
-export default class InteractionCommandManager
-  extends BaseInteractionCommandManager
-  implements Types.InteractionCommandManager {
-  public guilds = new Collection<Discord.Snowflake, Types.InteractionGuildCommandManager>();
+export default class CommandInteractionManager
+  extends BaseCommandInteractionManager
+  implements Types.CommandInteractionManager {
+  public guilds = new Collection<Discord.Snowflake, Types.GuildCommandInteractionManager>();
 
   public constructor(
     sucrose: Types.Sucrose,
-    protected override options: Types.InteractionCommandManagerOptions,
+    protected override options: Types.CommandInteractionManagerOptions,
   ) {
     super(sucrose, options);
   }
@@ -45,7 +45,7 @@ export default class InteractionCommandManager
         // # loop all file
         const errors = [] as Error[];
         const promises = await Promise.allSettled(files.map(async (file) => {
-          const command = await FolderService.load(file, 'interaction') as Types.InteractionCommandData;
+          const command = await FolderService.load(file, 'interaction') as Types.CommandInteractionData;
           command.path = file;
           await this.add(command);
         }));

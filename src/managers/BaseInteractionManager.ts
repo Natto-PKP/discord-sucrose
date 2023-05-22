@@ -7,8 +7,9 @@ import { SucroseError } from '../errors';
 import Logger from '../services/Logger';
 import FolderService from '../services/FolderService';
 
-export default class BaseInteractionManager<T extends Types.InteractionData = Types.InteractionData>
-implements Types.BaseInteractionManager<T> {
+export default abstract class BaseInteractionManager<
+  T extends Types.InteractionData = Types.InteractionData,
+> implements Types.BaseInteractionManager<T> {
   public cache: Collection<string, T> = new Collection();
 
   private builded = false;
@@ -70,23 +71,7 @@ implements Types.BaseInteractionManager<T> {
     }
   }
 
-  public add(interaction: T): void {
-    // # if primary key is an url (ex: url button)
-    if ('url' in interaction.body) {
-      this.cache.set(interaction.body.url, interaction);
-
-      // # if primary key is customId (ex: message component)
-    } else if ('customId' in interaction.body) {
-      this.cache.set(interaction.body.customId, interaction);
-
-      // # if primary key is command
-    } else if ('command' in interaction.body) {
-      let key = interaction.body.command;
-      if (interaction.body.group) key += `-${interaction.body.group}`;
-      if (interaction.body.option) key += `-${interaction.body.option}`;
-      this.cache.set(key, interaction);
-    }
-  }
+  public abstract add(interaction: T): void;
 
   /**
    * Delete and set an existing interaction

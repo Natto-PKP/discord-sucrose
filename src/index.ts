@@ -8,12 +8,12 @@ import FolderService from './services/FolderService';
 
 import AsyncUtil from './utils/AsyncUtil';
 
-import BaseInteractionCommandManager from './managers/BaseInteractionCommandManager';
+import BaseInteractionCommandManager from './managers/BaseCommandInteractionManager';
 import BaseInteractionManager from './managers/BaseInteractionManager';
 import Event from './managers/Event';
 import EventManager from './managers/EventManager';
-import InteractionCommandManager from './managers/InteractionCommandManager';
-import InteractionGuildCommandManager from './managers/InteractionGuildCommandManager';
+import InteractionCommandManager from './managers/CommandInteractionManager';
+import InteractionGuildCommandManager from './managers/GuildCommandInteractionManager';
 import InteractionManager from './managers/InteractionManager';
 import BaseCooldownManager from './managers/BaseCooldownManager';
 import PermissionManager from './managers/PermissionManager';

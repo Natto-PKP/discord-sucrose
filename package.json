@@ -4,7 +4,7 @@
     "Lors de la publication d'une version de dev, ajout d'une chaine random du genre gRg8VE6r",
     "Unpublish l'ancienne version avant de changer la version et de publish"
   ],
-  "version": "7.0.1",
+  "version": "7.1.0-dev.WCD6SwZ5",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "types": "typings/index.d.ts",

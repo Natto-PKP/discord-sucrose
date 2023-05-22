@@ -5,15 +5,15 @@ import type Discord from 'discord.js';
 import type Types from '../../typings';
 
 import { SucroseError } from '../errors';
-import BaseInteractionCommandManager from './BaseInteractionCommandManager';
+import BaseCommandInteractionManager from './BaseCommandInteractionManager';
 import FolderService from '../services/FolderService';
 
-export default class InteractionGuildCommandManager
-  extends BaseInteractionCommandManager
-  implements Types.InteractionGuildCommandManager {
+export default class GuildCommandInteractionManager
+  extends BaseCommandInteractionManager
+  implements Types.GuildCommandInteractionManager {
   public readonly guildId: Discord.Snowflake;
 
-  public constructor(sucrose: Types.Sucrose, options: Types.GuildInteractionCommandManagerOptions) {
+  public constructor(sucrose: Types.Sucrose, options: Types.GuildCommandInteractionManagerOptions) {
     super(sucrose, options);
     this.guildId = options.guildId;
   }
@@ -42,7 +42,7 @@ export default class InteractionGuildCommandManager
       // # loop all files from guild folder
       const errors = [] as Error[];
       const promises = await Promise.allSettled(files.map(async (file) => {
-        const command = await FolderService.load(file, 'interaction') as Types.InteractionCommandData;
+        const command = await FolderService.load(file, 'interaction') as Types.CommandInteractionData;
         command.path = file;
         await this.add(command);
       }));
