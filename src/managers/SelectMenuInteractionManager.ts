@@ -27,7 +27,10 @@ export default class SelectMenuInteractionManager
       };
     } else if (interaction.body instanceof Discord.StringSelectMenuBuilder) {
       const body = interaction.body.data as Discord.APIStringSelectComponent;
-      const options = [...body.options, ...interaction.body.options.map((option) => option.data)];
+      const options = [
+        ...body.options,
+        ...Object.values(interaction.body.options).map((option) => option.data),
+      ];
 
       selectMenu.body = {
         disabled: Boolean(body.disabled),
