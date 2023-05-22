@@ -12,28 +12,42 @@ export default class SelectMenuInteractionManager
       interaction.body instanceof Discord.UserSelectMenuBuilder
         || interaction.body instanceof Discord.RoleSelectMenuBuilder
         || interaction.body instanceof Discord.MentionableSelectMenuBuilder
-        || interaction.body instanceof Discord.StringSelectMenuBuilder
     ) {
       const body = interaction.body.data as Discord.APIRoleSelectComponent
       | Discord.APIUserSelectComponent
-      | Discord.APIMentionableSelectComponent
-      | Discord.APIStringSelectComponent;
+      | Discord.APIMentionableSelectComponent;
 
       selectMenu.body = {
-        ...body,
+        disabled: Boolean(body.disabled),
         customId: body.custom_id as string,
         maxValues: body.max_values,
         minValues: body.min_values,
+        placeholder: body.placeholder,
+        type: body.type,
+      };
+    } else if (interaction.body instanceof Discord.StringSelectMenuBuilder) {
+      const body = interaction.body.data as Discord.APIStringSelectComponent;
+
+      selectMenu.body = {
+        disabled: Boolean(body.disabled),
+        customId: body.custom_id as string,
+        maxValues: body.max_values,
+        minValues: body.min_values,
+        placeholder: body.placeholder,
+        type: body.type,
+        options: body.options,
       };
     } else if (interaction.body instanceof Discord.ChannelSelectMenuBuilder) {
       const body = interaction.body.data as Discord.APIChannelSelectComponent;
 
       selectMenu.body = {
-        ...body,
+        disabled: Boolean(body.disabled),
         customId: body.custom_id as string,
         maxValues: body.max_values,
         minValues: body.min_values,
         channelTypes: body.channel_types,
+        placeholder: body.placeholder,
+        type: body.type || Discord.ComponentType.ChannelSelect,
       };
     }
 

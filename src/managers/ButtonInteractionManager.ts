@@ -10,8 +10,25 @@ export default class ButtonInteractionManager
 
     if (interaction.body instanceof Discord.ButtonBuilder) {
       const body = interaction.body.data as Discord.APIButtonComponent;
-      if ('custom_id' in body) button.body = { ...body, customId: body.custom_id };
-      else if ('url' in body) button.body = body;
+      if ('custom_id' in body) {
+        button.body = {
+          customId: body.custom_id,
+          disabled: Boolean(body.disabled),
+          emoji: body.emoji,
+          label: body.label,
+          style: body.style,
+          type: Discord.ComponentType.Button,
+        };
+      } else if ('url' in body) {
+        button.body = {
+          url: body.url,
+          disabled: Boolean(body.disabled),
+          emoji: body.emoji,
+          label: body.label,
+          style: Discord.ButtonStyle.Link,
+          type: Discord.ComponentType.Button,
+        };
+      }
     }
 
     if ('customId' in button.body) this.cache.set(button.body.customId, button);

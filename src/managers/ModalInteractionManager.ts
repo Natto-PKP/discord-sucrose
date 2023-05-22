@@ -17,10 +17,15 @@ export default class ModalInteractionManager
         components: body.components.map((row) => ({
           type: row.type,
           components: row.components.map((component) => ({
-            ...component,
             customId: component.custom_id,
+            label: component.label,
+            placeholder: component.placeholder,
             maxLength: component.max_length,
             minLength: component.min_length,
+            required: Boolean(component.required),
+            style: component.style,
+            type: component.type,
+            value: component.value,
           })) as Discord.ModalActionRowComponentData[],
         })),
       };
