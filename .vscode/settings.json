@@ -1,0 +1,14 @@
+{
+    "json.schemaDownload.enable": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  
+    "[javascript]": { "editor.codeActionsOnSave": { "source.fixAll.eslint": true } },
+    "[typescript]": { "editor.codeActionsOnSave": { "source.fixAll.eslint": true } },
+    "[javascriptreact]": { "editor.codeActionsOnSave": { "source.fixAll.eslint": true } },
+    "[typescriptreact]": { "editor.codeActionsOnSave": { "source.fixAll.eslint": true } },
+    "[json]": { "editor.formatOnSave": true },
+    "[css]": { "editor.formatOnSave": true },
+    "[scss]": { "editor.formatOnSave": true }
+  }
+  

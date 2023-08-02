@@ -23,7 +23,11 @@
     "discord",
     "bot",
     "discord.js",
-    "typescript"
+    "typescript",
+    "structure",
+    "template",
+    "sucrose",
+    "ferret"
   ],
   "repository": {
     "type": "git",
@@ -50,6 +54,6 @@
   },
   "dependencies": {
     "commitlint": "^17.1.2",
-    "discord.js": "^14.11.0"
+    "discord.js": "^14.12.1"
   }
 }

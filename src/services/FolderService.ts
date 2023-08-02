@@ -1,7 +1,6 @@
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import path from 'path';
-import type Types from '../../typings';
-import { SucroseError } from '../errors';
+import type Types from '../../typings/old.index';
 
 export default class FolderService implements Types.FolderService {
   static search(options: {
@@ -60,13 +59,5 @@ export default class FolderService implements Types.FolderService {
       // # return results
       return results;
     } return results;
-  }
-
-  static async load(file: string, prop?: string | undefined): Promise<unknown> {
-    const obj = await import(file);
-    if (prop && obj[prop]) return obj[prop];
-    if (obj.default) return obj.default;
-    if (obj) return obj;
-    throw new SucroseError('ERROR', `can't import on "${path}"`);
   }
 }

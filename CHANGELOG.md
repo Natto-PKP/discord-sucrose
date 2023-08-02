@@ -6,7 +6,8 @@
 > + Add separate managers for button, selectMenu, autocomplete and modal
 > + Rename all managers, interface and type who is related to command interaction
 > + Rename form to modal
-> + Add interaction builder support to managers
+> + Add interaction builder support to managers and object
+> + Add slash command builder support to managers and object
 > ```
 
 ### # `7.0.0`
