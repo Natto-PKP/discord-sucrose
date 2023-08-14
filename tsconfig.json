@@ -1,58 +1,51 @@
 {
-  "include": ["src", "typings"],
-  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*", "typings/**/*"],
 
   "compilerOptions": {
-    //! Type Checking
-    "alwaysStrict": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "exactOptionalPropertyTypes": false,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": true,
-    "noImplicitOverride": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "strict": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "useUnknownInCatchVariables": true,
+    "baseUrl": "./", // Base directory to resolve non-relative module names
 
-    //! Modules
+    // # Type checking
+    "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statement
+    "noImplicitAny": true, // Disallow implicit any
+    "noImplicitOverride": true, // Ensure overriding members in derived classes are marked with an override modifier
+    "noImplicitReturns": true, // Report error when not all code paths in function return a value
+    "noImplicitThis": true, // Raise error on 'this' expressions with an implied 'any' type
+    "noPropertyAccessFromIndexSignature": true, // Enforces using indexed accessors for keys declared using an indexed type
+    "noUnusedLocals": true, // Report errors on unused locals
+    "noUnusedParameters": true, // Report errors on unused parameters
+
+    // # Strict
+    "strict": true, // Enable all strict type-checking options 
+    "strictBindCallApply": true, // Enable strict checking of function types of functions called with function-like objects
+    "strictFunctionTypes": true, // Enable strict checking of function types
+    "strictNullChecks": true, // Enable strict null checks
+    "strictPropertyInitialization": true, // Enable strict checking of property initialization in classes
+    "useUnknownInCatchVariables": true, // Type catch clause variables as unknown instead of any
+
+    // # Modules
+    // "allowArbitraryExtensions": true, // Allow arbitrary file extensions
+    // "allowImportingTsExtensions": true, // Allow importing .ts files
     "module": "CommonJS",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "rootDir": "src",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true, // Include modules imported with .json extension
+    "rootDir": "src", // Specify the root directory of input files
+    // "typeRoots": ["./typings"], // Specify multiple folders that act like `./node_modules/@types`
+    "types": ["node"], // Specify type package names to be included without being referenced in a source file
+    "declaration": true, // Generates corresponding '.d.ts' file
+    "declarationMap": true, // Generates a sourcemap for each corresponding '.d.ts' file
+    "outDir": "dist", // Redirect output structure to the directory
+    "sourceMap": true, // Generates corresponding '.map' file
+    "stripInternal": true, // Disable emitting declarations that have '@internal' in their JSDoc comments
+    "target": "ESNext", // Specify ECMAScript target version
 
-    //! Emit
-    "declaration": true,
-    "importHelpers": true,
-    // "verbatimModuleSyntax": false,
-    "inlineSources": true,
-    "newLine": "lf",
-    "noEmitHelpers": true,
-    "outDir": "dist",
-    "preserveConstEnums": true,
-    "removeComments": false,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    // # Interop Constraints
+    "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file
+    // "verbatimModuleSyntax": true, // Enable stricter checking of `import` and `export` declarations when using `--esModuleInterop`
+    "esModuleInterop": true, // Emit additional JavaScript to ease support for importing CommonJS modules
 
-    //! Language and Environment
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "lib": ["ESNext"],
-    "target": "ES2021",
-    "useDefineForClassFields": true,
-
-    "pretty": false,
-    "skipDefaultLibCheck": true,
-
-    //! tmp
-    "skipLibCheck": true
+    // # Language and Environment
+    "emitDecoratorMetadata": true, // Emit design-type metadata for decorated declarations in source files
+    "experimentalDecorators": true, // Enables experimental support for ES7 decorators 
+    // "lib": ["ESNext"], // Specify library files to be included in the compilation
   }
 }

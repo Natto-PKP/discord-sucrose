@@ -1,124 +1,71 @@
-import Discord from 'discord.js';
-import BaseExecutable, { type BaseExecutableData, BaseExecuteParams } from './BaseExecutable';
-import Cooldown, { type CooldownData } from './Cooldown';
-import Permission, { type PermissionData } from './Permission';
+import type Discord from 'discord.js';
+import Permission, { PermissionData } from './Permission';
+import Cooldown, { CooldownData } from './Cooldown';
+import BaseExecutable, { type BaseExecutableData, type BaseExecutableParams } from './BaseExecutable';
 
-export interface BaseInteractionData<
-  Params = { },
-  Body = unknown,
-> extends BaseExecutableData<Params> {
-  cooldowns?: Cooldown<Params>[] | null;
-  permissions?: Permission<Params>[] | null;
-  body: Body;
-}
+type Perm = Permission | PermissionData;
+type Coold = Cooldown | CooldownData;
 
-export interface BaseInteractionExecuteParams extends BaseExecuteParams {
+export interface BaseInteractionParams extends BaseExecutableParams {
   interaction: Discord.Interaction;
 }
 
-/**
- * @public
- */
-export default class BaseInteraction<
-  Params = { },
-  Data extends BaseInteractionData<Params> = BaseInteractionData<Params>,
-> extends BaseExecutable<Params, Data> {
-  /**
-   * Add cooldown
-   * @param cooldown - Cooldown
-   * @returns - This
-   */
-  public addCooldown(cooldown: Cooldown<Params> | CooldownData<Params>): this {
-    const instance = new Cooldown(cooldown);
-    if (!this.data.cooldowns) this.data.cooldowns = [instance];
-    else this.data.cooldowns.push(instance);
+export interface BaseInteractionData<P = { }, B = unknown> extends BaseExecutableData<P> {
+  body: B;
+  permissions?: (Perm)[] | Perm | null;
+  cooldowns?: (Coold)[] | (Coold) | null;
+}
+
+export default class BaseInteraction<P = { }, B = unknown> extends BaseExecutable<P> {
+  public body: B;
+
+  public permissions?: (Perm)[] | Perm | null;
+
+  public cooldowns?: (Coold)[] | (Coold) | null;
+
+  constructor(data?: BaseInteractionData<P, B> | BaseInteraction<P, B> | null) {
+    super(data);
+
+    const d = (data instanceof BaseInteraction ? data.data : data) ?? this.data;
+    this.body = d.body as B;
+    this.permissions = d.permissions ?? null;
+    this.cooldowns = d.cooldowns ?? null;
+  }
+
+  public override get data(): BaseInteractionData<P> {
+    return {
+      ...super.data,
+      body: this.body,
+      permissions: this.permissions,
+      cooldowns: this.cooldowns,
+    };
+  }
+
+  public addPermissions(...permissions: (Perm)[]): this {
+    if (!this.permissions) this.permissions = [];
+    if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
+    this.permissions.push(...permissions);
     return this;
   }
 
-  /**
-   * Add permission
-   * @param permission - Permission
-   * @returns - This
-   */
-  public addPermission(permission: Permission<Params> | PermissionData<Params>): this {
-    const instance = new Permission<Params>(permission);
-    if (!this.data.permissions) this.data.permissions = [instance as Permission<Params>];
-    else this.data.permissions.push(instance as Permission<Params>);
+  public addCooldowns(...cooldowns: (Coold)[]): this {
+    if (!this.cooldowns) this.cooldowns = [];
+    if (!(this.cooldowns instanceof Array)) this.cooldowns = [this.cooldowns];
+    this.cooldowns.push(...cooldowns);
     return this;
   }
 
-  /**
-   * Remove cooldown
-   * @param cooldown - Cooldown
-   * @returns - This
-   */
-  public removeCooldown(cooldown: Cooldown | CooldownData | string): this {
-    if (!this.data.cooldowns) return this;
-    const data = cooldown instanceof Cooldown ? cooldown.toJSON() : cooldown;
-    const label = typeof data === 'string' ? data : data.label;
-    this.data.cooldowns = this.data.cooldowns.filter((c) => c.label !== label);
+  public removePermissions(...permissions: (Perm)[]): this {
+    if (!this.permissions) return this;
+    if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
+    this.permissions = this.permissions.filter((permission) => !permissions.some((p) => (typeof p !== 'string' ? p.label : p) === permission.label));
     return this;
   }
 
-  /**
-   * Remove permission
-   * @param permission - Permission
-   * @returns - This
-   */
-  public removePermission(permission: Permission | PermissionData | string): this {
-    if (!this.data.permissions) return this;
-    const data = permission instanceof Permission ? permission.toJSON() : permission;
-    const label = typeof data === 'string' ? data : data.label;
-    this.data.permissions = this.data.permissions.filter((p) => p.label !== label);
+  public removeCooldowns(...cooldowns: (Coold | string)[]): this {
+    if (!this.cooldowns) return this;
+    if (!(this.cooldowns instanceof Array)) this.cooldowns = [this.cooldowns];
+    this.cooldowns = this.cooldowns.filter((cooldown) => !cooldowns.some((c) => (typeof c !== 'string' ? c.label : c) === cooldown.label));
     return this;
-  }
-
-  /**
-   * Set cooldowns
-   * @param cooldowns - Cooldowns
-   * @returns - This
-   */
-  public setCooldowns(cooldowns: (Cooldown<Params> | CooldownData<Params>)[] | null): this {
-    if (!cooldowns) {
-      this.data.cooldowns = null;
-      return this;
-    }
-
-    const instances = cooldowns.map((c) => new Cooldown(c));
-    this.data.cooldowns = instances;
-    return this;
-  }
-
-  /**
-   * Set body
-   * @param body - Body
-   * @returns - This
-   */
-  public setBody(body: Data['body']): this {
-    this.data.body = body;
-    return this;
-  }
-
-  /**
-   * Set permissions
-   * @param permissions - Permissions
-   * @returns - This
-   */
-  public setPermissions(permissions: (Permission<Params> | PermissionData<Params>)[]): this {
-    const instances = permissions.map((p) => new Permission<Params>(p));
-    this.data.permissions = instances;
-    return this;
-  }
-
-  public get cooldowns() {
-    return this.data.cooldowns;
-  }
-
-  public get body() {
-    return this.data.body;
-  }
-
-  public get permissions() {
-    return this.data.permissions;
   }
 }

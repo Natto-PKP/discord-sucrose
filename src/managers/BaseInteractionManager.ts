@@ -2,8 +2,8 @@ import BaseInteraction, { type BaseInteractionData } from '../structures/BaseInt
 import BaseManager from './BaseManager';
 
 export default abstract class BaseInteractionManager<
-  Data extends BaseInteractionData,
-  Builder extends BaseInteraction,
-> extends BaseManager<Data, Builder> {
-
-}
+  Params = { },
+  Body = unknown,
+  Model extends BaseInteraction<Params, Body> = BaseInteraction<Params, Body>,
+  Data extends BaseInteractionData<Params, Body> = BaseInteractionData<Params, Body>,
+> extends BaseManager<Model, Data> { }

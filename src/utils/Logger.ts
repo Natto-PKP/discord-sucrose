@@ -108,16 +108,25 @@ export default class Logger extends EventEmitter {
     this.log('FATAL', content);
   }
 
-  public log(level: keyof typeof Levels, content: Error | string) {
-    const { verbose } = this.options;
+  public log(level: keyof typeof Levels, content: Error | string, options?: {
+    withDate?: boolean | null;
+    verbose?: boolean | null;
+    colored?: boolean | null;
+    tabulation?: number | null;
+  }) {
+    const withDate = options?.withDate ?? true;
+    const verbose = options?.verbose ?? this.options.verbose ?? false;
+    const colored = options?.colored ?? this.options.colored ?? true;
+    const tabulation = options?.tabulation ?? 0;
 
     const datetime = Logger.getDatetime(true);
     const name = content instanceof Error ? content.name : null;
     const message = content instanceof Error ? content.message : content;
 
-    const newMessageWithColor = `${colors.gray + datetime + styles.reset} ${levelStyles[level]} ${name ? `[${name}] ` : ''}${message}`;
-    const newMessageWithoutColor = `${datetime} ${level} ${name ? `[${name}] ` : ''}${message}`;
-    const newMessage = this.options.colored ? newMessageWithColor : newMessageWithoutColor;
+    const newMessageWithColor = `${withDate ? `${colors.gray + datetime + styles.reset} ` : ''}${levelStyles[level]} ${name ? `[${name}] ` : ''}${message}`;
+    const newMessageWithoutColor = `${withDate ? `${datetime} ` : ''}${level} ${name ? `[${name}] ` : ''}${message}`;
+    let newMessage = colored ? newMessageWithColor : newMessageWithoutColor;
+    if (tabulation) newMessage = `${'\t'.repeat(tabulation)}${newMessage}`;
 
     const newContent = content;
     if (newContent instanceof Error) newContent.message = newMessage;

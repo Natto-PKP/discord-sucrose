@@ -4,7 +4,8 @@
     "Lors de la publication d'une version de dev, ajout d'une chaine random du genre gRg8VE6r",
     "Unpublish l'ancienne version avant de changer la version et de publish"
   ],
-  "version": "7.1.0-dev.hukyWW4w",
+  "version": "8.0.0-dev.Jf8F8mTv",
+  "type": "module",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
   "types": "typings/index.d.ts",
@@ -38,6 +39,8 @@
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
+    "@jest/globals": "^29.6.2",
+    "@types/jest": "^29.5.3",
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
@@ -45,12 +48,16 @@
     "eslint": "^8.2.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-jest": "^27.2.3",
     "husky": "^8.0.1",
+    "jest": "^29.6.2",
     "prettier": "^2.4.1",
+    "ts-jest": "^29.1.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typedoc": "^0.24.7",
-    "typescript": "^4.5.2"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
     "commitlint": "^17.1.2",

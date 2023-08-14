@@ -1,0 +1,9 @@
+{
+  "include": ["tests"],
+
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
+}
