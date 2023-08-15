@@ -25,8 +25,9 @@ export interface SelectMenuParams extends BaseInteractionParams {
   interaction: Discord.AnySelectMenuInteraction;
 }
 
-export interface SelectMenuData<P = SelectMenuParams> extends BaseInteractionData<P> {
-  body: SelectMenuBody;
+export interface SelectMenuData<P = SelectMenuParams, B = SelectMenuBody>
+  extends BaseInteractionData<P, B> {
+  body: B;
 }
 
 export default class SelectMenu<P = SelectMenuParams, B = SelectMenuBody>

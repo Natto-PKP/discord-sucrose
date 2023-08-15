@@ -4,7 +4,7 @@ import Base, { BaseData } from './Base';
 
 export interface BaseExecutableParams {
   client: Discord.Client;
-  sucrose: Sucrose;
+  sucrose?: Sucrose | null;
 }
 
 export interface BaseExecutableData<P> extends BaseData {

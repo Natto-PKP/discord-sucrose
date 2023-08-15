@@ -3,12 +3,11 @@ import Sucrose from 'src/Sucrose';
 import Base, { type BaseData } from './Base';
 
 export interface PermissionExecuteParams {
-  channel?: Discord.Channel;
-  guild?: Discord.Guild;
-  member?: Discord.GuildMember;
-  user?: Discord.User;
-  self: Permission;
-  sucrose: Sucrose;
+  channel?: Discord.Channel | null;
+  guild?: Discord.Guild | null;
+  member?: Discord.GuildMember | Discord.APIInteractionGuildMember | null;
+  user?: Discord.User | null;
+  sucrose?: Sucrose | null;
   client: Discord.Client;
 }
 

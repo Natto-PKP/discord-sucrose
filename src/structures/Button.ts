@@ -9,7 +9,7 @@ export interface ButtonParams extends BaseInteractionParams {
   interaction: Discord.ButtonInteraction;
 }
 
-export interface ButtonData extends BaseInteractionData<ButtonParams> {
+export interface ButtonData extends BaseInteractionData<ButtonParams, ButtonBody> {
   body: ButtonBody;
 }
 

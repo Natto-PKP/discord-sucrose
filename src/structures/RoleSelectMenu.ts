@@ -9,7 +9,8 @@ export interface RoleSelectMenuParams extends SelectMenuParams {
   interaction: Discord.AnySelectMenuInteraction;
 }
 
-export interface RoleSelectMenuData extends SelectMenuData<RoleSelectMenuParams> {
+export interface RoleSelectMenuData
+  extends SelectMenuData<RoleSelectMenuParams, RoleSelectMenuBody> {
   body: RoleSelectMenuBody;
 }
 

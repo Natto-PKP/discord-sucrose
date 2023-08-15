@@ -11,8 +11,8 @@ export interface CommandParams extends BaseInteractionParams {
   | Discord.UserContextMenuCommandInteraction;
 }
 
-export interface CommandData<P = CommandParams> extends BaseInteractionData<P> {
-  body: CommandBody;
+export interface CommandData<P = CommandParams, B = CommandBody> extends BaseInteractionData<P, B> {
+  body: B;
 }
 
 export default class Command<P = CommandParams, B = CommandBody>

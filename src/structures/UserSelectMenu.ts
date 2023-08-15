@@ -9,7 +9,8 @@ export interface UserSelectMenuParams extends SelectMenuParams {
   interaction: Discord.AnySelectMenuInteraction;
 }
 
-export interface UserSelectMenuData extends SelectMenuData<UserSelectMenuParams> {
+export interface UserSelectMenuData
+  extends SelectMenuData<UserSelectMenuParams, UserSelectMenuBody> {
   body: UserSelectMenuBody;
 }
 

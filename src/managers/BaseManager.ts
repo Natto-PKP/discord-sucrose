@@ -22,4 +22,9 @@ export default abstract class BaseManager<
       if (this.collection.has(data)) this.collection.delete(data);
     } else if (this.collection.has(data.label)) this.collection.delete(data.label);
   }
+
+  public resolve(data: Structure | Data | string) {
+    if (typeof data === 'string') return this.collection.get(data);
+    return data;
+  }
 }

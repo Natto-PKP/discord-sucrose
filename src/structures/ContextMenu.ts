@@ -9,8 +9,9 @@ export interface ContextMenuParams extends CommandParams {
   | Discord.MessageContextMenuCommandInteraction;
 }
 
-export interface ContextMenuData<P = ContextMenuParams> extends CommandData<P> {
-  body: ContextMenuBody;
+export interface ContextMenuData<P = ContextMenuParams, B = ContextMenuBody>
+  extends CommandData<P, B> {
+  body: B;
 }
 
 export default class ContextMenu<P = ContextMenuParams, B = ContextMenuBody>

@@ -3,20 +3,20 @@ import Permission, { PermissionData } from './Permission';
 import Cooldown, { CooldownData } from './Cooldown';
 import BaseExecutable, { type BaseExecutableData, type BaseExecutableParams } from './BaseExecutable';
 
-type Perm = Permission | PermissionData;
-type Coold = Cooldown | CooldownData;
+type Perm = Permission | PermissionData | string;
+type Coold = Cooldown | CooldownData | string;
 
 export interface BaseInteractionParams extends BaseExecutableParams {
   interaction: Discord.Interaction;
 }
 
-export interface BaseInteractionData<P = { }, B = unknown> extends BaseExecutableData<P> {
+export interface BaseInteractionData<P = { }, B = any> extends BaseExecutableData<P> {
   body: B;
   permissions?: (Perm)[] | Perm | null;
   cooldowns?: (Coold)[] | (Coold) | null;
 }
 
-export default class BaseInteraction<P = { }, B = unknown> extends BaseExecutable<P> {
+export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P> {
   public body: B;
 
   public permissions?: (Perm)[] | Perm | null;
@@ -32,7 +32,7 @@ export default class BaseInteraction<P = { }, B = unknown> extends BaseExecutabl
     this.cooldowns = d.cooldowns ?? null;
   }
 
-  public override get data(): BaseInteractionData<P> {
+  public override get data(): BaseInteractionData<P, B> {
     return {
       ...super.data,
       body: this.body,
@@ -58,14 +58,22 @@ export default class BaseInteraction<P = { }, B = unknown> extends BaseExecutabl
   public removePermissions(...permissions: (Perm)[]): this {
     if (!this.permissions) return this;
     if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
-    this.permissions = this.permissions.filter((permission) => !permissions.some((p) => (typeof p !== 'string' ? p.label : p) === permission.label));
+
+    this.permissions = this.permissions.filter((permission) => !permissions.some(
+      (p) => (typeof p !== 'string' ? p.label : p) === (typeof permission !== 'string' ? permission.label : permission),
+    ));
+
     return this;
   }
 
   public removeCooldowns(...cooldowns: (Coold | string)[]): this {
     if (!this.cooldowns) return this;
     if (!(this.cooldowns instanceof Array)) this.cooldowns = [this.cooldowns];
-    this.cooldowns = this.cooldowns.filter((cooldown) => !cooldowns.some((c) => (typeof c !== 'string' ? c.label : c) === cooldown.label));
+
+    this.cooldowns = this.cooldowns.filter((cooldown) => !cooldowns.some(
+      (c) => (typeof c !== 'string' ? c.label : c) === (typeof cooldown !== 'string' ? cooldown.label : cooldown),
+    ));
+
     return this;
   }
 }

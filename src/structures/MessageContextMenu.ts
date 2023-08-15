@@ -8,7 +8,8 @@ export interface MessageContextMenuParams extends ContextMenuParams {
   interaction: Discord.MessageContextMenuCommandInteraction;
 }
 
-export interface MessageContextMenuData extends ContextMenuData<MessageContextMenuParams> {
+export interface MessageContextMenuData
+  extends ContextMenuData<MessageContextMenuParams, MessageContextMenuBody> {
   body: MessageContextMenuBody;
 }
 

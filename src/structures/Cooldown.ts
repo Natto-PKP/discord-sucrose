@@ -3,19 +3,17 @@ import Base, { BaseData } from './Base';
 import Sucrose from '../Sucrose';
 
 export interface CooldownExecuteParams {
-  channel?: Discord.Channel;
-  guild?: Discord.Guild;
-  member?: Discord.GuildMember;
-  user?: Discord.User;
-  self: Cooldown;
-  sucrose: Sucrose;
+  channel?: Discord.Channel | null;
+  guild?: Discord.Guild | null;
+  member?: Discord.GuildMember | Discord.APIInteractionGuildMember | null;
+  user?: Discord.User | null;
+  sucrose?: Sucrose | null;
   client: Discord.Client;
 }
 
 export interface GlobalCooldownData extends BaseData {
   duration: number;
   stack?: number | null;
-  includeDiscordBots?: boolean | null;
 }
 
 export interface BasicCooldownData extends GlobalCooldownData {
@@ -48,8 +46,6 @@ export default class Cooldown extends Base {
 
   public stack?: number | null;
 
-  public includeDiscordBots?: boolean | null;
-
   public includes?: string[] | null;
 
   public excludes?: string[] | null;
@@ -67,7 +63,6 @@ export default class Cooldown extends Base {
       this.type = cooldown.type;
       this.duration = cooldown.duration;
       this.stack = cooldown.stack;
-      this.includeDiscordBots = cooldown.includeDiscordBots;
       this.includes = cooldown.includes;
       this.excludes = cooldown.excludes;
       this.condition = cooldown.condition as CustomCooldownData['condition'];
@@ -76,7 +71,6 @@ export default class Cooldown extends Base {
       this.type = cooldown.type;
       this.duration = cooldown.duration;
       this.stack = cooldown.stack;
-      this.includeDiscordBots = cooldown.includeDiscordBots;
       this.includes = 'includes' in cooldown ? cooldown.includes : null;
       this.excludes = 'excludes' in cooldown ? cooldown.excludes : null;
       this.condition = 'condition' in cooldown ? cooldown.condition as CustomCooldownData['condition'] : null;
@@ -89,7 +83,6 @@ export default class Cooldown extends Base {
       type: this.type,
       duration: this.duration,
       stack: this.stack,
-      includeDiscordBots: this.includeDiscordBots,
       includes: this.includes,
       excludes: this.excludes,
       condition: this.condition,
