@@ -2,11 +2,24 @@ import PermissionError from 'src/errors/PermissionError';
 import Permission, { type PermissionData, type PermissionExecuteParams } from '../structures/Permission';
 import BaseManager from './BaseManager';
 
+/**
+ * Permission type
+ * @internal
+ */
 type Perm = Permission | PermissionData | string;
 
+/**
+ * Permission manager
+ * @public
+ */
 export default class PermissionManager extends BaseManager<Permission, PermissionData> {
   protected override readonly _structure = Permission;
 
+  /**
+   * throw an error if permisisons is not valid
+   * @param permissions - Permissions to check
+   * @param params - Parameters
+   */
   public async check(permissions: Perm[] | Perm, params: PermissionExecuteParams) {
     const perms = Array.isArray(permissions) ? permissions : [permissions];
 

@@ -1,7 +1,12 @@
 import type Discord from 'discord.js';
 import Sucrose from 'src/Sucrose';
+import { Callback } from 'typings';
 import Base, { type BaseData } from './Base';
 
+/**
+ * Cooldown execute params
+ * @internal
+ */
 export interface PermissionExecuteParams {
   channel?: Discord.Channel | null;
   guild?: Discord.Guild | null;
@@ -11,31 +16,101 @@ export interface PermissionExecuteParams {
   client: Discord.Client;
 }
 
+/**
+ * Cooldown data
+ * @public
+ */
 export interface BasicPermissionData extends BaseData {
+  /**
+   * @example
+   * ```ts
+   * type = 'ROLE'; // permission for role
+   * type = 'USER'; // permission for user
+   * type = 'CHANNEL'; // permission for channel
+   * type = 'GUILD'; // permission for guild
+   * ```
+   */
   type: 'ROLE' | 'USER' | 'CHANNEL' | 'GUILD';
+
+  /**
+   * add ids who is allowed to execute this command
+   */
   allowed?: string[] | null;
+
+  /**
+   * add ids who is denied to execute this command
+   */
   denied?: string[] | null;
 }
 
+/**
+ * Cooldown data
+ * @public
+ */
 export interface DiscordPermissionData extends BaseData {
+  /**
+   * @example
+   * ```ts
+   * type = 'SELF'; // permission for current bot
+   * type = 'MEMBER'; // permission for user member
+   * ```
+   */
   type: 'SELF' | 'MEMBER';
+
+  /**
+   * add needed permissions to execute this command
+   */
   permissions: Discord.PermissionResolvable;
 }
 
+/**
+ * Cooldown data
+ * @public
+ */
 export interface CustomPermissionData extends BaseData {
+  /**
+   * custom type allows you to create your own permission with a condition
+   */
   type: 'CUSTOM';
-  condition: ((params: PermissionExecuteParams) => Promise<boolean> | boolean) | null;
+
+  /**
+   * custom condition must return a boolean
+   */
+  condition: Callback<PermissionExecuteParams, boolean> | null;
 }
 
 export interface OtherPermissionData extends BaseData {
+  /**
+   * if you want to allow only in private channel or only in guild
+   */
   type: 'ONLY_PRIVATE' | 'ONLY_GUILD';
 }
 
+/**
+ * Permission type
+ * @public
+ */
 export type PermissionType = 'ROLE' | 'USER' | 'CHANNEL' | 'GUILD' | 'SELF' | 'MEMBER' | 'CUSTOM' | 'ONLY_PRIVATE' | 'ONLY_GUILD';
 
+/**
+ * Permission data
+ * @public
+ */
 export type PermissionData = BasicPermissionData
 | DiscordPermissionData | CustomPermissionData | OtherPermissionData;
 
+/**
+ * Permission class
+ * @public
+ * @example
+ * ```ts
+ * const permission = new Permission({
+ *   label: 'admin',
+ *   type: 'ROLE',
+ *   allowed: ['123456789'],
+ * });
+ * ```
+ */
 export default class Permission extends Base {
   public override label: string;
 

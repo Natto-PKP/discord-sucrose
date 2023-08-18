@@ -1,5 +1,9 @@
 import Permission, { type PermissionData } from '../structures/Permission';
 
+/**
+ * permission error types & messages
+ * @public
+ */
 export enum PermissionErrors {
   MISSING_ROLE = 'missing role',
   HAS_DENIED_ROLE = 'has denied role',
@@ -16,6 +20,10 @@ export enum PermissionErrors {
   CUSTOM_CONDITION_FAILED = 'custom permission condition failed',
 }
 
+/**
+ * permission error
+ * @public
+ */
 export default class PermissionError extends Error {
   constructor(
     public permission: Permission | PermissionData,

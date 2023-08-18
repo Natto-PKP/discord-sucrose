@@ -3,44 +3,91 @@ import CooldownError from 'src/errors/CooldownError';
 import Cooldown, { type CooldownData, type CooldownExecuteParams } from '../structures/Cooldown';
 import BaseManager from './BaseManager';
 
+/**
+ * cooldown value
+ * @public
+ */
 export type CooldownValue = {
   key: string;
   beginAt: number;
   stack?: number | null;
 };
 
+/**
+ * cooldown types
+ * @internal
+ */
 type Cool = Cooldown | CooldownData | string;
 
+/**
+ * cooldown manager
+ * @public
+ */
 export default class CooldownManager extends BaseManager<Cooldown, CooldownData> {
   protected override readonly _structure = Cooldown;
 
+  /**
+   * cache of cooldowns
+   */
   public cache = new Discord.Collection<string, CooldownValue>();
 
+  /**
+   * get when cooldown expires
+   * @param cooldown - cooldown to check
+   * @param value - cooldown value to check
+   * @returns
+   */
   public async expiresAt(cooldown: Cool, value: string | CooldownValue) {
     const v = typeof value === 'string' ? await this.get(value) : value;
     const c = this.resolve(cooldown);
     return v ? v.beginAt + ((c && c.duration) || 0) : 0;
   }
 
+  /**
+   * check if cooldown is expired
+   * @param cooldown - cooldown to check
+   * @param value - cooldown value to check
+   */
   public async isExpired(cooldown: Cool, value: string | CooldownValue) {
     const c = typeof value === 'string' ? await this.get(value) : value;
     return c ? await this.expiresAt(cooldown, value) <= Date.now() : true;
   }
 
+  /**
+   * get remaining time on cooldown
+   * @param cooldown - cooldown to check
+   * @param value - cooldown value to check
+   * @returns
+   */
   public async remaining(cooldown: Cool, value: string | CooldownValue) {
     const c = typeof value === 'string' ? await this.get(value) : value;
     return c ? await this.expiresAt(cooldown, value) - Date.now() : 0;
   }
 
+  /**
+   * get cooldown value
+   * @param key - key to get
+   * @returns - cooldown value
+   */
   public async get(key: string) {
     return this.cache.get(key);
   }
 
+  /**
+   * set cooldown value
+   * @param value - cooldown value to set
+   * @returns - cooldown value
+   */
   public async set(value: CooldownValue) {
     this.cache.set(value.key, value);
     return value;
   }
 
+  /**
+   * check & handle colldowns
+   * @param cooldowns
+   * @param params
+   */
   public async check(cooldowns: Cool | Cool[], params: CooldownExecuteParams) {
     const clds = Array.isArray(cooldowns) ? cooldowns : [cooldowns];
 
@@ -114,7 +161,13 @@ export default class CooldownManager extends BaseManager<Cooldown, CooldownData>
     }));
   }
 
-  public async handle(cooldown: Cool, key: string) {
+  /**
+   * handle cooldown
+   * @param cooldown - cooldown to handle
+   * @param key - cooldown key
+   * @internal
+   */
+  private async handle(cooldown: Cool, key: string) {
     const c = this.resolve(cooldown);
     if (!c) throw new Error('invalid cooldown');
 

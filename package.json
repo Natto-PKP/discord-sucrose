@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --theme default",
+    "docs": "typedoc src/index.ts typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --theme default",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -56,7 +56,7 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
-    "typedoc": "^0.24.7",
+    "typedoc": "^0.24.8",
     "typescript": "^5.1.6"
   },
   "dependencies": {

@@ -1,14 +1,26 @@
 // eslint-disable-next-line max-classes-per-file
 import { EventEmitter } from 'events';
 
+/**
+ * Logger options
+ * @public
+ */
 export interface LoggerOptions {
   verbose?: boolean | null;
   console?: Console | null;
   colored?: boolean | null;
 }
 
+/**
+ * Logger event
+ * @public
+ */
 export type LoggerEvent = 'error' | 'raw';
 
+/**
+ * Logger levels
+ * @public
+ */
 export const enum Levels {
   DEBUG = 0,
   INFO = 1,
@@ -18,12 +30,20 @@ export const enum Levels {
   FATAL = 5,
 }
 
+/**
+ * Logger
+ * @public
+ */
 const defaultOptions: LoggerOptions = {
   verbose: false,
   console,
   colored: true,
 };
 
+/**
+ * Logger styles
+ * @public
+ */
 const styles = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
@@ -55,6 +75,22 @@ const levelStyles = {
   FATAL: `🛑 ${colors.magenta + styles.bright}FATAL${styles.reset}`,
 };
 
+/**
+ * Logger
+ * @public
+ * @example
+ * ```ts
+ * import { Logger } from 'sucrose';
+ *
+ * const logger = new Logger('my-logger');
+ * logger.debug('Hello world!');
+ * logger.info('Hello world!');
+ * logger.success('Hello world!');
+ * logger.warn('Hello world!');
+ * logger.error('Hello world!');
+ * logger.fatal('Hello world!');
+ * ```
+ */
 export default class Logger extends EventEmitter {
   private console = console;
 
@@ -64,6 +100,12 @@ export default class Logger extends EventEmitter {
     if (options.console) this.console = options.console;
   }
 
+  /**
+   * add styles to a string for console output
+   * @param str - String to add styles
+   * @param content - Styles to add
+   * @returns
+   */
   public static addStyles(str: string, content: 'rainbow' | (`colors.${keyof typeof colors}` | `colors.${keyof typeof colors}.${'font' | 'background'}` | `styles.${keyof typeof styles}`)[]) {
     if (content === 'rainbow') {
       const characters = str.split('');
@@ -84,30 +126,60 @@ export default class Logger extends EventEmitter {
     }, '') + str + styles.reset;
   }
 
+  /**
+   * Log debug
+   * @param content - Content to log
+   */
   public debug(content: Error | string) {
     this.log('DEBUG', content);
   }
 
+  /**
+   * Log info
+   * @param content - Content to log
+   */
   public info(content: Error | string) {
     this.log('INFO', content);
   }
 
+  /**
+   * Log success
+   * @param content - Content to log
+   */
   public success(content: Error | string) {
     this.log('SUCCESS', content);
   }
 
+  /**
+   * Log warn
+   * @param content - Content to log
+   */
   public warn(content: Error | string) {
     this.log('WARN', content);
   }
 
+  /**
+   * Log error
+   * @param content - Content to log
+   */
   public error(content: Error | string) {
     this.log('ERROR', content);
   }
 
+  /**
+   * Log fatal
+   * @param content - Content to log
+   */
   public fatal(content: Error | string) {
     this.log('FATAL', content);
   }
 
+  /**
+   * Log
+   * @param level - Level to log
+   * @param content - Content to log
+   * @param options - Options
+   */
   public log(level: keyof typeof Levels, content: Error | string, options?: {
     withDate?: boolean | null;
     verbose?: boolean | null;
@@ -142,10 +214,19 @@ export default class Logger extends EventEmitter {
     if (level === 'FATAL' || level === 'ERROR') this.emit('error', content, Logger.getDatetime(false));
   }
 
+  /**
+   * Log table
+   * @param content - Content to log
+   */
   public table(content: any) {
     this.console.table(content);
   }
 
+  /**
+   * Get datetime
+   * @param formated - Formated date
+   * @returns - Date | string
+   */
   static getDatetime<F extends boolean>(formated?: F | null): F extends true ? string : Date {
     const today = new Date();
     if (!formated) return today as F extends true ? string : Date;

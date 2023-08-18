@@ -10,6 +10,10 @@ import ModalManager from './ModalManager';
 import PermissionManager from './PermissionManager';
 import BaseInteraction from '../structures/BaseInteraction';
 
+/**
+ * Interaction manager options
+ * @public
+ */
 export interface InteractionManagerOptions {
   managers?: {
     buttons?: ButtonManager | null;
@@ -23,21 +27,49 @@ export interface InteractionManagerOptions {
   logger?: LoggerOptions;
 }
 
+/**
+ * Interaction manager
+ * @public
+ */
 export default class InteractionManager {
+  /**
+   * interaction with buttons
+   */
   public buttons: ButtonManager;
 
+  /**
+   * interaction with commands
+   */
   public commands: CommandManager;
 
+  /**
+   * interaction with modals
+   */
   public modals: ModalManager;
 
+  /**
+   * interaction with select menus
+   */
   public selectMenus: SelectMenuManager;
 
+  /**
+   * interaction with cooldowns
+   */
   public cooldowns: CooldownManager;
 
+  /**
+   * interaction with permissions
+   */
   public permissions: PermissionManager;
 
+  /**
+   * @internal
+   */
   private sucrose: Sucrose | null;
 
+  /**
+   * @internal
+   */
   private logger: Logger | null;
 
   constructor(options?: InteractionManagerOptions) {
@@ -54,6 +86,9 @@ export default class InteractionManager {
     this.selectMenus = options?.managers?.selectMenus || new SelectMenuManager(opts);
   }
 
+  /**
+   * @param interaction - Discord interaction
+   */
   public async listener(interaction: Discord.Interaction): Promise<void> {
     try {
       // # Message component
@@ -104,6 +139,11 @@ export default class InteractionManager {
     }
   }
 
+  /**
+   * execute an interaction
+   * @param structure - interaction structure
+   * @param interaction - Discord interaction
+   */
   public async execute(
     structure: BaseInteraction<any, any>,
     interaction: Discord.Interaction,
@@ -127,6 +167,10 @@ export default class InteractionManager {
     if (structure.afterExecute) await structure.afterExecute(executeParams);
   }
 
+  /**
+   * listen to interactions event
+   * @param client - Discord client
+   */
   public listen(client = this.sucrose): void {
     if (!client) throw new Error('No client provided');
     client.on('interactionCreate', this.listener.bind(this));
