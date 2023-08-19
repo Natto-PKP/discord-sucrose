@@ -1,4 +1,4 @@
-import ContextMenu, { type ContextMenuBody } from '../structures/ContextMenu';
+import { ContextMenu, type ContextMenuBody } from '../structures/ContextMenu';
 
 /**
  * Context menu model
@@ -22,7 +22,7 @@ import ContextMenu, { type ContextMenuBody } from '../structures/ContextMenu';
  * }
  * ```
  */
-export default abstract class ContextMenuModel extends ContextMenu {
+export abstract class ContextMenuModel extends ContextMenu {
   public abstract override label: string;
 
   public abstract override body: ContextMenuBody;

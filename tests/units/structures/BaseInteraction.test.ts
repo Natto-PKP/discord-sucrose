@@ -1,6 +1,6 @@
-import Button from '../../../src/structures/Button';
-import Cooldown from '../../../src/structures/Cooldown';
-import Permission from '../../../src/structures/Permission';
+import { Button } from '../../../src/structures/Button';
+import { Cooldown } from '../../../src/structures/Cooldown';
+import { Permission } from '../../../src/structures/Permission';
 
 const cooldown = new Cooldown({ label: 'test', duration: 1000, type: 'GUILD' });
 const permission = new Permission({ label: 'test', type: 'USER', allowed: ['4512985654'] });

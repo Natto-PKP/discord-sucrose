@@ -1,7 +1,7 @@
 import type Discord from 'discord.js';
-import Sucrose from 'src/Sucrose';
-import { Callback } from 'typings';
-import Base, { type BaseData } from './Base';
+import { Sucrose } from 'src/Sucrose';
+import { Callback } from 'src/typings';
+import { Base, type BaseData } from './Base';
 
 /**
  * Cooldown execute params
@@ -111,7 +111,7 @@ export type PermissionData = BasicPermissionData
  * });
  * ```
  */
-export default class Permission extends Base {
+export class Permission extends Base {
   public override label: string;
 
   public type: PermissionType;

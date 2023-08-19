@@ -1,4 +1,4 @@
-import Button, { type ButtonBody } from '../structures/Button';
+import { Button, type ButtonBody } from '../structures/Button';
 
 /**
  * Button model
@@ -24,7 +24,7 @@ import Button, { type ButtonBody } from '../structures/Button';
  * }
  * ```
  */
-export default abstract class ButtonModel extends Button {
+export abstract class ButtonModel extends Button {
   public abstract override label: string;
 
   public abstract override body: ButtonBody;

@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import BaseInteraction, { type BaseInteractionParams, type BaseInteractionData } from './BaseInteraction';
+import { BaseInteraction, type BaseInteractionParams, type BaseInteractionData } from './BaseInteraction';
 
 /**
  * Body of the select menu, discord.js will handle this
@@ -114,5 +114,5 @@ export interface SelectMenuData<P = SelectMenuParams, B = SelectMenuBody>
  * export default new SelectMenu(data);
  * ```
  */
-export default class SelectMenu<P = SelectMenuParams, B = SelectMenuBody>
+export class SelectMenu<P = SelectMenuParams, B = SelectMenuBody>
   extends BaseInteraction<P, B> { }

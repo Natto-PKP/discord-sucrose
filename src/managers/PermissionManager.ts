@@ -1,6 +1,6 @@
-import PermissionError from 'src/errors/PermissionError';
-import Permission, { type PermissionData, type PermissionExecuteParams } from '../structures/Permission';
-import BaseManager from './BaseManager';
+import { PermissionError } from 'src/errors/PermissionError';
+import { Permission, type PermissionData, type PermissionExecuteParams } from '../structures/Permission';
+import { BaseManager } from './BaseManager';
 
 /**
  * Permission type
@@ -12,7 +12,7 @@ type Perm = Permission | PermissionData | string;
  * Permission manager
  * @public
  */
-export default class PermissionManager extends BaseManager<Permission, PermissionData> {
+export class PermissionManager extends BaseManager<Permission, PermissionData> {
   protected override readonly _structure = Permission;
 
   /**

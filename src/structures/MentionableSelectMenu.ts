@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import SelectMenu, { type SelectMenuData, type SelectMenuParams } from './SelectMenu';
+import { SelectMenu, type SelectMenuData, type SelectMenuParams } from './SelectMenu';
 
 /**
  * Mentionable select menu body
@@ -86,5 +86,5 @@ export interface MentionableSelectMenuData
  * export default new MentionableSelectMenu(data);
  * ```
  */
-export default class MentionableSelectMenu
+export class MentionableSelectMenu
   extends SelectMenu<MentionableSelectMenuParams, MentionableSelectMenuBody> { }

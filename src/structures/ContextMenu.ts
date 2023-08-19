@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import Command, { type CommandData, type CommandParams } from './Command';
+import { Command, type CommandData, type CommandParams } from './Command';
 
 /**
  * Body of the context menu, discord.js will handle this
@@ -76,5 +76,5 @@ export interface ContextMenuData<P = ContextMenuParams, B = ContextMenuBody>
  * export default new ContextMenu(data);
  * ```
  */
-export default class ContextMenu<P = ContextMenuParams, B = ContextMenuBody>
+export class ContextMenu<P = ContextMenuParams, B = ContextMenuBody>
   extends Command<P, B> { }

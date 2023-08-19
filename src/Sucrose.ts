@@ -1,8 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import Discord from 'discord.js';
-import CooldownManager from './managers/CooldownManager';
-import InteractionManager, { type InteractionManagerOptions } from './managers/InteractionManager';
-import PermissionManager from './managers/PermissionManager';
+import { CooldownManager } from './managers/CooldownManager';
+import { InteractionManager, type InteractionManagerOptions } from './managers/InteractionManager';
+import { PermissionManager } from './managers/PermissionManager';
 
 /**
  * Discord client options with extra options for Sucrose
@@ -47,7 +47,7 @@ export type SucroseOptions = Discord.ClientOptions & {
  * });
  * ```
  */
-export default class Sucrose extends Discord.Client {
+export class Sucrose extends Discord.Client {
   /**
    * interact with the cooldowns manager
    */

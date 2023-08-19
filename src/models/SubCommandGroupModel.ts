@@ -1,4 +1,4 @@
-import SubCommandGroup, { type SubCommandGroupBody } from '../structures/SubCommandGroup';
+import { SubCommandGroup, type SubCommandGroupBody } from '../structures/SubCommandGroup';
 
 /**
  * Sub command group model
@@ -22,7 +22,7 @@ import SubCommandGroup, { type SubCommandGroupBody } from '../structures/SubComm
  * }
  * ```
  */
-export default abstract class SubCommandGroupModel extends SubCommandGroup {
+export abstract class SubCommandGroupModel extends SubCommandGroup {
   public abstract override label: string;
 
   public abstract override body: SubCommandGroupBody;

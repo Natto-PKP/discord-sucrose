@@ -1,11 +1,11 @@
 import Discord from 'discord.js';
-import Base, { type BaseData } from '../structures/Base';
+import { Base, type BaseData } from '../structures/Base';
 
 /**
  * Base manager
  * @public
  */
-export default abstract class BaseManager<
+export abstract class BaseManager<
   Structure extends Base = Base,
   Data extends BaseData = BaseData,
 > {

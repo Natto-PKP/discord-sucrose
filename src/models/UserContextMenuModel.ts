@@ -1,4 +1,4 @@
-import UserContextMenu, { type UserContextMenuBody } from '../structures/UserContextMenu';
+import { UserContextMenu, type UserContextMenuBody } from '../structures/UserContextMenu';
 
 /**
  * User context menu model
@@ -22,7 +22,7 @@ import UserContextMenu, { type UserContextMenuBody } from '../structures/UserCon
  * }
  * ```
  */
-export default abstract class UserContextMenuModel extends UserContextMenu {
+export abstract class UserContextMenuModel extends UserContextMenu {
   public abstract override label: string;
 
   public abstract override body: UserContextMenuBody;

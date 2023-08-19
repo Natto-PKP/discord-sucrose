@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import BaseInteraction, { type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
+import { BaseInteraction, type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
 
 /**
  * Body of the button, discord.js will handle this
@@ -85,4 +85,4 @@ export interface ButtonData extends BaseInteractionData<ButtonParams, ButtonBody
  * export default new Button(data);
  * ```
  */
-export default class Button extends BaseInteraction<ButtonParams, ButtonBody> { }
+export class Button extends BaseInteraction<ButtonParams, ButtonBody> { }

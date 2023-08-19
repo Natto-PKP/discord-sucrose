@@ -1,7 +1,7 @@
 import type Discord from 'discord.js';
-import { Callback } from 'typings';
-import type Sucrose from '../Sucrose';
-import Base, { BaseData } from './Base';
+import { Callback } from '../typings';
+import { type Sucrose } from '../Sucrose';
+import { Base, BaseData } from './Base';
 
 /**
  * Base executable params
@@ -87,7 +87,7 @@ export interface BaseExecutableData<P = { }> extends BaseData {
  * });
  * ```
  */
-export default class BaseExecutable<P = { }> extends Base {
+export class BaseExecutable<P = { }> extends Base {
   /**
    * This function will be executed when the interaction is triggered
    */

@@ -1,4 +1,4 @@
-import UserSelectMenu, { type UserSelectMenuBody } from '../structures/UserSelectMenu';
+import { UserSelectMenu, type UserSelectMenuBody } from '../structures/UserSelectMenu';
 
 /**
  * User select menu model
@@ -25,7 +25,7 @@ import UserSelectMenu, { type UserSelectMenuBody } from '../structures/UserSelec
  * }
  * ```
  */
-export default abstract class UserSelectMenuModel extends UserSelectMenu {
+export abstract class UserSelectMenuModel extends UserSelectMenu {
   public abstract override label: string;
 
   public abstract override body: UserSelectMenuBody;

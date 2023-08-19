@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*", "typings/**/*"],
+  "include": ["src/**/*", "src/typings/**/*"],
 
   "compilerOptions": {
     "baseUrl": "./", // Base directory to resolve non-relative module names

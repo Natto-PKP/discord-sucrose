@@ -1,4 +1,4 @@
-import StringSelectMenu, { type StringSelectMenuBody } from '../structures/StringSelectMenu';
+import { StringSelectMenu, type StringSelectMenuBody } from '../structures/StringSelectMenu';
 
 /**
  * String select menu model
@@ -25,7 +25,7 @@ import StringSelectMenu, { type StringSelectMenuBody } from '../structures/Strin
  * }
  * ```
  */
-export default abstract class StringSelectMenuModel extends StringSelectMenu {
+export abstract class StringSelectMenuModel extends StringSelectMenu {
   public abstract override label: string;
 
   public abstract override body: StringSelectMenuBody;

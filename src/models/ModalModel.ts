@@ -1,4 +1,4 @@
-import Modal, { type ModalBody } from '../structures/Modal';
+import { Modal, type ModalBody } from '../structures/Modal';
 
 /**
  * Modal model
@@ -21,7 +21,7 @@ import Modal, { type ModalBody } from '../structures/Modal';
  * }
  * ```
  */
-export default abstract class ModalModel extends Modal {
+export abstract class ModalModel extends Modal {
   public abstract override label: string;
 
   public abstract override body: ModalBody;

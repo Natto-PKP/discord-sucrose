@@ -160,7 +160,7 @@ const NAVIGATION_MODELS = {
  * collector.on('ask_page_number', () => console.log('ask_page_number'));
  * ```
  */
-export default class MessagePaginationCollector {
+export class MessagePaginationCollector {
   private page = 0;
 
   private emitter = new EventEmitter();

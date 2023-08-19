@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import SelectMenu, { type SelectMenuData, type SelectMenuParams } from './SelectMenu';
+import { SelectMenu, type SelectMenuData, type SelectMenuParams } from './SelectMenu';
 
 /**
  * Body of the channel select menu, discord.js will handle this
@@ -87,5 +87,5 @@ export interface ChannelSelectMenuData
  * };
  * ```
  */
-export default class ChannelSelectMenu
+export class ChannelSelectMenu
   extends SelectMenu<ChannelSelectMenuParams, ChannelSelectMenuBody> { }

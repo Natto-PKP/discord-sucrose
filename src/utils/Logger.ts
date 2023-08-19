@@ -91,7 +91,7 @@ const levelStyles = {
  * logger.fatal('Hello world!');
  * ```
  */
-export default class Logger extends EventEmitter {
+export class Logger extends EventEmitter {
   private console = console;
 
   constructor(public label: string, public options = defaultOptions) {

@@ -1,4 +1,4 @@
-import Permission from '../../../src/structures/Permission';
+import { Permission } from '../../../src/structures/Permission';
 
 const permission = new Permission({ label: 'test', type: 'USER', allowed: ['4512985654'] });
 

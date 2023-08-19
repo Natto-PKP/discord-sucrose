@@ -1,4 +1,4 @@
-import Button from '../../../src/structures/Button';
+import { Button } from '../../../src/structures/Button';
 import data from '../../data/button';
 
 const button = new Button();

@@ -1,4 +1,4 @@
-import ChannelSelectMenu, { type ChannelSelectMenuBody } from '../structures/ChannelSelectMenu';
+import { ChannelSelectMenu, type ChannelSelectMenuBody } from '../structures/ChannelSelectMenu';
 
 /**
  * Channel select menu model
@@ -24,7 +24,7 @@ import ChannelSelectMenu, { type ChannelSelectMenuBody } from '../structures/Cha
  * }
  * ```
  */
-export default abstract class ChannelSelectMenuModel extends ChannelSelectMenu {
+export abstract class ChannelSelectMenuModel extends ChannelSelectMenu {
   public abstract override label: string;
 
   public abstract override body: ChannelSelectMenuBody;

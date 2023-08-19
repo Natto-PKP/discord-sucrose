@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import ContextMenu, { type ContextMenuData, type ContextMenuParams } from './ContextMenu';
+import { ContextMenu, type ContextMenuData, type ContextMenuParams } from './ContextMenu';
 
 /**
  * Message context menu body
@@ -76,5 +76,5 @@ export interface MessageContextMenuData
  * export default new MessageContextMenu(data);
  * ```
  */
-export default class MessageContextMenu
+export class MessageContextMenu
   extends ContextMenu<MessageContextMenuParams, MessageContextMenuBody> { }

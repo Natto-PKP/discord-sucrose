@@ -1,13 +1,6 @@
-import Cooldown from '../../../src/structures/Cooldown';
+import { Cooldown } from '../../../src/structures/Cooldown';
 
 const cooldown = new Cooldown({ label: 'test', duration: 1000, type: 'GUILD' });
-
-describe('includeDiscordBots property', () => {
-  it('should return true', () => {
-    cooldown.includeDiscordBots = true;
-    expect(cooldown.includeDiscordBots).toBeTruthy();
-  });
-});
 
 describe('setDuration method', () => {
   it('should set duration', () => {

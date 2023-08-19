@@ -1,10 +1,7 @@
 import type Discord from 'discord.js';
-import Permission, { PermissionData } from './Permission';
-import Cooldown, { CooldownData } from './Cooldown';
-import BaseExecutable, { type BaseExecutableData, type BaseExecutableParams } from './BaseExecutable';
-
-type Perm = Permission | PermissionData | string;
-type Coold = Cooldown | CooldownData | string;
+import { Permission, PermissionData } from './Permission';
+import { Cooldown, CooldownData } from './Cooldown';
+import { BaseExecutable, type BaseExecutableData, type BaseExecutableParams } from './BaseExecutable';
 
 /**
  * Base interaction params
@@ -31,8 +28,9 @@ export interface BaseInteractionParams extends BaseExecutableParams {
  */
 export interface BaseInteractionData<P = { }, B = any> extends BaseExecutableData<P> {
   body: B;
-  permissions?: (Perm)[] | Perm | null;
-  cooldowns?: (Coold)[] | (Coold) | null;
+  permissions?: (Permission | PermissionData | string)[]
+  | Permission | PermissionData | string | null;
+  cooldowns?: (Cooldown | CooldownData | string)[] | (Cooldown | CooldownData | string) | null;
 }
 
 /**
@@ -61,7 +59,7 @@ export interface BaseInteractionData<P = { }, B = any> extends BaseExecutableDat
  *
  * export default new BaseInteraction(data);
  */
-export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P> {
+export class BaseInteraction<P = { }, B = any> extends BaseExecutable<P> {
   /**
    * body interaction, discord.js will handle this
    */
@@ -70,12 +68,14 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
   /**
    * add one or multiple permissions to the interaction
    */
-  public permissions?: (Perm)[] | Perm | null;
+  public permissions?: (Permission | PermissionData | string)[]
+  | Permission | PermissionData | string | null;
 
   /**
    * add one or multiple cooldowns to the interaction
    */
-  public cooldowns?: (Coold)[] | (Coold) | null;
+  public cooldowns?: (Cooldown | CooldownData | string)[]
+  | (Cooldown | CooldownData | string) | null;
 
   constructor(data?: BaseInteractionData<P, B> | BaseInteraction<P, B> | null) {
     super(data);
@@ -100,7 +100,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param permissions - permission to add
    * @returns - this
    */
-  public addPermissions(...permissions: (Perm)[]): this {
+  public addPermissions(...permissions: (Permission | PermissionData | string)[]): this {
     if (!this.permissions) this.permissions = [];
     if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
     this.permissions.push(...permissions);
@@ -112,7 +112,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param cooldowns - cooldown to add
    * @returns - this
    */
-  public addCooldowns(...cooldowns: (Coold)[]): this {
+  public addCooldowns(...cooldowns: (Cooldown | CooldownData | string)[]): this {
     if (!this.cooldowns) this.cooldowns = [];
     if (!(this.cooldowns instanceof Array)) this.cooldowns = [this.cooldowns];
     this.cooldowns.push(...cooldowns);
@@ -124,7 +124,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param permissions - permission to remove
    * @returns - this
    */
-  public removePermissions(...permissions: (Perm)[]): this {
+  public removePermissions(...permissions: (Permission | PermissionData | string)[]): this {
     if (!this.permissions) return this;
     if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
 
@@ -140,7 +140,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param cooldowns - cooldown to remove
    * @returns - this
    */
-  public removeCooldowns(...cooldowns: (Coold | string)[]): this {
+  public removeCooldowns(...cooldowns: (Cooldown | CooldownData | string | string)[]): this {
     if (!this.cooldowns) return this;
     if (!(this.cooldowns instanceof Array)) this.cooldowns = [this.cooldowns];
 
@@ -156,7 +156,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param permissions - permission to set
    * @returns - this
    */
-  public setPermissions(...permissions: (Perm)[]): this {
+  public setPermissions(...permissions: (Permission | PermissionData | string)[]): this {
     this.permissions = permissions;
     return this;
   }
@@ -166,7 +166,7 @@ export default class BaseInteraction<P = { }, B = any> extends BaseExecutable<P>
    * @param cooldowns - cooldown to set
    * @returns - this
    */
-  public setCooldowns(...cooldowns: (Coold)[]): this {
+  public setCooldowns(...cooldowns: (Cooldown | CooldownData | string)[]): this {
     this.cooldowns = cooldowns;
     return this;
   }

@@ -1,4 +1,4 @@
-import SubCommand, { type SubCommandBody } from '../structures/SubCommand';
+import { SubCommand, type SubCommandBody } from '../structures/SubCommand';
 
 /**
  * Sub command model
@@ -23,7 +23,7 @@ import SubCommand, { type SubCommandBody } from '../structures/SubCommand';
  * }
  * ```
  */
-export default abstract class SubCommandModel extends SubCommand {
+export abstract class SubCommandModel extends SubCommand {
   public abstract override label: string;
 
   public abstract override body: SubCommandBody;

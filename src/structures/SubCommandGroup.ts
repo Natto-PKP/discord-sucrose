@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
-import BaseInteraction, { type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
-import SubCommand, { type SubCommandData } from './SubCommand';
+import { BaseInteraction, type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
+import { SubCommand, type SubCommandData } from './SubCommand';
 
 /**
  * Body of the sub command group, discord.js will handle this
@@ -85,7 +85,7 @@ export interface SubCommandGroupData
  * export default data;
  * ```
  */
-export default class SubCommandGroup
+export class SubCommandGroup
   extends BaseInteraction<SubCommandGroupParams, SubCommandGroupBody> {
   public options?: Discord.Collection<string, SubCommand> | null;
 

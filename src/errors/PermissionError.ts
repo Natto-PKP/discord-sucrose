@@ -1,4 +1,4 @@
-import Permission, { type PermissionData } from '../structures/Permission';
+import { Permission, type PermissionData } from '../structures/Permission';
 
 /**
  * permission error types & messages
@@ -24,7 +24,7 @@ export enum PermissionErrors {
  * permission error
  * @public
  */
-export default class PermissionError extends Error {
+export class PermissionError extends Error {
   constructor(
     public permission: Permission | PermissionData,
     public type: keyof typeof PermissionErrors,

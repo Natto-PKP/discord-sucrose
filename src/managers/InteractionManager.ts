@@ -1,14 +1,13 @@
 import Discord from 'discord.js';
-import type { LoggerOptions } from 'typings';
-import Sucrose from '../Sucrose';
-import Logger from '../utils/Logger';
-import ButtonManager from './ButtonManager';
-import CooldownManager from './CooldownManager';
-import CommandManager from './CommandManager';
-import SelectMenuManager from './SelectMenuManager';
-import ModalManager from './ModalManager';
-import PermissionManager from './PermissionManager';
-import BaseInteraction from '../structures/BaseInteraction';
+import { LoggerOptions, Logger } from '../utils/Logger';
+import { Sucrose } from '../Sucrose';
+import { ButtonManager } from './ButtonManager';
+import { CooldownManager } from './CooldownManager';
+import { CommandManager } from './CommandManager';
+import { SelectMenuManager } from './SelectMenuManager';
+import { ModalManager } from './ModalManager';
+import { PermissionManager } from './PermissionManager';
+import { BaseInteraction } from '../structures/BaseInteraction';
 
 /**
  * Interaction manager options
@@ -31,7 +30,7 @@ export interface InteractionManagerOptions {
  * Interaction manager
  * @public
  */
-export default class InteractionManager {
+export class InteractionManager {
   /**
    * interaction with buttons
    */

@@ -1,5 +1,5 @@
 import { type CooldownValue } from '../managers/CooldownManager';
-import Cooldown, { type CooldownData } from '../structures/Cooldown';
+import { Cooldown, type CooldownData } from '../structures/Cooldown';
 
 /**
  * cooldown error types & messages
@@ -14,7 +14,7 @@ export enum CooldownErrors {
  * cooldown error
  * @public
  */
-export default class CooldownError extends Error {
+export class CooldownError extends Error {
   constructor(
     public cooldown: Cooldown | CooldownData,
     public type: keyof typeof CooldownErrors,

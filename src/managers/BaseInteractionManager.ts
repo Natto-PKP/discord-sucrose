@@ -1,6 +1,6 @@
-import Sucrose from 'src/Sucrose';
-import BaseInteraction, { type BaseInteractionData } from '../structures/BaseInteraction';
-import BaseManager from './BaseManager';
+import { Sucrose } from 'src/Sucrose';
+import { BaseInteraction, type BaseInteractionData } from '../structures/BaseInteraction';
+import { BaseManager } from './BaseManager';
 
 /**
  * Base interaction manager options
@@ -18,7 +18,7 @@ export interface BaseInteractionManagerOptions {
  * Base interaction manager
  * @public
  */
-export default abstract class BaseInteractionManager<
+export abstract class BaseInteractionManager<
   Params = { },
   Body = unknown,
   Model extends BaseInteraction<Params, Body> = BaseInteraction<Params, Body>,

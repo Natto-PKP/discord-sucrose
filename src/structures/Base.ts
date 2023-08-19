@@ -63,7 +63,7 @@ export interface BaseData {
  * export default new Base(data);
  * ```
  */
-export default class Base {
+export class Base {
   /**
    * label is a key wich is used in the manager collection
    */

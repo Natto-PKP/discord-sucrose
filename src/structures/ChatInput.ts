@@ -1,7 +1,7 @@
 import Discord from 'discord.js';
-import Command, { type CommandData, type CommandParams } from './Command';
-import SubCommand, { SubCommandData } from './SubCommand';
-import SubCommandGroup, { type SubCommandGroupData } from './SubCommandGroup';
+import { Command, type CommandData, type CommandParams } from './Command';
+import { SubCommand, SubCommandData } from './SubCommand';
+import { SubCommandGroup, type SubCommandGroupData } from './SubCommandGroup';
 
 /**
  * Body of the chat input, discord.js will handle this
@@ -91,7 +91,7 @@ type Option = SubCommand | SubCommandGroup;
  *
  * export default new ChatInput(data);
  */
-export default class ChatInput
+export class ChatInput
   extends Command<ChatInputParams, ChatInputBody> {
   /**
    * chat input options

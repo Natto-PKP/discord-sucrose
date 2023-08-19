@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import BaseInteraction, { type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
+import { BaseInteraction, type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
 
 /**
  * Body of the sub command, discord.js will handle this
@@ -79,4 +79,4 @@ export interface SubCommandData extends BaseInteractionData<SubCommandParams, Su
  * export default new SubCommand(data);
  * ```
  */
-export default class SubCommand extends BaseInteraction<SubCommandParams, SubCommandBody> { }
+export class SubCommand extends BaseInteraction<SubCommandParams, SubCommandBody> { }

@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import SelectMenu, { type SelectMenuData, type SelectMenuParams } from './SelectMenu';
+import { SelectMenu, type SelectMenuData, type SelectMenuParams } from './SelectMenu';
 
 /**
  * RoleSelectMenu body
@@ -86,5 +86,5 @@ export interface RoleSelectMenuData
  * export default new RoleSelectMenu(data);
  * ```
  */
-export default class RoleSelectMenu
+export class RoleSelectMenu
   extends SelectMenu<RoleSelectMenuParams, RoleSelectMenuBody> { }

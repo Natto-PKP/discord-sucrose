@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import SelectMenu, { type SelectMenuData, type SelectMenuParams } from './SelectMenu';
+import { SelectMenu, type SelectMenuData, type SelectMenuParams } from './SelectMenu';
 
 /**
  * Body of the user select menu, discord.js will handle this
@@ -86,5 +86,5 @@ export interface UserSelectMenuData
  * export default data;
  * ```
  */
-export default class UserSelectMenu
+export class UserSelectMenu
   extends SelectMenu<UserSelectMenuParams, UserSelectMenuBody> { }

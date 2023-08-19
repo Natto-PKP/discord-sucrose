@@ -1,5 +1,5 @@
 import data from '../../data/button';
-import Button from '../../../src/structures/Button';
+import { Button } from '../../../src/structures/Button';
 
 const button = new Button(data);
 

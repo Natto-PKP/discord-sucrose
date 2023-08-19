@@ -1,7 +1,7 @@
 import Discord from 'discord.js';
-import CooldownError from 'src/errors/CooldownError';
-import Cooldown, { type CooldownData, type CooldownExecuteParams } from '../structures/Cooldown';
-import BaseManager from './BaseManager';
+import { CooldownError } from 'src/errors/CooldownError';
+import { Cooldown, type CooldownData, type CooldownExecuteParams } from '../structures/Cooldown';
+import { BaseManager } from './BaseManager';
 
 /**
  * cooldown value
@@ -23,7 +23,7 @@ type Cool = Cooldown | CooldownData | string;
  * cooldown manager
  * @public
  */
-export default class CooldownManager extends BaseManager<Cooldown, CooldownData> {
+export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
   protected override readonly _structure = Cooldown;
 
   /**

@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import MessagePaginationCollector, { type MessagePaginationCollectorOptions } from './MessagePaginationCollector';
+import { MessagePaginationCollector, type MessagePaginationCollectorOptions } from './MessagePaginationCollector';
 
 /**
  * Message pagination page
@@ -48,7 +48,7 @@ export type MessagePaginationPage = string
  * collector.on('ask_page_number', () => console.log('ask_page_number'));
  * ```
  */
-export default async function CreateMessagePagination(
+export async function CreateMessagePagination(
   message: Discord.Message | Discord.InteractionResponse,
   pages: MessagePaginationPage[],
   options: MessagePaginationCollectorOptions = { },

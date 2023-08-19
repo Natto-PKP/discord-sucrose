@@ -15,7 +15,6 @@
       },
       "rules": {
         "import/no-cycle": 0,
-        "no-restricted-syntax": "off",
         "linebreak-style": ["error", "windows"],
         "import/prefer-default-export": "off"
       }
@@ -28,7 +27,7 @@
       }
     }, 
     {
-      "files": ["**/*.test.ts"],
+      "files": ["tests/**/*.test.ts"],
       "env": { "jest": true, "jest/globals": true },
       "plugins": ["@typescript-eslint", "jest"],
       "extends": ["airbnb-base", "airbnb-typescript/base", "plugin:jest/recommended"],

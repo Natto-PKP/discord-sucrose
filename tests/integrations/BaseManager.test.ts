@@ -1,5 +1,5 @@
-import ButtonManager from '../../src/managers/ButtonManager';
-import Button from '../../src/structures/Button';
+import { ButtonManager } from '../../src/managers/ButtonManager';
+import { Button } from '../../src/structures/Button';
 import data from '../data/button';
 
 const manager = new ButtonManager();

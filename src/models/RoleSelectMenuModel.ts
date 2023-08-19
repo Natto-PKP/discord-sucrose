@@ -1,4 +1,4 @@
-import RoleSelectMenu, { type RoleSelectMenuBody } from '../structures/RoleSelectMenu';
+import { RoleSelectMenu, type RoleSelectMenuBody } from '../structures/RoleSelectMenu';
 
 /**
  * Role select menu model
@@ -24,7 +24,7 @@ import RoleSelectMenu, { type RoleSelectMenuBody } from '../structures/RoleSelec
  * }
  * ```
  */
-export default abstract class RoleSelectMenuModel extends RoleSelectMenu {
+export abstract class RoleSelectMenuModel extends RoleSelectMenu {
   public abstract override label: string;
 
   public abstract override body: RoleSelectMenuBody;

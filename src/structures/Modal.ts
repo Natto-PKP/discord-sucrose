@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import BaseInteraction, { type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
+import { BaseInteraction, type BaseInteractionData, type BaseInteractionParams } from './BaseInteraction';
 
 /**
  * Body of the modal, discord.js will handle this
@@ -77,4 +77,4 @@ export interface ModalData extends BaseInteractionData<ModalParams, ModalBody> {
  * export default new Modal(data);
  * ```
  */
-export default class Modal extends BaseInteraction<ModalParams, ModalBody> { }
+export class Modal extends BaseInteraction<ModalParams, ModalBody> { }

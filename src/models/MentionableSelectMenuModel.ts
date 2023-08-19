@@ -1,4 +1,4 @@
-import MentionableSelectMenu, { type MentionableSelectMenuBody } from '../structures/MentionableSelectMenu';
+import { MentionableSelectMenu, type MentionableSelectMenuBody } from '../structures/MentionableSelectMenu';
 
 /**
  * Mentionable select menu model
@@ -24,7 +24,7 @@ import MentionableSelectMenu, { type MentionableSelectMenuBody } from '../struct
  * }
  * ```
  */
-export default abstract class MentionableSelectMenuModel extends MentionableSelectMenu {
+export abstract class MentionableSelectMenuModel extends MentionableSelectMenu {
   public abstract override label: string;
 
   public abstract override body: MentionableSelectMenuBody;

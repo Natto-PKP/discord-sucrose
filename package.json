@@ -4,7 +4,7 @@
     "Lors de la publication d'une version de dev, ajout d'une chaine random du genre gRg8VE6r",
     "Unpublish l'ancienne version avant de changer la version et de publish"
   ],
-  "version": "8.0.0-dev.Jf8F8mTv",
+  "version": "8.0.0-dev.qCXeb1XS",
   "type": "module",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc src/index.ts typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --theme default",
+    "docs": "typedoc src typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --theme default",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -57,10 +57,10 @@
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typedoc": "^0.24.8",
+    "commitlint": "^17.1.2",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "commitlint": "^17.1.2",
     "discord.js": "^14.12.1"
   }
 }

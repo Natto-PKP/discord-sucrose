@@ -1,12 +1,14 @@
 import type Discord from 'discord.js';
-import Command, { type CommandData, type CommandParams, type CommandBody } from '../structures/Command';
-import BaseInteractionManager from './BaseInteractionManager';
+import {
+  Command, type CommandData, type CommandParams, type CommandBody,
+} from '../structures/Command';
+import { BaseInteractionManager } from './BaseInteractionManager';
 
 /**
  * Command manager
  * @public
  */
-export default class CommandManager extends BaseInteractionManager<
+export class CommandManager extends BaseInteractionManager<
 CommandParams,
 CommandBody,
 Command,

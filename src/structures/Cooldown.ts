@@ -1,7 +1,7 @@
 import type Discord from 'discord.js';
-import { Callback } from 'typings';
-import Base, { BaseData } from './Base';
-import Sucrose from '../Sucrose';
+import { Callback } from 'src/typings';
+import { Base, BaseData } from './Base';
+import { Sucrose } from '../Sucrose';
 
 /**
  * Cooldown execute params
@@ -156,7 +156,7 @@ const DEFAULT_DURATION = 3000;
  *
  * export default new Cooldown(data);
  */
-export default class Cooldown extends Base {
+export class Cooldown extends Base {
   public override label: string;
 
   /**

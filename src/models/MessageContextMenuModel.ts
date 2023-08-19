@@ -1,4 +1,4 @@
-import MessageContextMenu, { type MessageContextMenuBody } from '../structures/MessageContextMenu';
+import { MessageContextMenu, type MessageContextMenuBody } from '../structures/MessageContextMenu';
 
 /**
  * Message context menu model
@@ -22,7 +22,7 @@ import MessageContextMenu, { type MessageContextMenuBody } from '../structures/M
  * }
  * ```
  */
-export default abstract class MessageContextMenuModel extends MessageContextMenu {
+export abstract class MessageContextMenuModel extends MessageContextMenu {
   public abstract override label: string;
 
   public abstract override body: MessageContextMenuBody;
