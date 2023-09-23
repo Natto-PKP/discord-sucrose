@@ -39,10 +39,7 @@ export interface UserSelectMenuParams extends SelectMenuParams {
  * };
  * ```
  */
-export interface UserSelectMenuData
-  extends SelectMenuData<UserSelectMenuParams, UserSelectMenuBody> {
-  body: UserSelectMenuBody;
-}
+export type UserSelectMenuData = SelectMenuData<UserSelectMenuParams, UserSelectMenuBody>;
 
 /**
  * User select menu

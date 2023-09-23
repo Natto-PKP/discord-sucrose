@@ -26,8 +26,8 @@ export interface BaseInteractionParams extends BaseExecutableParams {
  * };
  * ```
  */
-export interface BaseInteractionData<P = { }, B = any> extends BaseExecutableData<P> {
-  body: B;
+export interface BaseInteractionData<P, B> extends BaseExecutableData<P> {
+  body?: B | null;
   permissions?: (Permission | PermissionData | string)[]
   | Permission | PermissionData | string | null;
   cooldowns?: (Cooldown | CooldownData | string)[] | (Cooldown | CooldownData | string) | null;
@@ -59,31 +59,28 @@ export interface BaseInteractionData<P = { }, B = any> extends BaseExecutableDat
  *
  * export default new BaseInteraction(data);
  */
-export class BaseInteraction<P = { }, B = any> extends BaseExecutable<P> {
-  /**
-   * body interaction, discord.js will handle this
-   */
-  public body: B;
+export class BaseInteraction<P, B> extends BaseExecutable<P> {
+  public body: BaseInteractionData<P, B>['body'];
 
   /**
    * add one or multiple permissions to the interaction
    */
-  public permissions?: (Permission | PermissionData | string)[]
-  | Permission | PermissionData | string | null;
+  public permissions: BaseInteractionData<P, B>['permissions'];
 
   /**
    * add one or multiple cooldowns to the interaction
    */
-  public cooldowns?: (Cooldown | CooldownData | string)[]
-  | (Cooldown | CooldownData | string) | null;
+  public cooldowns: BaseInteractionData<P, B>['cooldowns'];
 
   constructor(data?: BaseInteractionData<P, B> | BaseInteraction<P, B> | null) {
     super(data);
 
-    const d = (data instanceof BaseInteraction ? data.data : data) ?? this.data;
-    this.body = d.body as B;
-    this.permissions = d.permissions ?? null;
-    this.cooldowns = d.cooldowns ?? null;
+    const dt = data ?? this.data;
+    if (!dt) return;
+
+    this.body = dt.body;
+    this.permissions = dt.permissions ?? null;
+    this.cooldowns = dt.cooldowns ?? null;
   }
 
   public override get data(): BaseInteractionData<P, B> {
@@ -100,7 +97,7 @@ export class BaseInteraction<P = { }, B = any> extends BaseExecutable<P> {
    * @param permissions - permission to add
    * @returns - this
    */
-  public addPermissions(...permissions: (Permission | PermissionData | string)[]): this {
+  public addPermissions(permissions: (Permission | PermissionData | string)[]): this {
     if (!this.permissions) this.permissions = [];
     if (!(this.permissions instanceof Array)) this.permissions = [this.permissions];
     this.permissions.push(...permissions);

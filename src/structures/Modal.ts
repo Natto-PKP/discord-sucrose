@@ -35,9 +35,7 @@ export interface ModalParams extends BaseInteractionParams {
  * };
  * ```
  */
-export interface ModalData extends BaseInteractionData<ModalParams, ModalBody> {
-  body: ModalBody;
-}
+export type ModalData = BaseInteractionData<ModalParams, ModalBody>;
 
 /**
  * Modal

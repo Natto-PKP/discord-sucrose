@@ -39,12 +39,10 @@ export interface SubCommandGroupParams extends BaseInteractionParams {
  */
 export interface SubCommandGroupData
   extends BaseInteractionData<SubCommandGroupParams, SubCommandGroupBody> {
-  body: SubCommandGroupBody;
-
   /**
    * Sub command group options
    */
-  options?: SubCommandData[] | null;
+  options?: (SubCommandData | SubCommand)[] | null;
 }
 
 /**
@@ -103,7 +101,12 @@ export class SubCommandGroup
    */
   public addOptions(...options: SubCommand[]): this {
     if (!this.options) this.options = new Discord.Collection();
-    options.forEach((option) => this.options?.set(option.label, option));
+
+    options.forEach((option) => {
+      if (!option.label) return;
+      this.options?.set(option.label, option);
+    });
+
     return this;
   }
 
@@ -114,7 +117,12 @@ export class SubCommandGroup
    */
   public removeOptions(...options: SubCommand[]): this {
     if (!this.options) return this;
-    options.forEach((option) => this.options?.delete(option.label));
+
+    options.forEach((option) => {
+      if (!option.label) return;
+      this.options?.delete(option.label);
+    });
+
     return this;
   }
 
@@ -126,7 +134,12 @@ export class SubCommandGroup
   public setOptions(options: SubCommand[]): this {
     if (!this.options) this.options = new Discord.Collection();
     this.options.clear();
-    options.forEach((option) => this.options?.set(option.label, option));
+
+    options.forEach((option) => {
+      if (!option.label) return;
+      this.options?.set(option.label, option);
+    });
+
     return this;
   }
 }

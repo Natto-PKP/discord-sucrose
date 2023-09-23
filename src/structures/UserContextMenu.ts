@@ -36,10 +36,7 @@ export interface UserContextMenuParams extends ContextMenuParams {
  * };
  * ```
  */
-export interface UserContextMenuData
-  extends ContextMenuData<UserContextMenuParams, UserContextMenuBody> {
-  body: UserContextMenuBody;
-}
+export type UserContextMenuData = ContextMenuData<UserContextMenuParams, UserContextMenuBody>;
 
 /**
  * User context menu

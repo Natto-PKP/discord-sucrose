@@ -39,10 +39,7 @@ export interface RoleSelectMenuParams extends SelectMenuParams {
  * };
  * ```
  */
-export interface RoleSelectMenuData
-  extends SelectMenuData<RoleSelectMenuParams, RoleSelectMenuBody> {
-  body: RoleSelectMenuBody;
-}
+export type RoleSelectMenuData = SelectMenuData<RoleSelectMenuParams, RoleSelectMenuBody>;
 
 /**
  * RoleSelectMenu

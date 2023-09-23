@@ -41,9 +41,7 @@ export interface ButtonParams extends BaseInteractionParams {
  * };
  * ```
  */
-export interface ButtonData extends BaseInteractionData<ButtonParams, ButtonBody> {
-  body: ButtonBody;
-}
+export type ButtonData = BaseInteractionData<ButtonParams, ButtonBody>;
 
 /**
  * Button

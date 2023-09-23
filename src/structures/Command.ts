@@ -50,7 +50,7 @@ export interface CommandParams extends BaseInteractionParams {
  * ```
  */
 export interface CommandData<P = CommandParams, B = CommandBody> extends BaseInteractionData<P, B> {
-  body: B;
+
 }
 
 /**

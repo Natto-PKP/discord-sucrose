@@ -2,20 +2,19 @@
   "name": "discord-sucrose",
   "//": [
     "Lors de la publication d'une version de dev, ajout d'une chaine random du genre gRg8VE6r",
-    "Unpublish l'ancienne version avant de changer la version et de publish"
+    "Unpublish l'ancienne version avant de changer la version et de publish `npm unpublish discord-sucrose@{version here}`"
   ],
-  "version": "8.0.0-dev.qCXeb1XS",
-  "type": "module",
+  "version": "8.0.0-dev.7dqqnpLK",
   "description": "Structure for discord bot with discord.js",
   "main": "dist/index.js",
-  "types": "typings/index.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "typings"
   ],
   "scripts": {
     "build": "tsc",
-    "docs": "typedoc src typings/index.d.ts --out docs --cname docs.discord.sucrose.xyz --theme default",
+    "docs": "typedoc src/index.ts --plugin typedoc-plugin-djs-links --out docs --cname docs.discord.sucrose.xyz --theme default",
     "prepare": "npm run build",
     "test": "jest",
     "simulate": "ts-node ./tests/index.ts"
@@ -44,6 +43,7 @@
     "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
+    "commitlint": "^17.1.2",
     "dotenv": "^14.2.0",
     "eslint": "^8.2.0",
     "eslint-config-airbnb": "^19.0.4",
@@ -57,7 +57,7 @@
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typedoc": "^0.24.8",
-    "commitlint": "^17.1.2",
+    "typedoc-plugin-djs-links": "^2.0.0",
     "typescript": "^5.1.6"
   },
   "dependencies": {

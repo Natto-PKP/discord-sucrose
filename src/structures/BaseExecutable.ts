@@ -1,7 +1,8 @@
 import type Discord from 'discord.js';
-import { Callback } from '../typings';
 import { type Sucrose } from '../Sucrose';
 import { Base, BaseData } from './Base';
+
+export type Callback<P = { }, R = void> = (params: P) => R | Promise<R>;
 
 /**
  * Base executable params
@@ -20,12 +21,6 @@ export interface BaseExecutableParams {
 }
 
 /**
- * Base executable callback
- * @internal
- */
-export type BaseExecutableCallback<P = { }> = Callback<P & BaseExecutableParams>;
-
-/**
  * Base executable data
  * @public
  * @example
@@ -39,26 +34,26 @@ export type BaseExecutableCallback<P = { }> = Callback<P & BaseExecutableParams>
  * };
  * ```
  */
-export interface BaseExecutableData<P = { }> extends BaseData {
+export interface BaseExecutableData<P> extends BaseData {
   /**
    * This function will be executed when the interaction is triggered
    */
-  execute?: BaseExecutableCallback<P> | null;
+  execute?: Callback<P & BaseExecutableParams> | null;
 
   /**
    * This function will be executed before the interaction is triggered
    */
-  beforeExecute?: BaseExecutableCallback<P> | null;
+  beforeExecute?: Callback<P & BaseExecutableParams> | null;
 
   /**
    * This function will be executed after the interaction is triggered
    */
-  afterExecute?: BaseExecutableCallback<P> | null;
+  afterExecute?: Callback<P & BaseExecutableParams> | null;
 
   /**
    * This function will be executed when an error occurs
    */
-  onError?: BaseExecutableCallback<P & { error: Error }> | null;
+  onError?: Callback<P & BaseExecutableParams & { error: Error }> | null;
 }
 
 /**
@@ -87,26 +82,26 @@ export interface BaseExecutableData<P = { }> extends BaseData {
  * });
  * ```
  */
-export class BaseExecutable<P = { }> extends Base {
+export class BaseExecutable<P> extends Base {
   /**
    * This function will be executed when the interaction is triggered
    */
-  public execute?: BaseExecutableCallback<P> | null;
+  public execute?: BaseExecutableData<P>['execute'];
 
   /**
    * This function will be executed before the interaction is triggered
    */
-  public beforeExecute?: BaseExecutableCallback<P> | null;
+  public beforeExecute?: BaseExecutableData<P>['beforeExecute'];
 
   /**
    * This function will be executed after the interaction is triggered
    */
-  public afterExecute?: BaseExecutableCallback<P> | null;
+  public afterExecute?: BaseExecutableData<P>['afterExecute'];
 
   /**
    * This function will be executed when an error occurs
    */
-  public onError?: BaseExecutableCallback<P & { error: Error }> | null;
+  public onError?: BaseExecutableData<P>['onError'];
 
   constructor(data?: BaseExecutableData<P> | BaseExecutable<P> | string | null) {
     super(data);
@@ -133,7 +128,7 @@ export class BaseExecutable<P = { }> extends Base {
    * @param execute - This function will be executed when the interaction is triggered
    * @returns - this
    */
-  public setExecute(execute: BaseExecutableCallback<P> | null): this {
+  public setExecute(execute: BaseExecutableData<P>['execute']): this {
     this.execute = execute;
     return this;
   }
@@ -143,7 +138,7 @@ export class BaseExecutable<P = { }> extends Base {
    * @param beforeExecute - This function will be executed before the interaction is triggered
    * @returns - this
    */
-  public setBeforeExecute(beforeExecute: BaseExecutableCallback<P> | null): this {
+  public setBeforeExecute(beforeExecute: BaseExecutableData<P>['beforeExecute']): this {
     this.beforeExecute = beforeExecute;
     return this;
   }
@@ -153,7 +148,7 @@ export class BaseExecutable<P = { }> extends Base {
    * @param afterExecute - This function will be executed after the interaction is triggered
    * @returns - this
    */
-  public setAfterExecute(afterExecute: BaseExecutableCallback<P> | null): this {
+  public setAfterExecute(afterExecute: BaseExecutableData<P>['afterExecute']): this {
     this.afterExecute = afterExecute;
     return this;
   }
@@ -163,7 +158,7 @@ export class BaseExecutable<P = { }> extends Base {
    * @param onError - This function will be executed when an error occurs
    * @returns - this
    */
-  public setOnError(onError: BaseExecutableCallback<P & { error: Error }> | null): this {
+  public setOnError(onError: BaseExecutableData<P>['onError']): this {
     this.onError = onError;
     return this;
   }

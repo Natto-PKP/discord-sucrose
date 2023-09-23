@@ -67,10 +67,7 @@ export interface SelectMenuParams extends BaseInteractionParams {
  * };
  * ```
  */
-export interface SelectMenuData<P = SelectMenuParams, B = SelectMenuBody>
-  extends BaseInteractionData<P, B> {
-  body: B;
-}
+export type SelectMenuData<P = SelectMenuParams, B = SelectMenuBody> = BaseInteractionData<P, B>;
 
 /**
  * Select menu

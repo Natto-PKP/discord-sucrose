@@ -1,5 +1,5 @@
 import type Discord from 'discord.js';
-import { Callback } from 'src/typings';
+import type { Callback } from './BaseExecutable';
 import { Base, BaseData } from './Base';
 import { Sucrose } from '../Sucrose';
 
@@ -43,7 +43,7 @@ export interface CooldownExecuteParams {
  * Cooldown data
  * @internal
  */
-interface GlobalCooldownData extends BaseData {
+export interface GlobalCooldownData extends BaseData {
   duration: number;
   stack?: number | null;
 }
@@ -157,8 +157,6 @@ const DEFAULT_DURATION = 3000;
  * export default new Cooldown(data);
  */
 export class Cooldown extends Base {
-  public override label: string;
-
   /**
    * @example
    * ```ts

@@ -35,10 +35,10 @@ export interface MessageContextMenuParams extends ContextMenuParams {
  * };
  * ```
  */
-export interface MessageContextMenuData
-  extends ContextMenuData<MessageContextMenuParams, MessageContextMenuBody> {
-  body: MessageContextMenuBody;
-}
+export type MessageContextMenuData = ContextMenuData<
+MessageContextMenuParams,
+MessageContextMenuBody
+>;
 
 /**
  * Message context menu

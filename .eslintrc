@@ -16,7 +16,8 @@
       "rules": {
         "import/no-cycle": 0,
         "linebreak-style": ["error", "windows"],
-        "import/prefer-default-export": "off"
+        "import/prefer-default-export": "off",
+        "no-underscore-dangle": "off"
       }
     },
     {

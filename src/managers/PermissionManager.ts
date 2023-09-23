@@ -1,12 +1,6 @@
-import { PermissionError } from 'src/errors/PermissionError';
+import { PermissionError } from '../errors/PermissionError';
 import { Permission, type PermissionData, type PermissionExecuteParams } from '../structures/Permission';
 import { BaseManager } from './BaseManager';
-
-/**
- * Permission type
- * @internal
- */
-type Perm = Permission | PermissionData | string;
 
 /**
  * Permission manager
@@ -20,7 +14,10 @@ export class PermissionManager extends BaseManager<Permission, PermissionData> {
    * @param permissions - Permissions to check
    * @param params - Parameters
    */
-  public async check(permissions: Perm[] | Perm, params: PermissionExecuteParams) {
+  public async check(
+    permissions: (Permission | PermissionData | string)[] | Permission | PermissionData | string,
+    params: PermissionExecuteParams,
+  ) {
     const perms = Array.isArray(permissions) ? permissions : [permissions];
 
     await Promise.all(perms.map(async (p) => {

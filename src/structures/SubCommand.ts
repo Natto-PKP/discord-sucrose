@@ -37,9 +37,7 @@ export interface SubCommandParams extends BaseInteractionParams {
  * ```
  * @example
  */
-export interface SubCommandData extends BaseInteractionData<SubCommandParams, SubCommandBody> {
-  body: SubCommandBody;
-}
+export type SubCommandData = BaseInteractionData<SubCommandParams, SubCommandBody>;
 
 /**
  * Sub command

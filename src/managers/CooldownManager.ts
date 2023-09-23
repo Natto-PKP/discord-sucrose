@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import { CooldownError } from 'src/errors/CooldownError';
+import { CooldownError } from '../errors/CooldownError';
 import { Cooldown, type CooldownData, type CooldownExecuteParams } from '../structures/Cooldown';
 import { BaseManager } from './BaseManager';
 
@@ -12,12 +12,6 @@ export type CooldownValue = {
   beginAt: number;
   stack?: number | null;
 };
-
-/**
- * cooldown types
- * @internal
- */
-type Cool = Cooldown | CooldownData | string;
 
 /**
  * cooldown manager
@@ -37,7 +31,10 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
    * @param value - cooldown value to check
    * @returns
    */
-  public async expiresAt(cooldown: Cool, value: string | CooldownValue) {
+  public async expiresAt(
+    cooldown: Cooldown | CooldownData | string,
+    value: string | CooldownValue,
+  ) {
     const v = typeof value === 'string' ? await this.get(value) : value;
     const c = this.resolve(cooldown);
     return v ? v.beginAt + ((c && c.duration) || 0) : 0;
@@ -48,7 +45,10 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
    * @param cooldown - cooldown to check
    * @param value - cooldown value to check
    */
-  public async isExpired(cooldown: Cool, value: string | CooldownValue) {
+  public async isExpired(
+    cooldown: Cooldown | CooldownData | string,
+    value: string | CooldownValue,
+  ) {
     const c = typeof value === 'string' ? await this.get(value) : value;
     return c ? await this.expiresAt(cooldown, value) <= Date.now() : true;
   }
@@ -59,7 +59,10 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
    * @param value - cooldown value to check
    * @returns
    */
-  public async remaining(cooldown: Cool, value: string | CooldownValue) {
+  public async remaining(
+    cooldown: Cooldown | CooldownData | string,
+    value: string | CooldownValue,
+  ) {
     const c = typeof value === 'string' ? await this.get(value) : value;
     return c ? await this.expiresAt(cooldown, value) - Date.now() : 0;
   }
@@ -88,49 +91,30 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
    * @param cooldowns
    * @param params
    */
-  public async check(cooldowns: Cool | Cool[], params: CooldownExecuteParams) {
+  public async check(
+    cooldowns: Cooldown | CooldownData | string | (Cooldown | CooldownData | string)[],
+    params: CooldownExecuteParams,
+  ) {
     const clds = Array.isArray(cooldowns) ? cooldowns : [cooldowns];
 
     await Promise.all(clds.map(async (c) => {
       const cooldown = this.resolve(c);
       if (!cooldown) return;
 
-      if (cooldown.type === 'CHANNEL') {
-        if (!params.channel) return;
-        const channelId = params.channel.id;
-        const key = `${cooldown.label}:${channelId}`;
+      if (cooldown.type === 'CHANNEL' || cooldown.type === 'GUILD' || cooldown.type === 'USER') {
+        let id = null;
+        if (cooldown.type === 'CHANNEL') id = params.channel?.id;
+        else if (cooldown.type === 'GUILD') id = params.guild?.id;
+        else if (cooldown.type === 'USER') id = params.user?.id;
+        if (!id) return;
 
-        if (cooldown.includes && cooldown.includes.includes(channelId)) {
-          await this.handle(cooldown, key);
-        }
+        const key = `${cooldown.label}:${id}`;
 
-        if (cooldown.excludes && !cooldown.excludes.includes(channelId)) {
-          await this.handle(cooldown, key);
-        }
-      } else if (cooldown.type === 'GUILD') {
-        if (!params.guild) return;
-        const guildId = params.guild.id;
-        const key = `${cooldown.label}:${guildId}`;
-
-        if (cooldown.includes && cooldown.includes.includes(guildId)) {
-          await this.handle(cooldown, key);
-        }
-
-        if (cooldown.excludes && !cooldown.excludes.includes(guildId)) {
-          await this.handle(cooldown, key);
-        }
-      } else if (cooldown.type === 'USER') {
-        if (!params.user) return;
-        const userId = params.user.id;
-        const key = `${cooldown.label}:${userId}`;
-
-        if (cooldown.includes && cooldown.includes.includes(userId)) {
-          await this.handle(cooldown, key);
-        }
-
-        if (cooldown.excludes && !cooldown.excludes.includes(userId)) {
-          await this.handle(cooldown, key);
-        }
+        if (cooldown.includes) {
+          if (cooldown.includes.includes(id)) await this.handle(cooldown, key);
+        } else if (cooldown.excludes) {
+          if (!cooldown.excludes.includes(id)) await this.handle(cooldown, key);
+        } else await this.handle(cooldown, key);
       } else if (cooldown.type === 'ROLE') {
         if (!params.member) return;
         const roles = Array.isArray(params.member.roles)
@@ -138,13 +122,11 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
           : params.member.roles.cache.map((r) => r.id);
         const key = `${cooldown.label}:role:${params.member.user.id}`;
 
-        if (cooldown.includes && cooldown.includes.some((r) => roles.includes(r))) {
-          await this.handle(cooldown, key);
-        }
-
-        if (cooldown.excludes && !cooldown.excludes.some((r) => roles.includes(r))) {
-          await this.handle(cooldown, key);
-        }
+        if (cooldown.includes) {
+          if (cooldown.includes.some((r) => roles.includes(r))) await this.handle(cooldown, key);
+        } else if (cooldown.excludes) {
+          if (!cooldown.excludes.some((r) => roles.includes(r))) await this.handle(cooldown, key);
+        } else await this.handle(cooldown, key);
       } else if (cooldown.type === 'ONLY_GUILD') {
         if (!params.guild) return;
         const key = `${cooldown.label}:${params.guild.id}`;
@@ -167,7 +149,10 @@ export class CooldownManager extends BaseManager<Cooldown, CooldownData> {
    * @param key - cooldown key
    * @internal
    */
-  private async handle(cooldown: Cool, key: string) {
+  private async handle(
+    cooldown: Cooldown | CooldownData | string,
+    key: string,
+  ) {
     const c = this.resolve(cooldown);
     if (!c) throw new Error('invalid cooldown');
 

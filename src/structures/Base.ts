@@ -17,7 +17,7 @@ export interface BaseData {
   /**
    * label is a key wich is used in the manager collection
    */
-  label: string;
+  label?: string | null;
 
   /**
    * description is only used for documentation purposes, i think. not sure
@@ -67,30 +67,30 @@ export class Base {
   /**
    * label is a key wich is used in the manager collection
    */
-  public label: string;
+  public label: BaseData['label'];
 
   /**
    * description is only used for documentation purposes, i think. not sure
    */
-  public description?: string | null;
+  public description: BaseData['description'];
 
   /**
    * tags are used for filtering and documentation purposes
    */
-  public tags?: string[] | null;
+  public tags: BaseData['tags'];
 
   /**
    * disable it if you don't want it to be used
    */
-  public disabled?: boolean | null;
+  public disabled: BaseData['disabled'];
 
   constructor(data?: Base | BaseData | string | null) {
     const d = (data instanceof Base ? data.data : data) ?? this.data;
     const label = typeof d === 'string' ? d : d?.label || null;
 
-    this.label = label as string;
+    this.label = label;
 
-    if (typeof d === 'string') return;
+    if (!d || typeof d === 'string') return;
     this.description = d.description ?? null;
     this.tags = d.tags ?? null;
     this.disabled = d.disabled ?? null;
@@ -121,7 +121,7 @@ export class Base {
    * @param label - label to set
    * @returns - this
    */
-  public setLabel(label: string): this {
+  public setLabel(label: BaseData['label']): this {
     this.label = label;
     return this;
   }
@@ -131,7 +131,7 @@ export class Base {
    * @param description - description to set
    * @returns - this
    */
-  public setDescription(description: string | null): this {
+  public setDescription(description: BaseData['description']): this {
     this.description = description;
     return this;
   }
@@ -143,7 +143,8 @@ export class Base {
    */
   public addTags(...tags: string[]): this {
     this.tags = this.tags ?? [];
-    this.tags.push(...tags);
+    const newTags = tags.filter((tag) => !this.tags?.includes(tag));
+    this.tags.push(...newTags);
     return this;
   }
 
@@ -152,7 +153,7 @@ export class Base {
    * @param tags - tags to remove
    * @returns - this
    */
-  public removeTags(...tags: string[]): this {
+  public removeTags(...tags: NonNullable<BaseData['tags']>): this {
     this.tags = this.tags?.filter((tag) => !tags.includes(tag)) ?? null;
     return this;
   }
@@ -162,7 +163,7 @@ export class Base {
    * @param tags - tags to set
    * @returns - this
    */
-  public setTags(tags: string[] | null): this {
+  public setTags(tags: BaseData['tags']): this {
     this.tags = tags;
     return this;
   }

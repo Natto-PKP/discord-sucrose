@@ -98,6 +98,7 @@ export class InteractionManager {
         if (interaction.componentType === Discord.ComponentType.Button) {
           const button = this.buttons.collection.find((b) => {
             const body = b.body instanceof Discord.ButtonBuilder ? b.body.toJSON() : b.body;
+            if (!body) return false;
             if ('url' in body || b.disabled) return false;
             return ('customId' in body ? body.customId : body.custom_id) === customId;
           });
@@ -107,6 +108,7 @@ export class InteractionManager {
         // # Select menu
           const selectMenu = this.selectMenus.collection.find((s) => {
             const body = s.body instanceof Discord.BaseSelectMenuBuilder ? s.body.toJSON() : s.body;
+            if (!body) return false;
             if (s.disabled) return false;
             return ('customId' in body ? body.customId : body.custom_id) === customId;
           });
@@ -117,6 +119,7 @@ export class InteractionManager {
       // # Modal
         const modal = this.modals.collection.find((m) => {
           const body = m.body instanceof Discord.ModalBuilder ? m.body.toJSON() : m.body;
+          if (!body) return false;
           if (m.disabled) return false;
           return ('customId' in body ? body.customId : body.custom_id) === interaction.customId;
         });
@@ -127,6 +130,7 @@ export class InteractionManager {
         const command = this.commands.collection.find((c) => {
           const body = c.body instanceof Discord.ContextMenuCommandBuilder
         || c.body instanceof Discord.SlashCommandBuilder ? c.body.toJSON() : c.body;
+          if (!body) return false;
           if (c.disabled) return false;
           return body.name === interaction.commandName;
         });

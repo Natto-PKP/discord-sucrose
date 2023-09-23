@@ -1,6 +1,6 @@
 import type Discord from 'discord.js';
-import { Sucrose } from 'src/Sucrose';
-import { Callback } from 'src/typings';
+import { Sucrose } from '../Sucrose';
+import type { Callback } from './BaseExecutable';
 import { Base, type BaseData } from './Base';
 
 /**
@@ -112,8 +112,6 @@ export type PermissionData = BasicPermissionData
  * ```
  */
 export class Permission extends Base {
-  public override label: string;
-
   public type: PermissionType;
 
   public allowed?: string[] | null;

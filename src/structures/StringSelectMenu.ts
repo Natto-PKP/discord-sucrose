@@ -39,10 +39,7 @@ export interface StringSelectMenuParams extends SelectMenuParams {
  * };
  * ```
  */
-export interface StringSelectMenuData
-  extends SelectMenuData<StringSelectMenuParams, StringSelectMenuBody> {
-  body: StringSelectMenuBody;
-}
+export type StringSelectMenuData = SelectMenuData<StringSelectMenuParams, StringSelectMenuBody>;
 
 /**
  * String select menu

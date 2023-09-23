@@ -42,10 +42,7 @@ export interface ChannelSelectMenuParams extends SelectMenuParams {
  * };
  * ```
  */
-export interface ChannelSelectMenuData
-  extends SelectMenuData<ChannelSelectMenuParams, ChannelSelectMenuBody> {
-  body: ChannelSelectMenuBody;
-}
+export type ChannelSelectMenuData = SelectMenuData<ChannelSelectMenuParams, ChannelSelectMenuBody>;
 
 /**
  * Channel select menu

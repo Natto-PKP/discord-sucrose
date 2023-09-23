@@ -36,9 +36,7 @@ export interface ContextMenuParams extends CommandParams {
  * };
  */
 export interface ContextMenuData<P = ContextMenuParams, B = ContextMenuBody>
-  extends CommandData<P, B> {
-  body: B;
-}
+  extends CommandData<P, B> { }
 
 /**
  * Context menu

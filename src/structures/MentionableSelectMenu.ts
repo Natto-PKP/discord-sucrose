@@ -39,10 +39,10 @@ export interface MentionableSelectMenuParams extends SelectMenuParams {
  * };
  * ```
  */
-export interface MentionableSelectMenuData
-  extends SelectMenuData<MentionableSelectMenuParams, MentionableSelectMenuBody> {
-  body: MentionableSelectMenuBody;
-}
+export type MentionableSelectMenuData = SelectMenuData<
+MentionableSelectMenuParams,
+MentionableSelectMenuBody
+>;
 
 /**
  * Mentionable select menu

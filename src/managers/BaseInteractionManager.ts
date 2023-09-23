@@ -1,4 +1,4 @@
-import { Sucrose } from 'src/Sucrose';
+import { Sucrose } from '../Sucrose';
 import { BaseInteraction, type BaseInteractionData } from '../structures/BaseInteraction';
 import { BaseManager } from './BaseManager';
 

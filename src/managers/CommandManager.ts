@@ -28,6 +28,7 @@ CommandData
 
     const cmd = this.resolve(command);
     if (!cmd) throw new Error('cannot deploy command that does not exist.');
+    if (!cmd.body) throw new Error('cannot deploy command without body.');
 
     return this.sucrose.application.commands.create(cmd.body, guildId || undefined);
   }

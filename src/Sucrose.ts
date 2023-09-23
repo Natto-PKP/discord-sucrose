@@ -3,6 +3,7 @@ import Discord from 'discord.js';
 import { CooldownManager } from './managers/CooldownManager';
 import { InteractionManager, type InteractionManagerOptions } from './managers/InteractionManager';
 import { PermissionManager } from './managers/PermissionManager';
+import { EventManager } from './managers/EventManager';
 
 /**
  * Discord client options with extra options for Sucrose
@@ -19,6 +20,7 @@ export type SucroseOptions = Discord.ClientOptions & {
      */
     cooldowns?: CooldownManager | null;
     interactions?: InteractionManager | null;
+    events?: EventManager | null;
   } & InteractionManagerOptions['managers'];
 };
 
@@ -63,6 +65,11 @@ export class Sucrose extends Discord.Client {
    */
   public interactions: InteractionManager;
 
+  /**
+   * interact with the events manager
+   */
+  public events: EventManager;
+
   constructor(options: SucroseOptions) {
     super(options);
 
@@ -87,5 +94,13 @@ export class Sucrose extends Discord.Client {
 
     // # listen interactionCreate event
     this.interactions.listen(this);
+
+    // # create events manager
+    this.events = options.managers?.events || new EventManager({
+      sucrose: this,
+    });
+
+    // # listen all events
+    this.events.listenAll();
   }
 }

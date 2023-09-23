@@ -1,7 +1,5 @@
 import Discord from 'discord.js';
 import { Command, type CommandData, type CommandParams } from './Command';
-import { SubCommand, SubCommandData } from './SubCommand';
-import { SubCommandGroup, type SubCommandGroupData } from './SubCommandGroup';
 
 /**
  * Body of the chat input, discord.js will handle this
@@ -36,23 +34,12 @@ export interface ChatInputParams extends CommandParams {
  *   permissions: ['ADMINISTRATOR'],
  * };
  */
-export interface ChatInputData extends CommandData<ChatInputParams> {
-  /**
-   * Body of the chat input, discord.js will handle this
-   */
-  body: ChatInputBody;
-
+export interface ChatInputData extends CommandData<ChatInputParams, ChatInputBody> {
   /**
    * Chat input options
    */
-  options?: (SubCommandData | SubCommandGroupData)[] | null;
+  // options?: (SubCommandData | SubCommand | SubCommandGroupData | SubCommandGroup)[] | null;
 }
-
-/**
- * Chat input option
- * @internal
- */
-type Option = SubCommand | SubCommandGroup;
 
 /**
  * Chat input
@@ -91,51 +78,54 @@ type Option = SubCommand | SubCommandGroup;
  *
  * export default new ChatInput(data);
  */
-export class ChatInput
-  extends Command<ChatInputParams, ChatInputBody> {
-  /**
-   * chat input options
-   */
-  public options?: Discord.Collection<string, SubCommand | SubCommandGroup> | null;
-
+export class ChatInput extends Command<ChatInputParams, ChatInputBody> {
   /**
    * add chat input options
    * @param options - Chat input options
    * @returns - this
    */
-  public addOptions(...options: (Option)[]): this {
-    if (!this.options) this.options = new Discord.Collection();
-    options.forEach((option) => { this.options?.set(option.label, option); });
-    return this;
-  }
+  // public addOptions(...options: (SubCommand | SubCommandGroup)[]): this {
+  //   if (!this.options) this.options = [];
+
+  //   options.forEach((option) => {
+  //     if (!option.label) return;
+  //     this.options?.push(option);
+  //   });
+
+  //   return this;
+  // }
 
   /**
    * remove chat input options
    * @param options - Chat input options
    * @returns - this
    */
-  public removeOptions(...options: (Option)[]): this {
-    if (!this.options) return this;
-    options.forEach((option) => { this.options?.delete(option.label); });
-    return this;
-  }
+  // public removeOptions(...options: (SubCommand | SubCommandGroup)[]): this {
+  //   if (!this.options) return this;
+
+  //   options.forEach((option) => {
+  //     if (!option.label) return;
+  //     this.options?.delete(option.label);
+  //   });
+
+  //   return this;
+  // }
 
   /**
    * set chat input options
    * @param options - Chat input options
    * @returns - this
    */
-  public setOptions(options: (Option)[]): this {
-    if (!this.options) this.options = new Discord.Collection();
-    this.options.clear();
-    options.forEach((option) => { this.options?.set(option.label, option); });
-    return this;
-  }
+  // public setOptions(options: ChatInputData['options']): this {
+  //   this.options = options;
+
+  //   return this;
+  // }
 
   public override get data(): ChatInputData {
     return {
       ...super.data,
-      options: this.options?.map((option) => option.data) || null,
+      // options: this.options?.map((option) => option.data) || null,
     };
   }
 }
